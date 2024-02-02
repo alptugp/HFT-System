@@ -30,10 +30,6 @@ Follow these instructions to get the project up and running on your local machin
     ./build_script.sh
     ```
 
-## Usage
-
-After successfully building the project, you can use the following commands:
-
 ### Run the Project
 
 Use the following command to run the project:
