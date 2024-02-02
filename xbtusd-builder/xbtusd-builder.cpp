@@ -65,7 +65,7 @@ int main()
     bitmex::websocket::Client bmx_client;
 
     // Create a ThroughputMonitor and pass the start time
-    ThroughputMonitor throughputMonitor(std::chrono::high_resolution_clock::now());
+    [[maybe_unused]] ThroughputMonitor throughputMonitor(std::chrono::high_resolution_clock::now());
 
     // Register a callback that is invoked when a trade is reported.
     bmx_client.on_trade([&order_book, &throughputMonitor]([[maybe_unused]] const char* symbol, const char action, uint64_t id, const char* side, int size, double price, const char* timestamp) {
