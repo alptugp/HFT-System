@@ -1,14 +1,10 @@
-# Project Name
+# Bitmex Limit Order Book Builder
 
-A brief description of your project.
+Limit Order Book Builder for Bitmex
 
 ## Getting Started
 
 Follow these instructions to get the project up and running on your local machine.
-
-### Prerequisites
-
-- [List any prerequisites or dependencies here]
 
 ### Installation
 
