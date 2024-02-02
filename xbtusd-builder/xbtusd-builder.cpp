@@ -4,8 +4,8 @@
 #include <string>
 #include <chrono>
 
-#include "../order_book/order_book.hpp"
-#include "../throughput_monitor/throughput_monitor.hpp"
+#include "./order_book/order_book.hpp"
+#include "./throughput_monitor/throughput_monitor.hpp"
 
 
 using client = websocketpp::client<websocketpp::config::asio_tls_client>;
