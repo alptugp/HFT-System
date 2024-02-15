@@ -58,12 +58,11 @@ void bench(int cpu1, int cpu2) {
   
   t1.join();
   t2.join();
-    
 }
 
 void program(int cpu1, int cpu2)  {   
     std::string currencyPair = "XBTUSD";
-    const size_t queueSize = 100;
+    const size_t queueSize = 100000;
     SPSCQueue<OrderBook> queue(queueSize);
 
     auto t1 = std::thread([&] {
@@ -84,7 +83,7 @@ void program(int cpu1, int cpu2)  {
       
       bitmex::websocket::Client bmxClient;
 
-      auto onTradeCallBackLambda = [&orderBook, &throughputMonitor, &queue]([[maybe_unused]] const char* symbol, const char action, 
+      auto onTradeCallBackLambda = [&orderBook, &throughputMonitor, &queue]([[maybe_unused]] const char* symbol, const char* action, 
         uint64_t id, const char* side, int size, double price, const char* timestamp) {
         onTradeCallBack(orderBook, throughputMonitor, queue, symbol, action, id, side, size, price, timestamp);
       };

@@ -34,11 +34,10 @@ private:
     AVLNode* rotateRight(AVLNode* y);
     AVLNode* rotateLeft(AVLNode* x);
     AVLNode* balance(AVLNode* node);
-    AVLNode* insertHelper(AVLNode* node, uint64_t id, double price, int size, std::unordered_map<uint64_t, AVLNode*>& idMap);
-    void updateHelper(AVLNode* node, uint64_t id, int size, std::unordered_map<uint64_t, AVLNode*>& idMap);
-    void removeHelper(AVLNode* root, uint64_t id, std::unordered_map<uint64_t, AVLNode*>& idMap);
-
-    AVLNode* deleteNode(AVLNode* root, uint64_t id, std::unordered_map<uint64_t, AVLNode*>& idMap);
+    
+    AVLNode* insertHelper(AVLNode* node, uint64_t id, double price, int size);
+    void updateHelper(AVLNode* node, double price, int size);
+    AVLNode* deleteNode(AVLNode* root, double price);
     AVLNode* minValueNode(AVLNode* node);
     
     void postorderTraversal(AVLNode* root);

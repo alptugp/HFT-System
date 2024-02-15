@@ -57,15 +57,15 @@ static void on_message(bitmex::websocket::Client* client, websocketpp::connectio
 }
 
 void onTradeCallBack(OrderBook& orderBook, [[maybe_unused]] ThroughputMonitor& throughputMonitor, SPSCQueue<OrderBook>& queue, [[maybe_unused]] const char* symbol, 
-                    const char action, uint64_t id, const char* side, int size, double price, [[maybe_unused]] const char* timestamp) {
+                    const char* action, uint64_t id, const char* side, int size, double price, [[maybe_unused]] const char* timestamp) {
     // auto programReceiveTime = Clock::now();
     // throughputMonitor.onTradeReceived();
     // auto exchangeTimeStamp = convertTimestampToTimePoint(timestamp);
     // auto networkLatency = std::chrono::duration_cast<std::chrono::microseconds>(programReceiveTime - exchangeTimeStamp);
-
+    // std::cout << action << std::endl;
     std::string sideStr(side);
     if (sideStr == "Buy") {
-        switch (action) {
+        switch (action[0]) {
             case 'p':
             case 'i':
                 orderBook.insertBuy(id, price, size);
@@ -81,7 +81,7 @@ void onTradeCallBack(OrderBook& orderBook, [[maybe_unused]] ThroughputMonitor& t
                 break;
         }
     } else if (sideStr == "Sell") {
-        switch (action) {
+        switch (action[0]) {
             case 'p':
             case 'i':
                 orderBook.insertSell(id, price, size);

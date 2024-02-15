@@ -13,57 +13,57 @@ std::pair<double, double> OrderBook::getBestBuyAndSellPrice() {
 int OrderBook::height(AVLNode* node) {
     if (node == nullptr)
         return 0;
+    std::cout << "height" << std::endl;
     return node->height;
 }
 
 int OrderBook::balanceFactor(AVLNode* node) {
+    std::cout << "balanceFactor" << std::endl;
     if (node == nullptr)
         return 0;
     return height(node->left) - height(node->right);
 }
 
-void OrderBook::removeHelper(AVLNode* root, uint64_t id, std::unordered_map<uint64_t, AVLNode*>& idMap) {
-    root = deleteNode(root, id, idMap);
-    idMap.erase(id);
-}
-
-AVLNode* OrderBook::insertHelper(AVLNode* node, uint64_t id, double price, int size, std::unordered_map<uint64_t, AVLNode*>& idMap) {
+AVLNode* OrderBook::insertHelper(AVLNode* node, uint64_t id, double price, int size) {
+    // std::cout << "insertHelper" << std::endl;
     if (node == nullptr) {
         AVLNode* newNode = new AVLNode(id, price, size);
-        idMap[id] = newNode;
         return newNode;
     }
 
     if (price < node->price)
-        node->left = insertHelper(node->left, id, price, size, idMap);
+        node->left = insertHelper(node->left, id, price, size);
     else if (price > node->price)
-        node->right = insertHelper(node->right, id, price, size, idMap);
+        node->right = insertHelper(node->right, id, price, size);
     else
         return node;
 
-    node->height = 1 + std::max(height(node->left), height(node->right));
+    // node->height = 1 + std::max(height(node->left), height(node->right));
 
-    return balance(node);
+    // return balance(node);
+    return node;
 }
 
-void OrderBook::updateHelper(AVLNode* node, uint64_t id, int size, std::unordered_map<uint64_t, AVLNode*>& idMap) {
+void OrderBook::updateHelper(AVLNode* node, double price, int size) {
+    // std::cout << "updateHelper" << std::endl;
     if (node == nullptr)
         return;
 
-    if (id < node->id)
-        updateHelper(node->left, id, size, idMap);
-    else if (id > node->id)
-        updateHelper(node->right, id, size, idMap);
+    if (price < node->price)
+        updateHelper(node->left, price, size);
+    else if (price > node->price)
+        updateHelper(node->right, price, size);
     else {
         node->size = size;
         return; 
     }
 
-    node->height = 1 + std::max(height(node->left), height(node->right));
-    balance(node);
+    // node->height = 1 + std::max(height(node->left), height(node->right));
+    // balance(node);
 }
 
 AVLNode* OrderBook::rotateRight(AVLNode* y) {
+    // std::cout << "rotateRight" << std::endl;
     AVLNode* x = y->left;
     AVLNode* T2 = x->right;
 
@@ -77,6 +77,7 @@ AVLNode* OrderBook::rotateRight(AVLNode* y) {
 }
 
 AVLNode* OrderBook::rotateLeft(AVLNode* x) {
+    // std::cout << "rotateLeft" << std::endl;
     AVLNode* y = x->right;
     AVLNode* T2 = y->left;
 
@@ -90,6 +91,7 @@ AVLNode* OrderBook::rotateLeft(AVLNode* x) {
 }
 
 AVLNode* OrderBook::balance(AVLNode* node) {
+    // std::cout << "balance" << std::endl;
     if (node == nullptr)
         return node;
 
@@ -115,6 +117,7 @@ AVLNode* OrderBook::balance(AVLNode* node) {
 }
 
 AVLNode* OrderBook::minValueNode(AVLNode* node) {
+    // std::cout << "minValueNode" << std::endl;
     AVLNode* current = node;
 
     while (current->left != nullptr) 
@@ -123,14 +126,15 @@ AVLNode* OrderBook::minValueNode(AVLNode* node) {
     return current;
 }
 
-AVLNode* OrderBook::deleteNode(AVLNode* root, uint64_t id, std::unordered_map<uint64_t, AVLNode*>& idMap) {
+AVLNode* OrderBook::deleteNode(AVLNode* root, double price) {
+    // std::cout << "deleteNode" << std::endl;
     if (root == nullptr)
         return root;
 
-    if (id < root->id)
-        root->left = deleteNode(root->left, id, idMap);
-    else if (id > root->id)
-        root->right = deleteNode(root->right, id, idMap);
+    if (price < root->price)
+        root->left = deleteNode(root->left, price);
+    else if (price > root->price)
+        root->right = deleteNode(root->right, price);
     else {
         if (root->left == nullptr || root->right == nullptr) {
             AVLNode* temp = root->left ? root->left : root->right;
@@ -149,40 +153,47 @@ AVLNode* OrderBook::deleteNode(AVLNode* root, uint64_t id, std::unordered_map<ui
             root->price = temp->price;
             root->size = temp->size;
 
-            root->right = deleteNode(root->right, temp->id, idMap);
+            root->right = deleteNode(root->right, temp->price);
         }
     }
 
     if (root == nullptr)
         return root;
 
-    root->height = 1 + std::max(height(root->left), height(root->right));
+    // root->height = 1 + std::max(height(root->left), height(root->right));
 
-    return balance(root);
+    //return balance(root);
+    return root;
 }
 
 void OrderBook::insertBuy(uint64_t id, double price, int size) {
-    buyRoot = insertHelper(buyRoot, id, price, size, buyIdMap);
+    buyRoot = insertHelper(buyRoot, id, price, size);
+    buyIdMap[id] = new AVLNode(id, price, size);
 }
 
 void OrderBook::updateBuy(uint64_t id, int size) {
-    updateHelper(buyRoot, id, size, buyIdMap);
+    updateHelper(buyRoot, this->buyIdMap[id]->price, size);
+    this->buyIdMap[id]->size = size;
 }
 
 void OrderBook::removeBuy(uint64_t id) {
-    removeHelper(buyRoot, id, buyIdMap);
+    deleteNode(buyRoot, this->buyIdMap[id]->price);
+    this->buyIdMap.erase(id);
 }
 
 void OrderBook::insertSell(uint64_t id, double price, int size) {
-    sellRoot = insertHelper(sellRoot, id, price, size, sellIdMap);
+    sellRoot = insertHelper(sellRoot, id, price, size);
+    sellIdMap[id] = new AVLNode(id, price, size);
 }
 
 void OrderBook::updateSell(uint64_t id, int size) {
-    updateHelper(sellRoot, id, size, sellIdMap);
+    updateHelper(sellRoot, this->sellIdMap[id]->price, size);
+    this->sellIdMap[id]->size = size;
 }
 
 void OrderBook::removeSell(uint64_t id) {
-    removeHelper(sellRoot, id, sellIdMap);
+    deleteNode(sellRoot, this->sellIdMap[id]->price);
+    this->sellIdMap.erase(id);
 }
 
 void OrderBook::postorderTraversal(AVLNode* root) {
