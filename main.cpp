@@ -61,7 +61,6 @@ void bench(int cpu1, int cpu2) {
 }
 
 void program(int cpu1, int cpu2)  {   
-    std::string currencyPair = "XBTUSD";
     const size_t queueSize = 100000;
     SPSCQueue<OrderBook> queue(queueSize);
 
@@ -71,21 +70,23 @@ void program(int cpu1, int cpu2)  {
       while (true) {
         OrderBook orderBook;
         while (!queue.pop(orderBook));
-        std::cout << orderBook.getBestBuyAndSellPrice().second << std::endl;
+        std::pair<double, double> bestBuyAndSellPrice = orderBook.getBestBuyAndSellPrice();
+        std::cout << orderBook.getSymbol() << " - Best Sell: " << bestBuyAndSellPrice.second << " Best Buy: " << bestBuyAndSellPrice.first << std::endl;
       }
     });
     
     auto t2 = std::thread([&] {
       pinThread(cpu2);
 
-      OrderBook orderBook = OrderBook(currencyPair);
+      OrderBook XBTUSDOrderBook = OrderBook("XBTUSD");
+      OrderBook ETHUSDOrderBook = OrderBook("ETHUSD");
       ThroughputMonitor throughputMonitor(std::chrono::high_resolution_clock::now());
       
       bitmex::websocket::Client bmxClient;
 
-      auto onTradeCallBackLambda = [&orderBook, &throughputMonitor, &queue]([[maybe_unused]] const char* symbol, const char* action, 
+      auto onTradeCallBackLambda = [&XBTUSDOrderBook, &ETHUSDOrderBook, &throughputMonitor, &queue]([[maybe_unused]] const char* symbol, const char* action, 
         uint64_t id, const char* side, int size, double price, const char* timestamp) {
-        onTradeCallBack(orderBook, throughputMonitor, queue, symbol, action, id, side, size, price, timestamp);
+        onTradeCallBack(XBTUSDOrderBook, ETHUSDOrderBook, throughputMonitor, queue, symbol, action, id, side, size, price, timestamp);
       };
 
       bmxClient.on_trade(onTradeCallBackLambda);

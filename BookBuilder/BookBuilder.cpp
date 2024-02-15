@@ -56,7 +56,7 @@ static void on_message(bitmex::websocket::Client* client, websocketpp::connectio
     client->parse_msg(msg->get_payload());
 }
 
-void onTradeCallBack(OrderBook& orderBook, [[maybe_unused]] ThroughputMonitor& throughputMonitor, SPSCQueue<OrderBook>& queue, [[maybe_unused]] const char* symbol, 
+void onTradeCallBack(OrderBook& orderBook1, [[maybe_unused]] OrderBook& orderBook2, [[maybe_unused]] ThroughputMonitor& throughputMonitor, SPSCQueue<OrderBook>& queue, [[maybe_unused]] const char* symbol, 
                     const char* action, uint64_t id, const char* side, int size, double price, [[maybe_unused]] const char* timestamp) {
     // auto programReceiveTime = Clock::now();
     // throughputMonitor.onTradeReceived();
@@ -68,13 +68,13 @@ void onTradeCallBack(OrderBook& orderBook, [[maybe_unused]] ThroughputMonitor& t
         switch (action[0]) {
             case 'p':
             case 'i':
-                orderBook.insertBuy(id, price, size);
+                orderBook1.insertBuy(id, price, size);
                 break;
             case 'u':
-                orderBook.updateBuy(id, size);
+                orderBook1.updateBuy(id, size);
                 break;
             case 'd':
-                orderBook.removeBuy(id);
+                orderBook1.removeBuy(id);
                 break;
             default:
                 // Handle other message types if needed
@@ -84,13 +84,13 @@ void onTradeCallBack(OrderBook& orderBook, [[maybe_unused]] ThroughputMonitor& t
         switch (action[0]) {
             case 'p':
             case 'i':
-                orderBook.insertSell(id, price, size);
+                orderBook1.insertSell(id, price, size);
                 break;
             case 'u':
-                orderBook.updateSell(id, size);
+                orderBook1.updateSell(id, size);
                 break;
             case 'd':
-                orderBook.removeSell(id);
+                orderBook1.removeSell(id);
                 break;
             default:
                 // Handle other message types if needed
@@ -98,7 +98,7 @@ void onTradeCallBack(OrderBook& orderBook, [[maybe_unused]] ThroughputMonitor& t
         }
     }
     
-    while (!queue.push(orderBook));
+    while (!queue.push(orderBook1));
 
     // auto bookBuildingEndTime = Clock::now();
     // auto bookBuildingDuration = std::chrono::duration_cast<std::chrono::microseconds>(bookBuildingEndTime - programReceiveTime);

@@ -4,7 +4,7 @@
 
 
 std::pair<double, double> OrderBook::getBestBuyAndSellPrice() {
-    double bestBuyPrice = buyRoot != nullptr ? minValueNode(this->buyRoot)->price : 0.0;
+    double bestBuyPrice = buyRoot != nullptr ? maxValueNode(this->buyRoot)->price : 0.0;
     double bestSellPrice = sellRoot != nullptr ? minValueNode(this->sellRoot)->price : 0.0;
 
     return std::make_pair(bestBuyPrice, bestSellPrice);
@@ -122,6 +122,16 @@ AVLNode* OrderBook::minValueNode(AVLNode* node) {
 
     while (current->left != nullptr) 
         current = current->left;
+
+    return current;
+}
+
+AVLNode* OrderBook::maxValueNode(AVLNode* node) {
+    // std::cout << "maxValueNode" << std::endl;
+    AVLNode* current = node;
+
+    while (current->right != nullptr) 
+        current = current->right;
 
     return current;
 }

@@ -39,6 +39,7 @@ private:
     void updateHelper(AVLNode* node, double price, int size);
     AVLNode* deleteNode(AVLNode* root, double price);
     AVLNode* minValueNode(AVLNode* node);
+    AVLNode* maxValueNode(AVLNode* node);
     
     void postorderTraversal(AVLNode* root);
     size_t calculateMemoryUsage() const;
