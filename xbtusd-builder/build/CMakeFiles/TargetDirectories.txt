@@ -1,3 +1,0 @@
-/homes/aap221/Desktop/bitmex-book-builder/xbtusd-builder/build/CMakeFiles/xbtusd-builder.dir
-/homes/aap221/Desktop/bitmex-book-builder/xbtusd-builder/build/CMakeFiles/edit_cache.dir
-/homes/aap221/Desktop/bitmex-book-builder/xbtusd-builder/build/CMakeFiles/rebuild_cache.dir

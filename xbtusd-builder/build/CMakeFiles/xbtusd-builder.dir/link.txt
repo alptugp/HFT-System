@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/xbtusd-builder.dir/xbtusd-builder.cpp.o CMakeFiles/xbtusd-builder.dir/order_book/order_book.cpp.o CMakeFiles/xbtusd-builder.dir/throughput_monitor/throughput_monitor.cpp.o -o xbtusd-builder  -lpthread -lcrypto -lssl 

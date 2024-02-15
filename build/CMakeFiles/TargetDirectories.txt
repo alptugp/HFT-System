@@ -1,0 +1,3 @@
+/homes/aap221/Desktop/bitmex-book-builder/build/CMakeFiles/main.dir
+/homes/aap221/Desktop/bitmex-book-builder/build/CMakeFiles/edit_cache.dir
+/homes/aap221/Desktop/bitmex-book-builder/build/CMakeFiles/rebuild_cache.dir
