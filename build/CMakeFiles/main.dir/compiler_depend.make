@@ -1842,8 +1842,11 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
   /vol/bitbucket/aap221/rapidjson/include/rapidjson/rapidjson.h \
   /usr/include/c++/11/optional \
   ../BookBuilder/OrderBook/OrderBook.hpp \
-  ../BookBuilder/ThroughputMonitor/ThroughputMonitor.hpp
+  ../BookBuilder/ThroughputMonitor/ThroughputMonitor.hpp \
+  ../Strategy/Graph.cpp
 
+
+../Strategy/Graph.cpp:
 
 /usr/include/c++/11/optional:
 

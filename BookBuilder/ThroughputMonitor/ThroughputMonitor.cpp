@@ -14,7 +14,7 @@ void ThroughputMonitor::onTradeReceived() {
         ).count();
         // std::cout << elapsedTime << std::endl;
         double averageThroughput = static_cast<double>(tradeCount) / elapsedTime;
-        std::cout << "Average Throughput (last 1000 trades): " << averageThroughput << " trades per second" << std::endl;
+        std::cout << "Average Throughput (for last 1000 trades): " << averageThroughput << " operations per second" << std::endl;
         tradeCount = 0;  // Reset trade count for the next interval
         startTime = std::chrono::high_resolution_clock::now(); // Reset startTime to now
     }

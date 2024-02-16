@@ -1298,4 +1298,5 @@ CMakeFiles/main.dir/main.cpp.o: \
  /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/../rapidjson.h \
  /usr/include/c++/11/optional \
  /homes/aap221/Desktop/bitmex-book-builder/BookBuilder/./OrderBook/OrderBook.hpp \
- /homes/aap221/Desktop/bitmex-book-builder/BookBuilder/./ThroughputMonitor/ThroughputMonitor.hpp
+ /homes/aap221/Desktop/bitmex-book-builder/BookBuilder/./ThroughputMonitor/ThroughputMonitor.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/Strategy/Graph.cpp

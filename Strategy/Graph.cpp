@@ -10,23 +10,23 @@ private:
 
 public:
     Graph(int vertices) : V(vertices) {
-        adjList.resize(V, std::vector<double>(V, 0.0));
+        adjList.resize(V, std::vector<double>(V, 1.0));
     }
 
     void addEdge(int u, int v, double weight) {
         adjList[u][v] = weight;
     }
 
-    std::pair<double, double> findNegativeCycle() {
+    std::pair<double, double> findTriangularArbitrage() {
         int startVertex = 0;
-        std::vector<double> cycleSums;
+        std::vector<double> cycleWeightMultiplcations;
         
         for (int direction = 1; direction < V; direction++) {
             int currentNode = startVertex;
             int nextNode = direction; 
-            double weightSum = 0;
+            double weightMultiply = 1;
             do {
-                weightSum += adjList[currentNode][nextNode];
+                weightMultiply *= adjList[currentNode][nextNode];
                 for (int node = 0; node < V; node++) {
                     if ((node != currentNode) && (node != nextNode)) {  
                         currentNode = nextNode;
@@ -35,28 +35,11 @@ public:
                     }
                 }
             } while (currentNode != startVertex);
-            cycleSums.emplace_back(weightSum);
+            cycleWeightMultiplcations.emplace_back(weightMultiply);
         }
 
-        double weightSumFirstDirection = cycleSums[0];
-        double weightSumSecondDirection = cycleSums[1];
-        return std::make_pair(weightSumFirstDirection, weightSumSecondDirection);
+        double weightMultiplyFirstDirection = cycleWeightMultiplcations[0];
+        double weightMultiplySecondDirection = cycleWeightMultiplcations[1];
+        return std::make_pair(weightMultiplyFirstDirection, weightMultiplySecondDirection);
     }
 };
-
-int main() {
-    Graph graph(3);
-    graph.addEdge(0, 1, 0.1);
-    graph.addEdge(1, 0, -0.1);
-
-    graph.addEdge(1, 2, -0.2);
-    graph.addEdge(2, 1, 0.0);
-
-    graph.addEdge(2, 0, -0.3);
-    graph.addEdge(0, 2, 0.0);
-
-    std::pair<double, double> cycleSums = graph.findNegativeCycle();
-    std::cout << "First Direction Sum: " << cycleSums.first << std::endl;
-    std::cout << "Second Direction Sum: " << cycleSums.second << std::endl;
-    return 0;
-}

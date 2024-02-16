@@ -16,8 +16,6 @@ using websocketpp::lib::placeholders::_2;
 
 using Clock = std::chrono::high_resolution_clock;
 
-std::string currencyPair = "XBTUSD";
-
 std::chrono::time_point<Clock> convertTimestampToTimePoint(const std::string& timestamp) {
     std::tm tm = {};
     std::istringstream ss(timestamp);
@@ -47,6 +45,9 @@ static void on_open(client* c, bitmex::websocket::Client* bmxClient, websocketpp
 
     auto msgETHUSD = bmxClient->make_subscribe("ETHUSD", bitmex::websocket::Topic::OrderBookL2_25);
     c->send(hdl, msgETHUSD, websocketpp::frame::opcode::text);
+
+    auto msgXBTETH = bmxClient->make_subscribe("XBTETH", bitmex::websocket::Topic::OrderBookL2_25);
+    c->send(hdl, msgXBTETH, websocketpp::frame::opcode::text);
 }
 
 static void on_message(bitmex::websocket::Client* client, websocketpp::connection_hdl, client::message_ptr msg) {
