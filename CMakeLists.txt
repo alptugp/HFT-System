@@ -13,6 +13,8 @@ set(SOURCES
     ${PROJECT_NAME}.cpp
     ./BookBuilder/OrderBook/OrderBook.cpp
     ./BookBuilder/ThroughputMonitor/ThroughputMonitor.cpp
+    ./Utils/Utils.cpp
+    ./StrategyComponent/Graph.cpp
 )
 
 # Executable

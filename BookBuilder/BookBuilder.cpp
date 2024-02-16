@@ -2,11 +2,11 @@
 #include <websocketpp/config/asio_client.hpp>
 #include <string>
 #include <chrono>
+#include "BitmexClient.hpp"
 #include "./OrderBook/OrderBook.hpp"
 #include "./ThroughputMonitor/ThroughputMonitor.hpp"
-#include "BitmexClient.hpp"
 #include "../SPSCQueue/SPSCQueue.hpp"
-
+#include "../Utils/Utils.hpp"
 
 using client = websocketpp::client<websocketpp::config::asio_tls_client>;
 using context_ptr = websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context>;
@@ -62,7 +62,6 @@ void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, [
     // throughputMonitor.onTradeReceived();
     // auto exchangeTimeStamp = convertTimestampToTimePoint(timestamp);
     // auto networkLatency = std::chrono::duration_cast<std::chrono::microseconds>(programReceiveTime - exchangeTimeStamp);
-    // std::cout << action << std::endl;
     std::string sideStr(side);
     if (sideStr == "Buy") {
         switch (action[0]) {
@@ -77,7 +76,6 @@ void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, [
                 orderBookMap[symbol].removeBuy(id);
                 break;
             default:
-                // Handle other message types if needed
                 break;
         }
     } else if (sideStr == "Sell") {
@@ -93,7 +91,6 @@ void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, [
                 orderBookMap[symbol].removeSell(id);
                 break;
             default:
-                // Handle other message types if needed
                 break;
         }
     }
@@ -110,5 +107,50 @@ void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, [
     // orderBook.printOrderBook();
     // orderBook.updateOrderBookMemoryUsage();
 }
+
+void bookBuilder(int cpu, SPSCQueue<OrderBook>& queue) {
+    pinThread(cpu);
+
+    OrderBook XBTUSDOrderBook = OrderBook("XBTUSD");
+    OrderBook ETHUSDOrderBook = OrderBook("ETHUSD");
+    OrderBook XBTETHOrderBook = OrderBook("XBTETH");
+    std::unordered_map<std::string, OrderBook> orderBookMap;
+    orderBookMap["XBTUSD"] = XBTUSDOrderBook;
+    orderBookMap["ETHUSD"] = ETHUSDOrderBook;
+    orderBookMap["XBTETH"] = XBTETHOrderBook;
+
+    ThroughputMonitor throughputMonitorBookBuilder("Book Builder Throughput Monitor", std::chrono::high_resolution_clock::now());
+
+    BitmexClient::websocket::Client bitmexClient;
+
+    auto onTradeCallBackLambda = [&orderBookMap, &throughputMonitorBookBuilder, &queue]([[maybe_unused]] const char* symbol, const char* action,
+        uint64_t id, const char* side, int size, double price, const char* timestamp) {
+        onTradeCallBack(orderBookMap, throughputMonitorBookBuilder, queue, symbol, action, id, side, size, price, timestamp);
+    };
+
+    bitmexClient.on_trade(onTradeCallBackLambda);
+
+    std::string uri = "wss://www.bitmex.com/realtime";
+    client c;
+    c.clear_access_channels(websocketpp::log::alevel::frame_payload);
+    c.init_asio();
+    c.set_tls_init_handler(&on_tls_init);
+    c.set_open_handler(bind(&on_open, &c, &bitmexClient, ::_1));
+    c.set_message_handler(bind(&on_message, &bitmexClient, ::_1, ::_2));
+
+    websocketpp::lib::error_code ec;
+    client::connection_ptr con = c.get_connection(uri, ec);
+    if (ec) {
+        std::cout << "Failed to create connection: " << ec.message() << std::endl;
+        return;
+    }
+    c.get_alog().write(websocketpp::log::alevel::app, "Connecting to " + uri);
+
+    c.connect(con);
+
+    c.run();
+}
+
+
 
 
