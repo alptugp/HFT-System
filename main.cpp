@@ -83,19 +83,19 @@ void buildBookAndDetectArbitrage(int cpu1, int cpu2)  {
         double bestBuyPrice = bestBuyAndSellPrice.first;
         double bestSellPrice = bestBuyAndSellPrice.second;
         std::string symbol = orderBook.getSymbol();
-        // int firstCurrencyGraphIndex = symbolToGraphIndex[symbol.substr(0, 3)];
-        // int secondCurrencyGraphIndex = symbolToGraphIndex[symbol.substr(3, 6)];
+        int firstCurrencyGraphIndex = symbolToGraphIndex[symbol.substr(0, 3)];
+        int secondCurrencyGraphIndex = symbolToGraphIndex[symbol.substr(3, 6)];
 
-        // graph.addEdge(firstCurrencyGraphIndex, secondCurrencyGraphIndex, bestSellPrice);
-        // graph.addEdge(secondCurrencyGraphIndex, firstCurrencyGraphIndex, 1.0 / bestBuyPrice);
+        graph.addEdge(firstCurrencyGraphIndex, secondCurrencyGraphIndex, bestSellPrice);
+        graph.addEdge(secondCurrencyGraphIndex, firstCurrencyGraphIndex, 1.0 / bestBuyPrice);
 
-        // std::pair<double, double> returns = graph.findTriangularArbitrage();
+        std::pair<double, double> returns = graph.findTriangularArbitrage();
 
-        // [[maybe_unused]] double firstDirectionReturnsAfterFees = returns.first * std::pow(0.99925, 3);
-        // [[maybe_unused]] double secondDirectionReturnsAfterFees = returns.second * std::pow(0.99925, 3);
+        double firstDirectionReturnsAfterFees = returns.first * std::pow(0.99925, 3);
+        double secondDirectionReturnsAfterFees = returns.second * std::pow(0.99925, 3);
       
-        std::cout << symbol << " - Best Sell: " << bestSellPrice << " Best Buy: " << bestBuyPrice << std::endl;
-        // std::cout << "USD -> XBT -> ETH -> USD: " << firstDirectionReturnsAfterFees << "      " << "USD -> ETH -> XBT -> USD: " << secondDirectionReturnsAfterFees << std::endl;
+        // std::cout << symbol << " - Best Sell: " << bestSellPrice << " Best Buy: " << bestBuyPrice << std::endl;
+        std::cout << "USD -> XBT -> ETH -> USD: " << firstDirectionReturnsAfterFees << "      " << "USD -> ETH -> XBT -> USD: " << secondDirectionReturnsAfterFees << std::endl;
         // throughputMonitorStrategyComponent.operationCompleted();
       }
     });

@@ -1,6 +1,10 @@
-# Ignore compiled files
+# C++ build
 *.o
+*.obj
+*.exe
 *.out
+/build/
+/bin/
 
 # Ignore temporary files
 *.tmp

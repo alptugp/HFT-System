@@ -2,15 +2,25 @@ cmake_minimum_required(VERSION 3.22)
 
 project(main)
 
+# Include Directories
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/externals/websocketpp
     ${CMAKE_CURRENT_SOURCE_DIR}/externals/rapidjson/include
 )
 
-add_executable(main main.cpp ./BookBuilder/OrderBook/OrderBook.cpp ./BookBuilder/ThroughputMonitor/ThroughputMonitor.cpp)
+# Source Files
+set(SOURCES
+    ${PROJECT_NAME}.cpp
+    ./BookBuilder/OrderBook/OrderBook.cpp
+    ./BookBuilder/ThroughputMonitor/ThroughputMonitor.cpp
+)
 
-target_compile_features(main PUBLIC cxx_std_11)
+# Executable
+add_executable(${PROJECT_NAME} ${SOURCES})
 
-target_compile_options(main PRIVATE -Wall -Wextra -pedantic -Werror)
+# Compiler Features and Options
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_11)
+target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic -Werror -Wno-unused-function)
 
-target_link_libraries(main PRIVATE pthread crypto ssl)
+# Linked Libraries
+target_link_libraries(${PROJECT_NAME} PRIVATE pthread crypto ssl)

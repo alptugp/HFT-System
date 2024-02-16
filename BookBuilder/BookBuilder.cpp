@@ -5,6 +5,7 @@
 #include "./OrderBook/OrderBook.hpp"
 #include "./ThroughputMonitor/ThroughputMonitor.hpp"
 #include "BitmexClient.hpp"
+#include "../SPSCQueue/SPSCQueue.hpp"
 
 
 using client = websocketpp::client<websocketpp::config::asio_tls_client>;
@@ -43,11 +44,11 @@ static void on_open(client* c, BitmexClient::websocket::Client* bmxClient, webso
     auto msgXBTUSD = bmxClient->make_subscribe("XBTUSD", BitmexClient::websocket::Topic::OrderBookL2_25);
     c->send(hdl, msgXBTUSD, websocketpp::frame::opcode::text);
 
-    // auto msgETHUSD = bmxClient->make_subscribe("ETHUSD", bitmex::websocket::Topic::OrderBookL2_25);
-    // c->send(hdl, msgETHUSD, websocketpp::frame::opcode::text);
+    auto msgETHUSD = bmxClient->make_subscribe("ETHUSD", BitmexClient::websocket::Topic::OrderBookL2_25);
+    c->send(hdl, msgETHUSD, websocketpp::frame::opcode::text);
 
-    // auto msgXBTETH = bmxClient->make_subscribe("XBTETH", bitmex::websocket::Topic::OrderBookL2_25);
-    // c->send(hdl, msgXBTETH, websocketpp::frame::opcode::text);
+    auto msgXBTETH = bmxClient->make_subscribe("XBTETH", BitmexClient::websocket::Topic::OrderBookL2_25);
+    c->send(hdl, msgXBTETH, websocketpp::frame::opcode::text);
 }
 
 static void on_message(BitmexClient::websocket::Client* client, websocketpp::connection_hdl, client::message_ptr msg) {
@@ -110,43 +111,4 @@ void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, [
     // orderBook.updateOrderBookMemoryUsage();
 }
 
-// int main() {   
-//     OrderBook orderBook = OrderBook(currencyPair);
-//     // Create BitMEX C++ API client object.
-//     bitmex::websocket::Client bmxClient;
 
-//     // Create a ThroughputMonitor and pass the start time
-//     ThroughputMonitor throughputMonitor(std::chrono::high_resolution_clock::now());
-
-//     auto onTradeCallBackLambda = [&orderBook, &throughputMonitor]([[maybe_unused]] const char* symbol, const char action, 
-//         uint64_t id, const char* side, int size, double price, const char* timestamp) {
-//         onTradeCallBack(orderBook, throughputMonitor, symbol, action, id, side, size, price, timestamp);
-//     };
-//     // Register a callback that is invoked when a trade is reported.
-//     bmxClient.on_trade(onTradeCallBackLambda);
-
-//     // Setup WebSocket++ library that connects to the BitMEX realtime feed...
-//     std::string uri = "wss://www.bitmex.com/realtime";
-//     client c;
-//     c.clear_access_channels(websocketpp::log::alevel::frame_payload);
-// #if 0
-//     c.set_access_channels(websocketpp::log::alevel::all);
-//     c.set_error_channels(websocketpp::log::elevel::all);
-// #endif
-//     c.init_asio();
-//     c.set_tls_init_handler(&on_tls_init);
-//     c.set_open_handler(bind(&on_open, &c, &bmxClient, ::_1));
-//     c.set_message_handler(bind(&on_message, &bmxClient, ::_1, ::_2));
-
-//     websocketpp::lib::error_code ec;
-//     client::connection_ptr con = c.get_connection(uri, ec);
-//     if (ec) {
-//         std::cout << "Failed to create connection: " << ec.message() << std::endl;
-//         return 1;
-//     }
-//     c.get_alog().write(websocketpp::log::alevel::app, "Connecting to " + uri);
-
-//     c.connect(con);
-
-//     c.run();
-// }
