@@ -5,12 +5,13 @@
 
 class ThroughputMonitor {
 private:
-    int tradeCount;
+    std::string id;
+    int operationCount;
     std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
 
 public:
-    ThroughputMonitor(const std::chrono::high_resolution_clock::time_point& startTime);
-    void onTradeReceived();
+    ThroughputMonitor(std::string id, const std::chrono::high_resolution_clock::time_point& startTime);
+    void operationCompleted();
 };
 
 #endif // THROUGHPUT_MONITOR_HPP

@@ -98,6 +98,7 @@ void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, [
     }
     
     while (!queue.push(orderBookMap[symbol]));
+    // throughputMonitor.operationCompleted();
 
     // auto bookBuildingEndTime = Clock::now();
     // auto bookBuildingDuration = std::chrono::duration_cast<std::chrono::microseconds>(bookBuildingEndTime - programReceiveTime);

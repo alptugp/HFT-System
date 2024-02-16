@@ -74,6 +74,8 @@ void buildBookAndDetectArbitrage(int cpu1, int cpu2)  {
     auto t1 = std::thread([&] {
       pinThread(cpu1);
       
+      [[maybe_unused]] ThroughputMonitor throughputMonitorStrategyComponent("Strategy Component Throughput Monitor", std::chrono::high_resolution_clock::now());
+
       while (true) {
         OrderBook orderBook;
         while (!queue.pop(orderBook));
@@ -89,11 +91,12 @@ void buildBookAndDetectArbitrage(int cpu1, int cpu2)  {
 
         std::pair<double, double> returns = graph.findTriangularArbitrage();
 
-        double firstDirectionReturnsAfterFees = returns.first * std::pow(0.99925, 3);
-        double secondDirectionReturnsAfterFees = returns.second * std::pow(0.99925, 3);
+        [[maybe_unused]] double firstDirectionReturnsAfterFees = returns.first * std::pow(0.99925, 3);
+        [[maybe_unused]] double secondDirectionReturnsAfterFees = returns.second * std::pow(0.99925, 3);
       
         // std::cout << symbol << " - Best Sell: " << bestSellPrice << " Best Buy: " << bestBuyPrice << std::endl;
-        // std::cout << "USD -> XBT -> ETH -> USD: " << firstDirectionReturnsAfterFees << "      " << "USD -> ETH -> XBT -> USD: " << secondDirectionReturnsAfterFees << std::endl;
+        std::cout << "USD -> XBT -> ETH -> USD: " << firstDirectionReturnsAfterFees << "      " << "USD -> ETH -> XBT -> USD: " << secondDirectionReturnsAfterFees << std::endl;
+        // throughputMonitorStrategyComponent.operationCompleted();
       }
     });
     
@@ -108,13 +111,13 @@ void buildBookAndDetectArbitrage(int cpu1, int cpu2)  {
       orderBookMap["ETHUSD"] = ETHUSDOrderBook;
       orderBookMap["XBTETH"] = XBTETHOrderBook;
 
-      ThroughputMonitor throughputMonitor(std::chrono::high_resolution_clock::now());
+      ThroughputMonitor throughputMonitorBookBuilder("Book Builder Throughput Monitor", std::chrono::high_resolution_clock::now());
       
       bitmex::websocket::Client bmxClient;
 
-      auto onTradeCallBackLambda = [&orderBookMap, &throughputMonitor, &queue]([[maybe_unused]] const char* symbol, const char* action, 
+      auto onTradeCallBackLambda = [&orderBookMap, &throughputMonitorBookBuilder, &queue]([[maybe_unused]] const char* symbol, const char* action, 
         uint64_t id, const char* side, int size, double price, const char* timestamp) {
-        onTradeCallBack(orderBookMap, throughputMonitor, queue, symbol, action, id, side, size, price, timestamp);
+        onTradeCallBack(orderBookMap, throughputMonitorBookBuilder, queue, symbol, action, id, side, size, price, timestamp);
       };
 
       bmxClient.on_trade(onTradeCallBackLambda);
