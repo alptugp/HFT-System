@@ -1,10 +1,10 @@
 #include <websocketpp/client.hpp>
 #include <websocketpp/config/asio_client.hpp>
-#include <bitmex/bitmex.hpp>
 #include <string>
 #include <chrono>
 #include "./OrderBook/OrderBook.hpp"
 #include "./ThroughputMonitor/ThroughputMonitor.hpp"
+#include "BitmexClient.hpp"
 
 
 using client = websocketpp::client<websocketpp::config::asio_tls_client>;
@@ -21,7 +21,7 @@ std::chrono::time_point<Clock> convertTimestampToTimePoint(const std::string& ti
     std::istringstream ss(timestamp);
     ss >> std::get_time(&tm, "%Y-%m-%dT%H:%M:%S");
 
-    // If your timestamp includes milliseconds, parse and add them
+    // If timestamp includes milliseconds, parse and add them
     long milliseconds = 0;
     if (ss && ss.peek() == '.') {
         ss.ignore(); // Ignore the dot
@@ -39,18 +39,18 @@ static context_ptr on_tls_init(websocketpp::connection_hdl) {
     return ctx;
 }
 
-static void on_open(client* c, bitmex::websocket::Client* bmxClient, websocketpp::connection_hdl hdl) {
-    auto msgXBTUSD = bmxClient->make_subscribe("XBTUSD", bitmex::websocket::Topic::OrderBookL2_25);
+static void on_open(client* c, BitmexClient::websocket::Client* bmxClient, websocketpp::connection_hdl hdl) {
+    auto msgXBTUSD = bmxClient->make_subscribe("XBTUSD", BitmexClient::websocket::Topic::OrderBookL2_25);
     c->send(hdl, msgXBTUSD, websocketpp::frame::opcode::text);
 
-    auto msgETHUSD = bmxClient->make_subscribe("ETHUSD", bitmex::websocket::Topic::OrderBookL2_25);
-    c->send(hdl, msgETHUSD, websocketpp::frame::opcode::text);
+    // auto msgETHUSD = bmxClient->make_subscribe("ETHUSD", bitmex::websocket::Topic::OrderBookL2_25);
+    // c->send(hdl, msgETHUSD, websocketpp::frame::opcode::text);
 
-    auto msgXBTETH = bmxClient->make_subscribe("XBTETH", bitmex::websocket::Topic::OrderBookL2_25);
-    c->send(hdl, msgXBTETH, websocketpp::frame::opcode::text);
+    // auto msgXBTETH = bmxClient->make_subscribe("XBTETH", bitmex::websocket::Topic::OrderBookL2_25);
+    // c->send(hdl, msgXBTETH, websocketpp::frame::opcode::text);
 }
 
-static void on_message(bitmex::websocket::Client* client, websocketpp::connection_hdl, client::message_ptr msg) {
+static void on_message(BitmexClient::websocket::Client* client, websocketpp::connection_hdl, client::message_ptr msg) {
     // Parse the message received from BitMEX. Note that "client" invokes all the relevant callbacks.
     client->parse_msg(msg->get_payload());
 }

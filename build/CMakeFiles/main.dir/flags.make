@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/vol/bitbucket/aap221/websocketpp -I/vol/bitbucket/aap221/bitmex-api/include -I/vol/bitbucket/aap221/rapidjson/include -I/homes/aap221/Desktop/bitmex-book-builder/./BookBuilder/OrderBook -I/homes/aap221/Desktop/bitmex-book-builder/./BookBuilder/ThroughputMonitor
+CXX_INCLUDES = -I/homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp -I/homes/aap221/Desktop/bitmex-book-builder/externals/rapidjson/include
 
-CXX_FLAGS = -Wall -Wextra -pedantic -Werror
+CXX_FLAGS = -O2 -g -DNDEBUG -Wall -Wextra -pedantic -Werror
 

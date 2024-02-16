@@ -39,6 +39,7 @@ CMakeFiles/main.dir/main.cpp.o: \
  /usr/include/x86_64-linux-gnu/bits/types/FILE.h \
  /usr/include/x86_64-linux-gnu/bits/types/locale_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h \
+ /usr/include/x86_64-linux-gnu/bits/wchar2.h \
  /usr/include/c++/11/exception /usr/include/c++/11/bits/exception.h \
  /usr/include/c++/11/bits/exception_ptr.h \
  /usr/include/c++/11/bits/exception_defines.h \
@@ -119,16 +120,20 @@ CMakeFiles/main.dir/main.cpp.o: \
  /usr/include/x86_64-linux-gnu/sys/select.h \
  /usr/include/x86_64-linux-gnu/bits/select.h \
  /usr/include/x86_64-linux-gnu/bits/types/sigset_t.h \
- /usr/include/alloca.h /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
+ /usr/include/x86_64-linux-gnu/bits/select2.h /usr/include/alloca.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib.h \
  /usr/include/c++/11/bits/std_abs.h /usr/include/c++/11/cstdio \
  /usr/include/stdio.h /usr/include/x86_64-linux-gnu/bits/types/__fpos_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/__fpos64_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/struct_FILE.h \
  /usr/include/x86_64-linux-gnu/bits/types/cookie_io_functions_t.h \
  /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
- /usr/include/c++/11/cerrno /usr/include/errno.h \
- /usr/include/x86_64-linux-gnu/bits/errno.h /usr/include/linux/errno.h \
- /usr/include/x86_64-linux-gnu/asm/errno.h \
+ /usr/include/x86_64-linux-gnu/bits/stdio.h \
+ /usr/include/x86_64-linux-gnu/bits/stdio2.h /usr/include/c++/11/cerrno \
+ /usr/include/errno.h /usr/include/x86_64-linux-gnu/bits/errno.h \
+ /usr/include/linux/errno.h /usr/include/x86_64-linux-gnu/asm/errno.h \
  /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
  /usr/include/x86_64-linux-gnu/bits/types/error_t.h \
  /usr/include/c++/11/bits/charconv.h \
@@ -172,15 +177,15 @@ CMakeFiles/main.dir/main.cpp.o: \
  /usr/include/c++/11/bits/erase_if.h \
  /homes/aap221/Desktop/bitmex-book-builder/BookBuilder/ThroughputMonitor/ThroughputMonitor.hpp \
  /homes/aap221/Desktop/bitmex-book-builder/BookBuilder/BookBuilder.cpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/client.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/roles/client_endpoint.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/endpoint.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/connection.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/close.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/error.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/common/cpp11.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/common/system_error.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/common/network.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/client.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/roles/client_endpoint.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/endpoint.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/connection.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/close.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/error.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/common/cpp11.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/common/system_error.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/common/network.hpp \
  /usr/include/netinet/in.h /usr/include/x86_64-linux-gnu/sys/socket.h \
  /usr/include/x86_64-linux-gnu/bits/types/struct_iovec.h \
  /usr/include/x86_64-linux-gnu/bits/socket.h \
@@ -197,10 +202,11 @@ CMakeFiles/main.dir/main.cpp.o: \
  /usr/include/x86_64-linux-gnu/asm/sockios.h \
  /usr/include/asm-generic/sockios.h \
  /usr/include/x86_64-linux-gnu/bits/types/struct_osockaddr.h \
+ /usr/include/x86_64-linux-gnu/bits/socket2.h \
  /usr/include/x86_64-linux-gnu/bits/in.h \
- /vol/bitbucket/aap221/websocketpp/websocketpp/common/stdint.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/utf8_validator.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/frame.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/common/stdint.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/utf8_validator.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/frame.hpp \
  /usr/include/c++/11/algorithm /usr/include/c++/11/bits/stl_algo.h \
  /usr/include/c++/11/bits/algorithmfwd.h \
  /usr/include/c++/11/bits/stl_heap.h \
@@ -209,7 +215,7 @@ CMakeFiles/main.dir/main.cpp.o: \
  /usr/include/c++/11/pstl/glue_algorithm_defs.h \
  /usr/include/c++/11/functional /usr/include/c++/11/bits/std_function.h \
  /usr/include/c++/11/pstl/execution_defs.h \
- /vol/bitbucket/aap221/websocketpp/websocketpp/utilities.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/utilities.hpp \
  /usr/include/c++/11/locale \
  /usr/include/c++/11/bits/locale_facets_nonio.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/time_members.h \
@@ -217,12 +223,12 @@ CMakeFiles/main.dir/main.cpp.o: \
  /usr/include/libintl.h /usr/include/c++/11/bits/codecvt.h \
  /usr/include/c++/11/bits/locale_facets_nonio.tcc \
  /usr/include/c++/11/bits/locale_conv.h \
- /vol/bitbucket/aap221/websocketpp/websocketpp/impl/utilities_impl.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/logger/levels.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/processors/processor.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/processors/base.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/uri.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/common/memory.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/impl/utilities_impl.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/logger/levels.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/processors/processor.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/processors/base.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/uri.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/common/memory.hpp \
  /usr/include/c++/11/memory \
  /usr/include/c++/11/bits/stl_raw_storage_iter.h \
  /usr/include/c++/11/bits/align.h /usr/include/c++/11/bit \
@@ -234,52 +240,54 @@ CMakeFiles/main.dir/main.cpp.o: \
  /usr/include/c++/11/backward/auto_ptr.h \
  /usr/include/c++/11/pstl/glue_memory_defs.h /usr/include/c++/11/sstream \
  /usr/include/c++/11/bits/sstream.tcc \
- /vol/bitbucket/aap221/websocketpp/websocketpp/transport/base/connection.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/common/connection_hdl.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/common/functional.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/http/constants.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/transport/base/connection.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/common/connection_hdl.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/common/functional.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/http/constants.hpp \
  /usr/include/c++/11/map /usr/include/c++/11/bits/stl_tree.h \
  /usr/include/c++/11/bits/stl_map.h \
  /usr/include/c++/11/bits/stl_multimap.h /usr/include/c++/11/queue \
  /usr/include/c++/11/deque /usr/include/c++/11/bits/stl_deque.h \
  /usr/include/c++/11/bits/deque.tcc /usr/include/c++/11/bits/stl_queue.h \
- /vol/bitbucket/aap221/websocketpp/websocketpp/impl/connection_impl.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/processors/hybi00.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/common/md5.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/impl/connection_impl.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/processors/hybi00.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/common/md5.hpp \
  /usr/include/c++/11/cstring /usr/include/string.h /usr/include/strings.h \
- /vol/bitbucket/aap221/websocketpp/websocketpp/common/platforms.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/processors/hybi07.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/processors/hybi08.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/processors/hybi13.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/sha1/sha1.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/base64/base64.hpp \
+ /usr/include/x86_64-linux-gnu/bits/strings_fortified.h \
+ /usr/include/x86_64-linux-gnu/bits/string_fortified.h \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/common/platforms.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/processors/hybi07.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/processors/hybi08.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/processors/hybi13.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/sha1/sha1.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/base64/base64.hpp \
  /usr/include/c++/11/cassert /usr/include/assert.h \
- /vol/bitbucket/aap221/websocketpp/websocketpp/version.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/impl/endpoint_impl.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/config/asio_client.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/config/core_client.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/concurrency/basic.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/common/thread.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/version.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/impl/endpoint_impl.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/config/asio_client.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/config/core_client.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/concurrency/basic.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/common/thread.hpp \
  /usr/include/c++/11/mutex /usr/include/c++/11/bits/std_mutex.h \
  /usr/include/c++/11/bits/unique_lock.h \
  /usr/include/c++/11/condition_variable \
- /vol/bitbucket/aap221/websocketpp/websocketpp/transport/iostream/endpoint.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/transport/base/endpoint.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/transport/iostream/connection.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/transport/iostream/base.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/http/request.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/http/parser.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/http/impl/parser.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/http/impl/request.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/http/response.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/http/impl/response.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/message_buffer/message.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/message_buffer/alloc.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/logger/basic.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/common/time.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/transport/iostream/endpoint.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/transport/base/endpoint.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/transport/iostream/connection.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/transport/iostream/base.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/http/request.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/http/parser.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/http/impl/parser.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/http/impl/request.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/http/response.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/http/impl/response.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/message_buffer/message.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/message_buffer/alloc.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/logger/basic.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/common/time.hpp \
  /usr/include/c++/11/iomanip /usr/include/c++/11/bits/quoted_string.h \
- /vol/bitbucket/aap221/websocketpp/websocketpp/random/random_device.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/common/random.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/random/random_device.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/common/random.hpp \
  /usr/include/c++/11/random /usr/include/c++/11/cmath /usr/include/math.h \
  /usr/include/x86_64-linux-gnu/bits/math-vector.h \
  /usr/include/x86_64-linux-gnu/bits/libm-simd-decl-stubs.h \
@@ -307,14 +315,14 @@ CMakeFiles/main.dir/main.cpp.o: \
  /usr/include/c++/11/bits/random.tcc /usr/include/c++/11/numeric \
  /usr/include/c++/11/bits/stl_numeric.h \
  /usr/include/c++/11/pstl/glue_numeric_defs.h \
- /vol/bitbucket/aap221/websocketpp/websocketpp/endpoint_base.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/connection_base.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/extensions/permessage_deflate/disabled.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/extensions/extension.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/transport/asio/endpoint.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/transport/asio/connection.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/transport/asio/base.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/common/asio.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/endpoint_base.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/connection_base.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/extensions/permessage_deflate/disabled.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/extensions/extension.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/transport/asio/endpoint.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/transport/asio/connection.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/transport/asio/base.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/common/asio.hpp \
  /usr/include/boost/version.hpp /usr/include/boost/asio/steady_timer.hpp \
  /usr/include/boost/asio/detail/config.hpp /usr/include/boost/config.hpp \
  /usr/include/boost/config/user.hpp \
@@ -328,6 +336,7 @@ CMakeFiles/main.dir/main.cpp.o: \
  /usr/include/x86_64-linux-gnu/bits/confname.h \
  /usr/include/x86_64-linux-gnu/bits/getopt_posix.h \
  /usr/include/x86_64-linux-gnu/bits/getopt_core.h \
+ /usr/include/x86_64-linux-gnu/bits/unistd.h \
  /usr/include/x86_64-linux-gnu/bits/unistd_ext.h \
  /usr/include/linux/close_range.h \
  /usr/include/boost/config/detail/select_platform_config.hpp \
@@ -529,7 +538,8 @@ CMakeFiles/main.dir/main.cpp.o: \
  /usr/include/x86_64-linux-gnu/bits/types/struct_statx.h \
  /usr/include/fcntl.h /usr/include/x86_64-linux-gnu/bits/fcntl.h \
  /usr/include/x86_64-linux-gnu/bits/fcntl-linux.h \
- /usr/include/linux/falloc.h /usr/include/x86_64-linux-gnu/sys/eventfd.h \
+ /usr/include/linux/falloc.h /usr/include/x86_64-linux-gnu/bits/fcntl2.h \
+ /usr/include/x86_64-linux-gnu/sys/eventfd.h \
  /usr/include/x86_64-linux-gnu/bits/eventfd.h \
  /usr/include/boost/asio/detail/socket_types.hpp \
  /usr/include/x86_64-linux-gnu/sys/ioctl.h \
@@ -542,6 +552,7 @@ CMakeFiles/main.dir/main.cpp.o: \
  /usr/include/x86_64-linux-gnu/sys/ttydefaults.h /usr/include/poll.h \
  /usr/include/x86_64-linux-gnu/sys/poll.h \
  /usr/include/x86_64-linux-gnu/bits/poll.h \
+ /usr/include/x86_64-linux-gnu/bits/poll2.h \
  /usr/include/x86_64-linux-gnu/sys/uio.h \
  /usr/include/x86_64-linux-gnu/bits/uio-ext.h \
  /usr/include/x86_64-linux-gnu/sys/un.h /usr/include/netinet/tcp.h \
@@ -843,7 +854,7 @@ CMakeFiles/main.dir/main.cpp.o: \
  /usr/include/boost/asio/detail/completion_handler.hpp \
  /usr/include/boost/asio/impl/io_context.ipp \
  /usr/include/boost/asio/wait_traits.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/common/chrono.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/common/chrono.hpp \
  /usr/include/boost/asio.hpp /usr/include/boost/asio/awaitable.hpp \
  /usr/include/boost/asio/basic_datagram_socket.hpp \
  /usr/include/boost/asio/basic_socket.hpp \
@@ -1195,11 +1206,11 @@ CMakeFiles/main.dir/main.cpp.o: \
  /usr/include/boost/asio/windows/stream_handle.hpp \
  /usr/include/boost/asio/write_at.hpp \
  /usr/include/boost/asio/impl/write_at.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/common/type_traits.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/transport/asio/security/none.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/transport/asio/security/base.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/transport/asio/security/tls.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/common/asio_ssl.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/common/type_traits.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/transport/asio/security/none.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/transport/asio/security/base.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/transport/asio/security/tls.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/common/asio_ssl.hpp \
  /usr/include/boost/asio/ssl.hpp /usr/include/boost/asio/ssl/context.hpp \
  /usr/include/boost/asio/ssl/context_base.hpp \
  /usr/include/boost/asio/ssl/detail/openssl_types.hpp \
@@ -1268,35 +1279,35 @@ CMakeFiles/main.dir/main.cpp.o: \
  /usr/include/boost/asio/ssl/detail/read_op.hpp \
  /usr/include/boost/asio/ssl/detail/shutdown_op.hpp \
  /usr/include/boost/asio/ssl/detail/write_op.hpp \
- /vol/bitbucket/aap221/websocketpp/websocketpp/config/asio_no_tls_client.hpp \
- /vol/bitbucket/aap221/bitmex-api/include/bitmex/bitmex.hpp \
- /vol/bitbucket/aap221/rapidjson/include/rapidjson/document.h \
- /vol/bitbucket/aap221/rapidjson/include/rapidjson/reader.h \
- /vol/bitbucket/aap221/rapidjson/include/rapidjson/allocators.h \
- /vol/bitbucket/aap221/rapidjson/include/rapidjson/rapidjson.h \
- /usr/include/inttypes.h \
- /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/meta.h \
- /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/../rapidjson.h \
- /vol/bitbucket/aap221/rapidjson/include/rapidjson/stream.h \
- /vol/bitbucket/aap221/rapidjson/include/rapidjson/encodings.h \
- /vol/bitbucket/aap221/rapidjson/include/rapidjson/encodedstream.h \
- /vol/bitbucket/aap221/rapidjson/include/rapidjson/memorystream.h \
- /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/clzll.h \
- /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/stack.h \
- /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/../allocators.h \
- /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/swap.h \
- /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/strtod.h \
- /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/ieee754.h \
- /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/biginteger.h \
- /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/diyfp.h \
- /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/clzll.h \
- /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/pow10.h \
- /vol/bitbucket/aap221/rapidjson/include/rapidjson/error/error.h \
- /vol/bitbucket/aap221/rapidjson/include/rapidjson/error/../rapidjson.h \
- /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/strfunc.h \
- /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/../stream.h \
- /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/../rapidjson.h \
- /usr/include/c++/11/optional \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/websocketpp/websocketpp/config/asio_no_tls_client.hpp \
  /homes/aap221/Desktop/bitmex-book-builder/BookBuilder/./OrderBook/OrderBook.hpp \
  /homes/aap221/Desktop/bitmex-book-builder/BookBuilder/./ThroughputMonitor/ThroughputMonitor.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/BookBuilder/BitmexClient.hpp \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/rapidjson/include/rapidjson/document.h \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/rapidjson/include/rapidjson/reader.h \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/rapidjson/include/rapidjson/allocators.h \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/rapidjson/include/rapidjson/rapidjson.h \
+ /usr/include/inttypes.h \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/rapidjson/include/rapidjson/internal/meta.h \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/rapidjson/include/rapidjson/internal/../rapidjson.h \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/rapidjson/include/rapidjson/stream.h \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/rapidjson/include/rapidjson/encodings.h \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/rapidjson/include/rapidjson/encodedstream.h \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/rapidjson/include/rapidjson/memorystream.h \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/rapidjson/include/rapidjson/internal/clzll.h \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/rapidjson/include/rapidjson/internal/stack.h \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/rapidjson/include/rapidjson/internal/../allocators.h \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/rapidjson/include/rapidjson/internal/swap.h \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/rapidjson/include/rapidjson/internal/strtod.h \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/rapidjson/include/rapidjson/internal/ieee754.h \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/rapidjson/include/rapidjson/internal/biginteger.h \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/rapidjson/include/rapidjson/internal/diyfp.h \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/rapidjson/include/rapidjson/internal/clzll.h \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/rapidjson/include/rapidjson/internal/pow10.h \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/rapidjson/include/rapidjson/error/error.h \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/rapidjson/include/rapidjson/error/../rapidjson.h \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/rapidjson/include/rapidjson/internal/strfunc.h \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/rapidjson/include/rapidjson/internal/../stream.h \
+ /homes/aap221/Desktop/bitmex-book-builder/externals/rapidjson/include/rapidjson/internal/../rapidjson.h \
+ /usr/include/c++/11/optional \
  /homes/aap221/Desktop/bitmex-book-builder/Strategy/Graph.cpp

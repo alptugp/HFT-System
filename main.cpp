@@ -83,19 +83,19 @@ void buildBookAndDetectArbitrage(int cpu1, int cpu2)  {
         double bestBuyPrice = bestBuyAndSellPrice.first;
         double bestSellPrice = bestBuyAndSellPrice.second;
         std::string symbol = orderBook.getSymbol();
-        int firstCurrencyGraphIndex = symbolToGraphIndex[symbol.substr(0, 3)];
-        int secondCurrencyGraphIndex = symbolToGraphIndex[symbol.substr(3, 6)];
+        // int firstCurrencyGraphIndex = symbolToGraphIndex[symbol.substr(0, 3)];
+        // int secondCurrencyGraphIndex = symbolToGraphIndex[symbol.substr(3, 6)];
 
-        graph.addEdge(firstCurrencyGraphIndex, secondCurrencyGraphIndex, bestSellPrice);
-        graph.addEdge(secondCurrencyGraphIndex, firstCurrencyGraphIndex, 1.0 / bestBuyPrice);
+        // graph.addEdge(firstCurrencyGraphIndex, secondCurrencyGraphIndex, bestSellPrice);
+        // graph.addEdge(secondCurrencyGraphIndex, firstCurrencyGraphIndex, 1.0 / bestBuyPrice);
 
-        std::pair<double, double> returns = graph.findTriangularArbitrage();
+        // std::pair<double, double> returns = graph.findTriangularArbitrage();
 
-        [[maybe_unused]] double firstDirectionReturnsAfterFees = returns.first * std::pow(0.99925, 3);
-        [[maybe_unused]] double secondDirectionReturnsAfterFees = returns.second * std::pow(0.99925, 3);
+        // [[maybe_unused]] double firstDirectionReturnsAfterFees = returns.first * std::pow(0.99925, 3);
+        // [[maybe_unused]] double secondDirectionReturnsAfterFees = returns.second * std::pow(0.99925, 3);
       
-        // std::cout << symbol << " - Best Sell: " << bestSellPrice << " Best Buy: " << bestBuyPrice << std::endl;
-        std::cout << "USD -> XBT -> ETH -> USD: " << firstDirectionReturnsAfterFees << "      " << "USD -> ETH -> XBT -> USD: " << secondDirectionReturnsAfterFees << std::endl;
+        std::cout << symbol << " - Best Sell: " << bestSellPrice << " Best Buy: " << bestBuyPrice << std::endl;
+        // std::cout << "USD -> XBT -> ETH -> USD: " << firstDirectionReturnsAfterFees << "      " << "USD -> ETH -> XBT -> USD: " << secondDirectionReturnsAfterFees << std::endl;
         // throughputMonitorStrategyComponent.operationCompleted();
       }
     });
@@ -113,22 +113,22 @@ void buildBookAndDetectArbitrage(int cpu1, int cpu2)  {
 
       ThroughputMonitor throughputMonitorBookBuilder("Book Builder Throughput Monitor", std::chrono::high_resolution_clock::now());
       
-      bitmex::websocket::Client bmxClient;
+      BitmexClient::websocket::Client bitmexClient;
 
       auto onTradeCallBackLambda = [&orderBookMap, &throughputMonitorBookBuilder, &queue]([[maybe_unused]] const char* symbol, const char* action, 
         uint64_t id, const char* side, int size, double price, const char* timestamp) {
         onTradeCallBack(orderBookMap, throughputMonitorBookBuilder, queue, symbol, action, id, side, size, price, timestamp);
       };
 
-      bmxClient.on_trade(onTradeCallBackLambda);
+      bitmexClient.on_trade(onTradeCallBackLambda);
 
       std::string uri = "wss://www.bitmex.com/realtime";
       client c;
       c.clear_access_channels(websocketpp::log::alevel::frame_payload);
       c.init_asio();
       c.set_tls_init_handler(&on_tls_init);
-      c.set_open_handler(bind(&on_open, &c, &bmxClient, ::_1));
-      c.set_message_handler(bind(&on_message, &bmxClient, ::_1, ::_2));
+      c.set_open_handler(bind(&on_open, &c, &bitmexClient, ::_1));
+      c.set_message_handler(bind(&on_message, &bitmexClient, ::_1, ::_2));
 
       websocketpp::lib::error_code ec;
       client::connection_ptr con = c.get_connection(uri, ec);

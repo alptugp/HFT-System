@@ -38,6 +38,7 @@ CMakeFiles/main.dir/BookBuilder/OrderBook/OrderBook.cpp.o: ../BookBuilder/OrderB
   /usr/include/x86_64-linux-gnu/bits/types/FILE.h \
   /usr/include/x86_64-linux-gnu/bits/types/locale_t.h \
   /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h \
+  /usr/include/x86_64-linux-gnu/bits/wchar2.h \
   /usr/include/c++/11/exception \
   /usr/include/c++/11/bits/exception.h \
   /usr/include/c++/11/bits/exception_ptr.h \
@@ -143,8 +144,11 @@ CMakeFiles/main.dir/BookBuilder/OrderBook/OrderBook.cpp.o: ../BookBuilder/OrderB
   /usr/include/x86_64-linux-gnu/sys/select.h \
   /usr/include/x86_64-linux-gnu/bits/select.h \
   /usr/include/x86_64-linux-gnu/bits/types/sigset_t.h \
+  /usr/include/x86_64-linux-gnu/bits/select2.h \
   /usr/include/alloca.h \
+  /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
   /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
+  /usr/include/x86_64-linux-gnu/bits/stdlib.h \
   /usr/include/c++/11/bits/std_abs.h \
   /usr/include/c++/11/cstdio \
   /usr/include/stdio.h \
@@ -153,6 +157,8 @@ CMakeFiles/main.dir/BookBuilder/OrderBook/OrderBook.cpp.o: ../BookBuilder/OrderB
   /usr/include/x86_64-linux-gnu/bits/types/struct_FILE.h \
   /usr/include/x86_64-linux-gnu/bits/types/cookie_io_functions_t.h \
   /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
+  /usr/include/x86_64-linux-gnu/bits/stdio.h \
+  /usr/include/x86_64-linux-gnu/bits/stdio2.h \
   /usr/include/c++/11/cerrno \
   /usr/include/errno.h \
   /usr/include/x86_64-linux-gnu/bits/errno.h \
@@ -243,6 +249,7 @@ CMakeFiles/main.dir/BookBuilder/ThroughputMonitor/ThroughputMonitor.cpp.o: ../Bo
   /usr/include/x86_64-linux-gnu/bits/types/FILE.h \
   /usr/include/x86_64-linux-gnu/bits/types/locale_t.h \
   /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h \
+  /usr/include/x86_64-linux-gnu/bits/wchar2.h \
   /usr/include/c++/11/exception \
   /usr/include/c++/11/bits/exception.h \
   /usr/include/c++/11/bits/exception_ptr.h \
@@ -348,8 +355,11 @@ CMakeFiles/main.dir/BookBuilder/ThroughputMonitor/ThroughputMonitor.cpp.o: ../Bo
   /usr/include/x86_64-linux-gnu/sys/select.h \
   /usr/include/x86_64-linux-gnu/bits/select.h \
   /usr/include/x86_64-linux-gnu/bits/types/sigset_t.h \
+  /usr/include/x86_64-linux-gnu/bits/select2.h \
   /usr/include/alloca.h \
+  /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
   /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
+  /usr/include/x86_64-linux-gnu/bits/stdlib.h \
   /usr/include/c++/11/bits/std_abs.h \
   /usr/include/c++/11/cstdio \
   /usr/include/stdio.h \
@@ -358,6 +368,8 @@ CMakeFiles/main.dir/BookBuilder/ThroughputMonitor/ThroughputMonitor.cpp.o: ../Bo
   /usr/include/x86_64-linux-gnu/bits/types/struct_FILE.h \
   /usr/include/x86_64-linux-gnu/bits/types/cookie_io_functions_t.h \
   /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
+  /usr/include/x86_64-linux-gnu/bits/stdio.h \
+  /usr/include/x86_64-linux-gnu/bits/stdio2.h \
   /usr/include/c++/11/cerrno \
   /usr/include/errno.h \
   /usr/include/x86_64-linux-gnu/bits/errno.h \
@@ -442,6 +454,7 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
   /usr/include/x86_64-linux-gnu/bits/types/FILE.h \
   /usr/include/x86_64-linux-gnu/bits/types/locale_t.h \
   /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h \
+  /usr/include/x86_64-linux-gnu/bits/wchar2.h \
   /usr/include/c++/11/exception \
   /usr/include/c++/11/bits/exception.h \
   /usr/include/c++/11/bits/exception_ptr.h \
@@ -538,8 +551,11 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
   /usr/include/x86_64-linux-gnu/sys/select.h \
   /usr/include/x86_64-linux-gnu/bits/select.h \
   /usr/include/x86_64-linux-gnu/bits/types/sigset_t.h \
+  /usr/include/x86_64-linux-gnu/bits/select2.h \
   /usr/include/alloca.h \
+  /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
   /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
+  /usr/include/x86_64-linux-gnu/bits/stdlib.h \
   /usr/include/c++/11/bits/std_abs.h \
   /usr/include/c++/11/cstdio \
   /usr/include/stdio.h \
@@ -548,6 +564,8 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
   /usr/include/x86_64-linux-gnu/bits/types/struct_FILE.h \
   /usr/include/x86_64-linux-gnu/bits/types/cookie_io_functions_t.h \
   /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
+  /usr/include/x86_64-linux-gnu/bits/stdio.h \
+  /usr/include/x86_64-linux-gnu/bits/stdio2.h \
   /usr/include/c++/11/cerrno \
   /usr/include/errno.h \
   /usr/include/x86_64-linux-gnu/bits/errno.h \
@@ -610,15 +628,15 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
   /usr/include/c++/11/bits/erase_if.h \
   ../BookBuilder/ThroughputMonitor/ThroughputMonitor.hpp \
   ../BookBuilder/BookBuilder.cpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/client.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/roles/client_endpoint.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/endpoint.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/connection.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/close.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/error.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/common/cpp11.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/common/system_error.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/common/network.hpp \
+  ../externals/websocketpp/websocketpp/client.hpp \
+  ../externals/websocketpp/websocketpp/roles/client_endpoint.hpp \
+  ../externals/websocketpp/websocketpp/endpoint.hpp \
+  ../externals/websocketpp/websocketpp/connection.hpp \
+  ../externals/websocketpp/websocketpp/close.hpp \
+  ../externals/websocketpp/websocketpp/error.hpp \
+  ../externals/websocketpp/websocketpp/common/cpp11.hpp \
+  ../externals/websocketpp/websocketpp/common/system_error.hpp \
+  ../externals/websocketpp/websocketpp/common/network.hpp \
   /usr/include/netinet/in.h \
   /usr/include/x86_64-linux-gnu/sys/socket.h \
   /usr/include/x86_64-linux-gnu/bits/types/struct_iovec.h \
@@ -637,10 +655,11 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
   /usr/include/x86_64-linux-gnu/asm/sockios.h \
   /usr/include/asm-generic/sockios.h \
   /usr/include/x86_64-linux-gnu/bits/types/struct_osockaddr.h \
+  /usr/include/x86_64-linux-gnu/bits/socket2.h \
   /usr/include/x86_64-linux-gnu/bits/in.h \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/common/stdint.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/utf8_validator.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/frame.hpp \
+  ../externals/websocketpp/websocketpp/common/stdint.hpp \
+  ../externals/websocketpp/websocketpp/utf8_validator.hpp \
+  ../externals/websocketpp/websocketpp/frame.hpp \
   /usr/include/c++/11/algorithm \
   /usr/include/c++/11/bits/stl_algo.h \
   /usr/include/c++/11/bits/algorithmfwd.h \
@@ -651,7 +670,7 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
   /usr/include/c++/11/functional \
   /usr/include/c++/11/bits/std_function.h \
   /usr/include/c++/11/pstl/execution_defs.h \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/utilities.hpp \
+  ../externals/websocketpp/websocketpp/utilities.hpp \
   /usr/include/c++/11/locale \
   /usr/include/c++/11/bits/locale_facets_nonio.h \
   /usr/include/x86_64-linux-gnu/c++/11/bits/time_members.h \
@@ -660,12 +679,12 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
   /usr/include/c++/11/bits/codecvt.h \
   /usr/include/c++/11/bits/locale_facets_nonio.tcc \
   /usr/include/c++/11/bits/locale_conv.h \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/impl/utilities_impl.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/logger/levels.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/processors/processor.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/processors/base.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/uri.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/common/memory.hpp \
+  ../externals/websocketpp/websocketpp/impl/utilities_impl.hpp \
+  ../externals/websocketpp/websocketpp/logger/levels.hpp \
+  ../externals/websocketpp/websocketpp/processors/processor.hpp \
+  ../externals/websocketpp/websocketpp/processors/base.hpp \
+  ../externals/websocketpp/websocketpp/uri.hpp \
+  ../externals/websocketpp/websocketpp/common/memory.hpp \
   /usr/include/c++/11/memory \
   /usr/include/c++/11/bits/stl_raw_storage_iter.h \
   /usr/include/c++/11/bits/align.h \
@@ -679,10 +698,10 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
   /usr/include/c++/11/pstl/glue_memory_defs.h \
   /usr/include/c++/11/sstream \
   /usr/include/c++/11/bits/sstream.tcc \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/transport/base/connection.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/common/connection_hdl.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/common/functional.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/http/constants.hpp \
+  ../externals/websocketpp/websocketpp/transport/base/connection.hpp \
+  ../externals/websocketpp/websocketpp/common/connection_hdl.hpp \
+  ../externals/websocketpp/websocketpp/common/functional.hpp \
+  ../externals/websocketpp/websocketpp/http/constants.hpp \
   /usr/include/c++/11/map \
   /usr/include/c++/11/bits/stl_tree.h \
   /usr/include/c++/11/bits/stl_map.h \
@@ -692,48 +711,50 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
   /usr/include/c++/11/bits/stl_deque.h \
   /usr/include/c++/11/bits/deque.tcc \
   /usr/include/c++/11/bits/stl_queue.h \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/impl/connection_impl.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/processors/hybi00.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/common/md5.hpp \
+  ../externals/websocketpp/websocketpp/impl/connection_impl.hpp \
+  ../externals/websocketpp/websocketpp/processors/hybi00.hpp \
+  ../externals/websocketpp/websocketpp/common/md5.hpp \
   /usr/include/c++/11/cstring \
   /usr/include/string.h \
   /usr/include/strings.h \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/common/platforms.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/processors/hybi07.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/processors/hybi08.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/processors/hybi13.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/sha1/sha1.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/base64/base64.hpp \
+  /usr/include/x86_64-linux-gnu/bits/strings_fortified.h \
+  /usr/include/x86_64-linux-gnu/bits/string_fortified.h \
+  ../externals/websocketpp/websocketpp/common/platforms.hpp \
+  ../externals/websocketpp/websocketpp/processors/hybi07.hpp \
+  ../externals/websocketpp/websocketpp/processors/hybi08.hpp \
+  ../externals/websocketpp/websocketpp/processors/hybi13.hpp \
+  ../externals/websocketpp/websocketpp/sha1/sha1.hpp \
+  ../externals/websocketpp/websocketpp/base64/base64.hpp \
   /usr/include/c++/11/cassert \
   /usr/include/assert.h \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/version.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/impl/endpoint_impl.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/config/asio_client.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/config/core_client.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/concurrency/basic.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/common/thread.hpp \
+  ../externals/websocketpp/websocketpp/version.hpp \
+  ../externals/websocketpp/websocketpp/impl/endpoint_impl.hpp \
+  ../externals/websocketpp/websocketpp/config/asio_client.hpp \
+  ../externals/websocketpp/websocketpp/config/core_client.hpp \
+  ../externals/websocketpp/websocketpp/concurrency/basic.hpp \
+  ../externals/websocketpp/websocketpp/common/thread.hpp \
   /usr/include/c++/11/mutex \
   /usr/include/c++/11/bits/std_mutex.h \
   /usr/include/c++/11/bits/unique_lock.h \
   /usr/include/c++/11/condition_variable \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/transport/iostream/endpoint.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/transport/base/endpoint.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/transport/iostream/connection.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/transport/iostream/base.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/http/request.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/http/parser.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/http/impl/parser.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/http/impl/request.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/http/response.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/http/impl/response.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/message_buffer/message.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/message_buffer/alloc.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/logger/basic.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/common/time.hpp \
+  ../externals/websocketpp/websocketpp/transport/iostream/endpoint.hpp \
+  ../externals/websocketpp/websocketpp/transport/base/endpoint.hpp \
+  ../externals/websocketpp/websocketpp/transport/iostream/connection.hpp \
+  ../externals/websocketpp/websocketpp/transport/iostream/base.hpp \
+  ../externals/websocketpp/websocketpp/http/request.hpp \
+  ../externals/websocketpp/websocketpp/http/parser.hpp \
+  ../externals/websocketpp/websocketpp/http/impl/parser.hpp \
+  ../externals/websocketpp/websocketpp/http/impl/request.hpp \
+  ../externals/websocketpp/websocketpp/http/response.hpp \
+  ../externals/websocketpp/websocketpp/http/impl/response.hpp \
+  ../externals/websocketpp/websocketpp/message_buffer/message.hpp \
+  ../externals/websocketpp/websocketpp/message_buffer/alloc.hpp \
+  ../externals/websocketpp/websocketpp/logger/basic.hpp \
+  ../externals/websocketpp/websocketpp/common/time.hpp \
   /usr/include/c++/11/iomanip \
   /usr/include/c++/11/bits/quoted_string.h \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/random/random_device.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/common/random.hpp \
+  ../externals/websocketpp/websocketpp/random/random_device.hpp \
+  ../externals/websocketpp/websocketpp/common/random.hpp \
   /usr/include/c++/11/random \
   /usr/include/c++/11/cmath \
   /usr/include/math.h \
@@ -765,14 +786,14 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
   /usr/include/c++/11/numeric \
   /usr/include/c++/11/bits/stl_numeric.h \
   /usr/include/c++/11/pstl/glue_numeric_defs.h \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/endpoint_base.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/connection_base.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/extensions/permessage_deflate/disabled.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/extensions/extension.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/transport/asio/endpoint.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/transport/asio/connection.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/transport/asio/base.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/common/asio.hpp \
+  ../externals/websocketpp/websocketpp/endpoint_base.hpp \
+  ../externals/websocketpp/websocketpp/connection_base.hpp \
+  ../externals/websocketpp/websocketpp/extensions/permessage_deflate/disabled.hpp \
+  ../externals/websocketpp/websocketpp/extensions/extension.hpp \
+  ../externals/websocketpp/websocketpp/transport/asio/endpoint.hpp \
+  ../externals/websocketpp/websocketpp/transport/asio/connection.hpp \
+  ../externals/websocketpp/websocketpp/transport/asio/base.hpp \
+  ../externals/websocketpp/websocketpp/common/asio.hpp \
   /usr/include/boost/version.hpp \
   /usr/include/boost/asio/steady_timer.hpp \
   /usr/include/boost/asio/detail/config.hpp \
@@ -790,6 +811,7 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
   /usr/include/x86_64-linux-gnu/bits/confname.h \
   /usr/include/x86_64-linux-gnu/bits/getopt_posix.h \
   /usr/include/x86_64-linux-gnu/bits/getopt_core.h \
+  /usr/include/x86_64-linux-gnu/bits/unistd.h \
   /usr/include/x86_64-linux-gnu/bits/unistd_ext.h \
   /usr/include/linux/close_range.h \
   /usr/include/boost/config/detail/select_platform_config.hpp \
@@ -1003,6 +1025,7 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
   /usr/include/x86_64-linux-gnu/bits/fcntl.h \
   /usr/include/x86_64-linux-gnu/bits/fcntl-linux.h \
   /usr/include/linux/falloc.h \
+  /usr/include/x86_64-linux-gnu/bits/fcntl2.h \
   /usr/include/x86_64-linux-gnu/sys/eventfd.h \
   /usr/include/x86_64-linux-gnu/bits/eventfd.h \
   /usr/include/boost/asio/detail/socket_types.hpp \
@@ -1018,6 +1041,7 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
   /usr/include/poll.h \
   /usr/include/x86_64-linux-gnu/sys/poll.h \
   /usr/include/x86_64-linux-gnu/bits/poll.h \
+  /usr/include/x86_64-linux-gnu/bits/poll2.h \
   /usr/include/x86_64-linux-gnu/sys/uio.h \
   /usr/include/x86_64-linux-gnu/bits/uio-ext.h \
   /usr/include/x86_64-linux-gnu/sys/un.h \
@@ -1329,7 +1353,7 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
   /usr/include/boost/asio/detail/completion_handler.hpp \
   /usr/include/boost/asio/impl/io_context.ipp \
   /usr/include/boost/asio/wait_traits.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/common/chrono.hpp \
+  ../externals/websocketpp/websocketpp/common/chrono.hpp \
   /usr/include/boost/asio.hpp \
   /usr/include/boost/asio/awaitable.hpp \
   /usr/include/boost/asio/basic_datagram_socket.hpp \
@@ -1701,11 +1725,11 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
   /usr/include/boost/asio/windows/stream_handle.hpp \
   /usr/include/boost/asio/write_at.hpp \
   /usr/include/boost/asio/impl/write_at.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/common/type_traits.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/transport/asio/security/none.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/transport/asio/security/base.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/transport/asio/security/tls.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/common/asio_ssl.hpp \
+  ../externals/websocketpp/websocketpp/common/type_traits.hpp \
+  ../externals/websocketpp/websocketpp/transport/asio/security/none.hpp \
+  ../externals/websocketpp/websocketpp/transport/asio/security/base.hpp \
+  ../externals/websocketpp/websocketpp/transport/asio/security/tls.hpp \
+  ../externals/websocketpp/websocketpp/common/asio_ssl.hpp \
   /usr/include/boost/asio/ssl.hpp \
   /usr/include/boost/asio/ssl/context.hpp \
   /usr/include/boost/asio/ssl/context_base.hpp \
@@ -1812,37 +1836,37 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
   /usr/include/boost/asio/ssl/detail/read_op.hpp \
   /usr/include/boost/asio/ssl/detail/shutdown_op.hpp \
   /usr/include/boost/asio/ssl/detail/write_op.hpp \
-  /vol/bitbucket/aap221/websocketpp/websocketpp/config/asio_no_tls_client.hpp \
-  /vol/bitbucket/aap221/bitmex-api/include/bitmex/bitmex.hpp \
-  /vol/bitbucket/aap221/rapidjson/include/rapidjson/document.h \
-  /vol/bitbucket/aap221/rapidjson/include/rapidjson/reader.h \
-  /vol/bitbucket/aap221/rapidjson/include/rapidjson/allocators.h \
-  /vol/bitbucket/aap221/rapidjson/include/rapidjson/rapidjson.h \
-  /usr/include/inttypes.h \
-  /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/meta.h \
-  /vol/bitbucket/aap221/rapidjson/include/rapidjson/rapidjson.h \
-  /vol/bitbucket/aap221/rapidjson/include/rapidjson/stream.h \
-  /vol/bitbucket/aap221/rapidjson/include/rapidjson/encodings.h \
-  /vol/bitbucket/aap221/rapidjson/include/rapidjson/encodedstream.h \
-  /vol/bitbucket/aap221/rapidjson/include/rapidjson/memorystream.h \
-  /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/clzll.h \
-  /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/stack.h \
-  /vol/bitbucket/aap221/rapidjson/include/rapidjson/allocators.h \
-  /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/swap.h \
-  /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/strtod.h \
-  /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/ieee754.h \
-  /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/biginteger.h \
-  /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/diyfp.h \
-  /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/clzll.h \
-  /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/pow10.h \
-  /vol/bitbucket/aap221/rapidjson/include/rapidjson/error/error.h \
-  /vol/bitbucket/aap221/rapidjson/include/rapidjson/rapidjson.h \
-  /vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/strfunc.h \
-  /vol/bitbucket/aap221/rapidjson/include/rapidjson/stream.h \
-  /vol/bitbucket/aap221/rapidjson/include/rapidjson/rapidjson.h \
-  /usr/include/c++/11/optional \
+  ../externals/websocketpp/websocketpp/config/asio_no_tls_client.hpp \
   ../BookBuilder/OrderBook/OrderBook.hpp \
   ../BookBuilder/ThroughputMonitor/ThroughputMonitor.hpp \
+  ../BookBuilder/BitmexClient.hpp \
+  ../externals/rapidjson/include/rapidjson/document.h \
+  ../externals/rapidjson/include/rapidjson/reader.h \
+  ../externals/rapidjson/include/rapidjson/allocators.h \
+  ../externals/rapidjson/include/rapidjson/rapidjson.h \
+  /usr/include/inttypes.h \
+  ../externals/rapidjson/include/rapidjson/internal/meta.h \
+  ../externals/rapidjson/include/rapidjson/rapidjson.h \
+  ../externals/rapidjson/include/rapidjson/stream.h \
+  ../externals/rapidjson/include/rapidjson/encodings.h \
+  ../externals/rapidjson/include/rapidjson/encodedstream.h \
+  ../externals/rapidjson/include/rapidjson/memorystream.h \
+  ../externals/rapidjson/include/rapidjson/internal/clzll.h \
+  ../externals/rapidjson/include/rapidjson/internal/stack.h \
+  ../externals/rapidjson/include/rapidjson/allocators.h \
+  ../externals/rapidjson/include/rapidjson/internal/swap.h \
+  ../externals/rapidjson/include/rapidjson/internal/strtod.h \
+  ../externals/rapidjson/include/rapidjson/internal/ieee754.h \
+  ../externals/rapidjson/include/rapidjson/internal/biginteger.h \
+  ../externals/rapidjson/include/rapidjson/internal/diyfp.h \
+  ../externals/rapidjson/include/rapidjson/internal/clzll.h \
+  ../externals/rapidjson/include/rapidjson/internal/pow10.h \
+  ../externals/rapidjson/include/rapidjson/error/error.h \
+  ../externals/rapidjson/include/rapidjson/rapidjson.h \
+  ../externals/rapidjson/include/rapidjson/internal/strfunc.h \
+  ../externals/rapidjson/include/rapidjson/stream.h \
+  ../externals/rapidjson/include/rapidjson/rapidjson.h \
+  /usr/include/c++/11/optional \
   ../Strategy/Graph.cpp
 
 
@@ -1850,29 +1874,33 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/c++/11/optional:
 
-/vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/strfunc.h:
+../externals/rapidjson/include/rapidjson/internal/strfunc.h:
 
-/vol/bitbucket/aap221/rapidjson/include/rapidjson/error/error.h:
+../externals/rapidjson/include/rapidjson/internal/diyfp.h:
 
-/vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/pow10.h:
+../externals/rapidjson/include/rapidjson/internal/biginteger.h:
 
-/vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/diyfp.h:
+../externals/rapidjson/include/rapidjson/internal/ieee754.h:
 
-/vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/ieee754.h:
+../externals/rapidjson/include/rapidjson/internal/stack.h:
 
-/vol/bitbucket/aap221/rapidjson/include/rapidjson/encodedstream.h:
+../externals/rapidjson/include/rapidjson/internal/clzll.h:
 
-/vol/bitbucket/aap221/rapidjson/include/rapidjson/encodings.h:
+../externals/rapidjson/include/rapidjson/memorystream.h:
+
+../externals/rapidjson/include/rapidjson/encodedstream.h:
+
+../externals/rapidjson/include/rapidjson/stream.h:
+
+../externals/rapidjson/include/rapidjson/internal/meta.h:
 
 /usr/include/inttypes.h:
 
-/vol/bitbucket/aap221/rapidjson/include/rapidjson/rapidjson.h:
+../externals/rapidjson/include/rapidjson/rapidjson.h:
 
-/vol/bitbucket/aap221/rapidjson/include/rapidjson/reader.h:
+../externals/rapidjson/include/rapidjson/reader.h:
 
-/vol/bitbucket/aap221/rapidjson/include/rapidjson/document.h:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/config/asio_no_tls_client.hpp:
+../externals/rapidjson/include/rapidjson/document.h:
 
 /usr/include/boost/asio/ssl/detail/shutdown_op.hpp:
 
@@ -1896,13 +1924,13 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/asio/ssl/impl/context.ipp:
 
+../externals/rapidjson/include/rapidjson/internal/pow10.h:
+
 /usr/include/boost/asio/ssl/verify_mode.hpp:
 
 /usr/include/boost/asio/ssl/detail/verify_callback.hpp:
 
 /usr/include/boost/asio/ssl/detail/openssl_init.hpp:
-
-/usr/include/openssl/engineerr.h:
 
 /usr/include/openssl/err.h:
 
@@ -1918,7 +1946,7 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/openssl/tls1.h:
 
-/usr/include/openssl/sslerr_legacy.h:
+/usr/include/openssl/ssl3.h:
 
 /usr/include/openssl/cterr.h:
 
@@ -1940,11 +1968,13 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/openssl/dh.h:
 
+/usr/include/openssl/dsa.h:
+
 /usr/include/openssl/rsaerr.h:
 
-/usr/include/openssl/ecerr.h:
+/usr/include/openssl/rsa.h:
 
-/usr/include/openssl/ec.h:
+/usr/include/openssl/ecerr.h:
 
 /usr/include/openssl/objectserr.h:
 
@@ -1974,8 +2004,6 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/openssl/comperr.h:
 
-/vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/swap.h:
-
 /usr/include/openssl/comp.h:
 
 /usr/include/openssl/conftypes.h:
@@ -1987,6 +2015,8 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 /usr/include/openssl/cryptoerr.h:
 
 /usr/include/openssl/safestack.h:
+
+/usr/include/c++/11/stdlib.h:
 
 /usr/include/openssl/e_os2.h:
 
@@ -2000,15 +2030,11 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/asio/ssl/detail/openssl_types.hpp:
 
-/usr/include/boost/asio/ssl/context_base.hpp:
-
 /usr/include/boost/asio/ssl.hpp:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/common/asio_ssl.hpp:
+../externals/websocketpp/websocketpp/transport/asio/security/none.hpp:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/transport/asio/security/tls.hpp:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/common/type_traits.hpp:
+../externals/websocketpp/websocketpp/common/type_traits.hpp:
 
 /usr/include/boost/asio/write_at.hpp:
 
@@ -2104,6 +2130,8 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/predef/os/linux.h:
 
+/usr/include/boost/predef/os/irix.h:
+
 /usr/include/boost/predef/os/haiku.h:
 
 /usr/include/boost/predef/os/bsd/net.h:
@@ -2186,10 +2214,6 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/predef/compiler/llvm.h:
 
-/usr/include/openssl/x509v3.h:
-
-/usr/include/boost/predef/compiler/kai.h:
-
 /usr/include/boost/predef/compiler/intel.h:
 
 /usr/include/boost/predef/compiler/ibm.h:
@@ -2250,8 +2274,6 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/predef/architecture/m68k.h:
 
-/usr/include/boost/predef/architecture/ia64.h:
-
 /usr/include/boost/predef/architecture/convex.h:
 
 /usr/include/boost/predef/architecture/blackfin.h:
@@ -2265,6 +2287,8 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 /usr/include/boost/predef/language/objc.h:
 
 /usr/include/boost/predef/language/stdcpp.h:
+
+/usr/include/boost/predef/detail/test.h:
 
 /usr/include/boost/predef/make.h:
 
@@ -2304,13 +2328,25 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/asio/local/detail/impl/endpoint.ipp:
 
-/vol/bitbucket/aap221/rapidjson/include/rapidjson/stream.h:
+/usr/include/boost/asio/local/detail/endpoint.hpp:
 
-/usr/include/c++/11/ext/aligned_buffer.h:
+/usr/include/boost/asio/is_write_buffered.hpp:
+
+/usr/include/boost/asio/ip/v6_only.hpp:
+
+/usr/include/boost/asio/ip/udp.hpp:
+
+/usr/include/boost/asio/ip/tcp.hpp:
+
+/usr/include/boost/asio/ip/multicast.hpp:
+
+/usr/include/boost/asio/ip/impl/host_name.ipp:
 
 /usr/include/boost/asio/execution/bulk_execute.hpp:
 
 /usr/include/c++/11/bits/locale_conv.h:
+
+/usr/include/boost/asio/detail/posix_mutex.hpp:
 
 /usr/include/boost/asio/detail/mutex.hpp:
 
@@ -2319,8 +2355,6 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 /usr/include/boost/asio/impl/error.ipp:
 
 /usr/include/x86_64-linux-gnu/bits/netdb.h:
-
-/usr/include/rpc/netdb.h:
 
 /usr/include/netdb.h:
 
@@ -2344,6 +2378,18 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/core/enable_if.hpp:
 
+/usr/include/boost/asio/detail/impl/posix_event.ipp:
+
+../externals/rapidjson/include/rapidjson/encodings.h:
+
+/usr/include/c++/11/bits/enable_special_members.h:
+
+/usr/include/boost/preprocessor/control/iif.hpp:
+
+/usr/include/boost/mpl/aux_/largest_int.hpp:
+
+/usr/include/boost/asio/basic_stream_socket.hpp:
+
 /usr/include/x86_64-linux-gnu/bits/fp-logb.h:
 
 /usr/include/openssl/symhacks.h:
@@ -2356,9 +2402,11 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/asio/detail/conditionally_enabled_event.hpp:
 
-/usr/include/boost/asio/detail/resolve_op.hpp:
+/usr/include/boost/asio/execution/blocking_adaptation.hpp:
 
-/usr/include/boost/asio/detail/throw_exception.hpp:
+/usr/include/boost/current_function.hpp:
+
+/usr/include/boost/asio/detail/resolve_op.hpp:
 
 /usr/include/boost/asio/detail/scoped_ptr.hpp:
 
@@ -2370,13 +2418,13 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/asio/handler_alloc_hook.hpp:
 
-/usr/include/boost/asio/detail/keyword_tss_ptr.hpp:
-
-/usr/include/x86_64-linux-gnu/bits/types/struct___jmp_buf_tag.h:
-
-/usr/include/boost/smart_ptr/detail/spinlock_gcc_atomic.hpp:
-
 /usr/include/x86_64-linux-gnu/bits/xopen_lim.h:
+
+/usr/include/x86_64-linux-gnu/bits/local_lim.h:
+
+/usr/include/boost/mpl/aux_/lambda_arity_param.hpp:
+
+/usr/include/boost/asio/detail/handler_alloc_helpers.hpp:
 
 /usr/include/openssl/http.h:
 
@@ -2388,19 +2436,19 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/asio/detail/assert.hpp:
 
-/usr/include/boost/asio/execution/blocking_adaptation.hpp:
-
-/usr/include/boost/current_function.hpp:
-
 /usr/include/boost/asio/detail/noncopyable.hpp:
 
 /usr/include/boost/asio/is_applicable_property.hpp:
+
+../externals/websocketpp/websocketpp/common/network.hpp:
 
 /usr/include/c++/11/locale:
 
 /usr/include/boost/asio/impl/buffered_write_stream.hpp:
 
 /usr/include/boost/asio/ip/detail/endpoint.hpp:
+
+../BookBuilder/BitmexClient.hpp:
 
 /usr/include/boost/asio/traits/connect_member.hpp:
 
@@ -2434,23 +2482,15 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/asio/ip/impl/address.ipp:
 
-/usr/include/boost/asio/traits/schedule_free.hpp:
-
-/usr/include/openssl/bio.h:
-
-/usr/include/boost/asio/execution/schedule.hpp:
-
-/usr/include/c++/11/bits/vector.tcc:
-
-/usr/include/boost/type_traits/detail/config.hpp:
-
-/usr/include/boost/asio/socket_base.hpp:
-
 /usr/include/boost/asio/traits/execute_member.hpp:
 
 /usr/include/boost/asio/traits/set_value_free.hpp:
 
+/usr/include/boost/asio/traits/query_static_constexpr_member.hpp:
+
 /usr/include/x86_64-linux-gnu/bits/posix1_lim.h:
+
+/usr/include/x86_64-linux-gnu/bits/locale.h:
 
 /usr/include/boost/asio/traits/set_error_free.hpp:
 
@@ -2460,15 +2500,13 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/c++/11/bits/stl_heap.h:
 
-/usr/include/boost/asio/execution/receiver_invocation_error.hpp:
-
-/usr/include/boost/asio/detail/atomic_count.hpp:
-
 /usr/include/boost/predef/library/std/_prefix.h:
 
 /usr/include/boost/asio/execution/execute.hpp:
 
 /usr/include/boost/asio/detail/type_traits.hpp:
+
+/usr/include/boost/asio/basic_waitable_timer.hpp:
 
 /usr/include/boost/asio/traits/static_query.hpp:
 
@@ -2492,13 +2530,9 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/c++/11/bits/stl_numeric.h:
 
-/usr/include/x86_64-linux-gnu/bits/unistd_ext.h:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/processors/hybi07.hpp:
-
-/usr/include/boost/numeric/conversion/int_float_mixture_enum.hpp:
-
 /usr/include/x86_64-linux-gnu/bits/getopt_core.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdlib.h:
 
 /usr/include/x86_64-linux-gnu/bits/posix_opt.h:
 
@@ -2508,27 +2542,45 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/config/detail/select_compiler_config.hpp:
 
+../externals/websocketpp/websocketpp/transport/iostream/base.hpp:
+
 /usr/include/boost/predef/platform/android.h:
 
 /usr/include/boost/asio/detail/config.hpp:
 
 /usr/include/boost/version.hpp:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/common/asio.hpp:
+../externals/websocketpp/websocketpp/transport/asio/base.hpp:
 
-/usr/include/boost/asio/detail/impl/service_registry.hpp:
+../externals/websocketpp/websocketpp/endpoint.hpp:
 
-/usr/include/boost/asio/detail/memory.hpp:
+/usr/include/boost/asio/detail/timer_queue_base.hpp:
 
-/usr/include/x86_64-linux-gnu/bits/types/struct_sched_param.h:
+../externals/websocketpp/websocketpp/transport/asio/endpoint.hpp:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/transport/asio/connection.hpp:
+/usr/include/openssl/engineerr.h:
 
-/usr/include/openssl/ssl3.h:
+../externals/websocketpp/websocketpp/transport/base/endpoint.hpp:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/extensions/permessage_deflate/disabled.hpp:
+../externals/websocketpp/websocketpp/processors/processor.hpp:
+
+/usr/include/boost/asio/buffered_read_stream.hpp:
+
+../externals/websocketpp/websocketpp/extensions/permessage_deflate/disabled.hpp:
+
+/usr/include/c++/11/numeric:
+
+/usr/include/boost/asio/traits/require_concept_member.hpp:
+
+/usr/include/x86_64-linux-gnu/asm/sockios.h:
+
+/usr/include/c++/11/bits/random.h:
+
+/usr/include/boost/mpl/aux_/has_apply.hpp:
 
 /usr/include/c++/11/tr1/ell_integral.tcc:
+
+/usr/include/x86_64-linux-gnu/c++/11/bits/error_constants.h:
 
 /usr/include/c++/11/tr1/bessel_function.tcc:
 
@@ -2536,13 +2588,9 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/asio/impl/serial_port_base.ipp:
 
-/usr/include/boost/asio/generic/seq_packet_protocol.hpp:
-
 /usr/include/x86_64-linux-gnu/bits/mathcalls.h:
 
 /usr/include/x86_64-linux-gnu/bits/mathcalls-helper-functions.h:
-
-/usr/include/boost/asio/detail/tss_ptr.hpp:
 
 /usr/include/boost/asio/ip/address_v6.hpp:
 
@@ -2554,75 +2602,39 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/numeric/conversion/numeric_cast_traits.hpp:
 
-/usr/include/x86_64-linux-gnu/bits/types/struct_timespec.h:
-
 /usr/include/c++/11/random:
 
-/usr/include/boost/asio/prefer.hpp:
+../externals/websocketpp/websocketpp/common/random.hpp:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/connection_base.hpp:
+../externals/websocketpp/websocketpp/common/time.hpp:
 
-/usr/include/boost/asio/execution/any_executor.hpp:
+../externals/websocketpp/websocketpp/http/impl/response.hpp:
 
-/usr/include/c++/11/bits/quoted_string.h:
+/usr/include/boost/asio/detail/memory.hpp:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/logger/basic.hpp:
+/usr/include/x86_64-linux-gnu/bits/types/struct_sched_param.h:
 
-/usr/include/boost/asio/traits/set_error_member.hpp:
+../externals/websocketpp/websocketpp/http/response.hpp:
 
-/usr/include/boost/date_time/posix_time/posix_time_types.hpp:
+/usr/include/c++/11/bits/refwrap.h:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/message_buffer/alloc.hpp:
+/usr/include/c++/11/tr1/hypergeometric.tcc:
 
-/usr/include/x86_64-linux-gnu/bits/local_lim.h:
+../externals/websocketpp/websocketpp/http/impl/request.hpp:
 
-/usr/include/boost/mpl/aux_/lambda_arity_param.hpp:
+/usr/include/openssl/sslerr_legacy.h:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/http/impl/response.hpp:
+../externals/websocketpp/websocketpp/http/impl/parser.hpp:
 
-/usr/include/linux/types.h:
+../externals/websocketpp/websocketpp/http/parser.hpp:
 
-/usr/include/c++/11/numeric:
+/usr/include/boost/mpl/not.hpp:
 
-/usr/include/boost/asio/traits/require_concept_member.hpp:
+/usr/include/boost/asio/execution/receiver_invocation_error.hpp:
 
-/usr/include/x86_64-linux-gnu/asm/sockios.h:
+/usr/include/boost/asio/detail/atomic_count.hpp:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/http/response.hpp:
-
-/usr/include/boost/asio/detail/impl/reactive_serial_port_service.ipp:
-
-/usr/include/x86_64-linux-gnu/bits/locale.h:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/http/impl/parser.hpp:
-
-/usr/include/boost/asio/detail/is_buffer_sequence.hpp:
-
-/usr/include/boost/asio/detail/event.hpp:
-
-../main.cpp:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/http/request.hpp:
-
-/usr/include/boost/preprocessor/debug/error.hpp:
-
-/usr/include/c++/11/tr1/modified_bessel_func.tcc:
-
-/usr/include/c++/11/bits/ostream.tcc:
-
-/usr/include/x86_64-linux-gnu/sys/epoll.h:
-
-/usr/include/boost/asio/is_write_buffered.hpp:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/transport/iostream/connection.hpp:
-
-/usr/include/boost/predef/os/cygwin.h:
-
-/usr/include/boost/predef/compiler/dignus.h:
-
-/usr/include/x86_64-linux-gnu/bits/uintn-identity.h:
-
-/usr/include/boost/asio/ip/v6_only.hpp:
+../externals/websocketpp/websocketpp/transport/iostream/endpoint.hpp:
 
 /usr/include/boost/config/detail/posix_features.hpp:
 
@@ -2632,53 +2644,63 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/asio/detail/epoll_reactor.hpp:
 
-/usr/include/boost/asio/traits/query_static_constexpr_member.hpp:
+/usr/include/openssl/ec.h:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/common/thread.hpp:
+../externals/websocketpp/websocketpp/common/thread.hpp:
 
-/usr/include/boost/asio/basic_waitable_timer.hpp:
+../externals/rapidjson/include/rapidjson/allocators.h:
 
-/usr/include/openssl/rsa.h:
+/usr/include/boost/asio/detail/throw_exception.hpp:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/impl/endpoint_impl.hpp:
+../externals/websocketpp/websocketpp/config/asio_client.hpp:
 
-/usr/include/x86_64-linux-gnu/bits/floatn.h:
+/usr/include/boost/mpl/aux_/na_fwd.hpp:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/version.hpp:
+../externals/websocketpp/websocketpp/impl/endpoint_impl.hpp:
 
-/usr/include/boost/asio/execution.hpp:
+/usr/include/boost/asio/detail/call_stack.hpp:
 
-/usr/include/c++/11/bits/allocated_ptr.h:
+/usr/include/openssl/bio.h:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/base64/base64.hpp:
+/usr/include/boost/asio/execution/schedule.hpp:
 
-/vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/biginteger.h:
+/usr/include/c++/11/bits/vector.tcc:
 
-/usr/include/linux/falloc.h:
+/usr/include/boost/type_traits/detail/config.hpp:
 
-/usr/include/boost/type_traits/conditional.hpp:
+/usr/include/boost/asio/socket_base.hpp:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/sha1/sha1.hpp:
+/usr/include/boost/asio/execution/any_executor.hpp:
 
-/usr/include/c++/11/tr1/hypergeometric.tcc:
+/usr/include/c++/11/bits/quoted_string.h:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/processors/hybi13.hpp:
+../externals/websocketpp/websocketpp/impl/connection_impl.hpp:
 
-/usr/include/boost/predef/detail/test.h:
+/usr/include/boost/asio/detail/select_interrupter.hpp:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/common/functional.hpp:
+../externals/websocketpp/websocketpp/processors/hybi13.hpp:
 
-/usr/include/boost/smart_ptr/detail/sp_has_sync_intrinsics.hpp:
+/usr/include/boost/predef/architecture/ia64.h:
 
-/usr/include/boost/asio/detail/handler_alloc_helpers.hpp:
+../externals/websocketpp/websocketpp/processors/hybi08.hpp:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/common/platforms.hpp:
+/usr/include/x86_64-linux-gnu/bits/cpu-set.h:
 
-/usr/include/boost/detail/workaround.hpp:
+/usr/include/boost/asio/ip/basic_endpoint.hpp:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/processors/hybi00.hpp:
+../externals/websocketpp/websocketpp/processors/hybi07.hpp:
 
-/usr/include/boost/asio/ip/address_v6_iterator.hpp:
+/usr/include/x86_64-linux-gnu/bits/strings_fortified.h:
+
+/usr/include/boost/predef/architecture.h:
+
+/usr/include/boost/asio/buffered_write_stream_fwd.hpp:
+
+/usr/include/boost/asio/prefer.hpp:
+
+/usr/include/c++/11/bits/deque.tcc:
+
+/usr/include/boost/mpl/aux_/config/msvc_typename.hpp:
 
 /usr/include/boost/config/compiler/gcc.hpp:
 
@@ -2686,9 +2708,11 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/c++/11/deque:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/logger/levels.hpp:
-
 /usr/include/boost/asio/detail/descriptor_write_op.hpp:
+
+../externals/websocketpp/websocketpp/connection_base.hpp:
+
+/usr/include/boost/asio/detail/impl/epoll_reactor.hpp:
 
 /usr/include/c++/11/bits/stl_map.h:
 
@@ -2698,37 +2722,49 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/c++/11/bits/stl_tree.h:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/concurrency/basic.hpp:
+/usr/include/boost/asio/detail/keyword_tss_ptr.hpp:
 
-/usr/include/boost/asio/detail/thread_group.hpp:
+/usr/include/x86_64-linux-gnu/bits/types/struct___jmp_buf_tag.h:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/http/constants.hpp:
+/usr/include/boost/smart_ptr/detail/spinlock_gcc_atomic.hpp:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/common/connection_hdl.hpp:
+/usr/include/x86_64-linux-gnu/bits/unistd.h:
 
-/usr/include/boost/numeric/conversion/detail/udt_builtin_mixture.hpp:
+/usr/include/boost/numeric/conversion/detail/meta.hpp:
+
+/usr/include/rpc/netdb.h:
+
+../externals/websocketpp/websocketpp/http/constants.hpp:
+
+/usr/include/boost/mpl/lambda_fwd.hpp:
+
+/usr/include/x86_64-linux-gnu/bits/unistd_ext.h:
+
+/usr/include/boost/numeric/conversion/int_float_mixture_enum.hpp:
+
+/usr/include/boost/preprocessor/cat.hpp:
+
+../externals/websocketpp/websocketpp/transport/base/connection.hpp:
+
+/usr/include/c++/11/ratio:
 
 /usr/include/c++/11/sstream:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/transport/base/endpoint.hpp:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/random/random_device.hpp:
-
-/usr/include/boost/asio/execution/connect.hpp:
-
-/usr/include/x86_64-linux-gnu/asm/posix_types_64.h:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/frame.hpp:
 
 /usr/include/linux/stat.h:
 
 /usr/include/c++/11/queue:
 
+../externals/websocketpp/websocketpp/message_buffer/message.hpp:
+
+/usr/include/boost/asio/buffered_write_stream.hpp:
+
 /usr/include/c++/11/ext/concurrence.h:
 
 /usr/include/boost/mpl/aux_/config/lambda.hpp:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/transport/iostream/base.hpp:
+../externals/websocketpp/websocketpp/random/random_device.hpp:
+
+/usr/include/boost/asio/detail/static_mutex.hpp:
 
 /usr/include/c++/11/bit:
 
@@ -2738,33 +2774,13 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/c++/11/bits/stl_raw_storage_iter.h:
 
-/usr/include/x86_64-linux-gnu/c++/11/bits/error_constants.h:
+/usr/include/boost/asio/generic/seq_packet_protocol.hpp:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/common/memory.hpp:
+/usr/include/boost/asio/ssl/context_base.hpp:
 
-/usr/include/c++/11/bits/hashtable_policy.h:
+../externals/websocketpp/websocketpp/uri.hpp:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/uri.hpp:
-
-/usr/include/boost/date_time/date_duration.hpp:
-
-/usr/include/boost/asio/detail/impl/posix_event.ipp:
-
-/usr/include/c++/11/bits/enable_special_members.h:
-
-/usr/include/boost/asio/detail/handler_type_requirements.hpp:
-
-/usr/include/boost/asio/detail/fenced_block.hpp:
-
-/usr/include/boost/preprocessor/control/iif.hpp:
-
-/usr/include/boost/mpl/aux_/largest_int.hpp:
-
-/usr/include/boost/asio/basic_stream_socket.hpp:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/processors/processor.hpp:
-
-/usr/include/x86_64-linux-gnu/bits/types/struct_tm.h:
+../externals/websocketpp/websocketpp/logger/levels.hpp:
 
 /usr/include/boost/config/platform/linux.hpp:
 
@@ -2772,21 +2788,17 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/smart_ptr/detail/sp_convertible.hpp:
 
+../externals/websocketpp/websocketpp/logger/basic.hpp:
+
 /usr/include/boost/regex_fwd.hpp:
 
 /usr/include/c++/11/bits/locale_facets_nonio.tcc:
 
 /usr/include/boost/date_time/gregorian/gregorian_types.hpp:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/transport/asio/endpoint.hpp:
-
 /usr/include/x86_64-linux-gnu/c++/11/bits/messages_members.h:
 
 /usr/include/c++/11/bits/basic_ios.h:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/common/md5.hpp:
-
-/usr/include/boost/mpl/tag.hpp:
 
 /usr/include/x86_64-linux-gnu/c++/11/bits/time_members.h:
 
@@ -2798,23 +2810,31 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/c++/11/bits/locale_facets_nonio.h:
 
-/usr/include/boost/asio/execution/detail/as_invocable.hpp:
+/usr/include/c++/11/bits/std_function.h:
 
-/usr/include/boost/asio/connect.hpp:
+/usr/include/x86_64-linux-gnu/bits/types/timer_t.h:
 
-/usr/include/boost/asio/detail/impl/posix_mutex.ipp:
+/usr/include/boost/preprocessor/control/expr_iif.hpp:
 
-/usr/include/c++/11/bits/stl_construct.h:
+/usr/include/c++/11/bits/stl_tempbuf.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h:
+../externals/websocketpp/websocketpp/common/asio_ssl.hpp:
 
-/usr/include/boost/mpl/aux_/adl_barrier.hpp:
+/usr/include/asm-generic/sockios.h:
+
+/usr/include/boost/asio/detail/posix_static_mutex.hpp:
+
+/usr/include/boost/asio/traits/prefer_member.hpp:
+
+/usr/include/boost/asio/traits/set_value_member.hpp:
+
+/usr/include/c++/11/pstl/execution_defs.h:
+
+/usr/include/c++/11/bits/cxxabi_forced.h:
 
 /usr/include/boost/system/detail/system_category_posix.hpp:
 
 /usr/include/boost/asio/io_context.hpp:
-
-/usr/include/c++/11/bits/cxxabi_forced.h:
 
 /usr/include/boost/asio/coroutine.hpp:
 
@@ -2823,10 +2843,6 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 /usr/include/c++/11/bits/stl_deque.h:
 
 /usr/include/boost/asio/detail/array_fwd.hpp:
-
-/usr/include/c++/11/algorithm:
-
-/usr/include/linux/posix_types.h:
 
 /usr/include/x86_64-linux-gnu/c++/11/bits/c++allocator.h:
 
@@ -2842,43 +2858,23 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/c++/11/memory:
 
-/usr/include/x86_64-linux-gnu/bits/stdint-uintn.h:
-
 /usr/include/boost/asio/ssl/error.hpp:
 
 ../SPSCQueue/SPSCQueue.hpp:
+
+/usr/include/x86_64-linux-gnu/bits/stdint-uintn.h:
 
 /usr/include/x86_64-linux-gnu/openssl/configuration.h:
 
 /usr/include/boost/preprocessor/arithmetic/inc.hpp:
 
-/usr/include/boost/predef/architecture/pyramid.h:
+/usr/include/boost/mpl/bool.hpp:
 
-/usr/include/x86_64-linux-gnu/bits/sigevent-consts.h:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/close.hpp:
-
-/usr/include/x86_64-linux-gnu/c++/11/bits/cpu_defines.h:
+/usr/include/boost/asio/ip/basic_resolver.hpp:
 
 /usr/include/boost/asio/execution/detail/as_receiver.hpp:
 
 /usr/include/boost/asio/detail/thread_context.hpp:
-
-/usr/include/boost/asio/detail/call_stack.hpp:
-
-/usr/include/c++/11/bits/specfun.h:
-
-/usr/include/x86_64-linux-gnu/bits/pthreadtypes.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/timer_t.h:
-
-/usr/include/c++/11/bits/std_function.h:
-
-/usr/include/boost/preprocessor/control/expr_iif.hpp:
-
-/usr/include/openssl/dsaerr.h:
-
-/usr/include/boost/asio/detail/date_time_fwd.hpp:
 
 /usr/include/boost/asio/detail/consuming_buffers.hpp:
 
@@ -2902,11 +2898,15 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/x86_64-linux-gnu/c++/11/bits/gthr-default.h:
 
-/usr/include/c++/11/bits/std_mutex.h:
-
 /usr/include/boost/asio/time_traits.hpp:
 
+/usr/include/c++/11/bits/std_mutex.h:
+
 /usr/include/boost/asio/traits/set_done_free.hpp:
+
+/usr/include/x86_64-linux-gnu/bits/timex.h:
+
+/usr/include/x86_64-linux-gnu/bits/endianness.h:
 
 /usr/include/boost/asio/ssl/detail/password_callback.hpp:
 
@@ -2916,9 +2916,7 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/locale.h:
 
-/usr/include/c++/11/backward/binders.h:
-
-/usr/include/x86_64-linux-gnu/asm/bitsperlong.h:
+../externals/websocketpp/websocketpp/config/core_client.hpp:
 
 /usr/include/c++/11/bits/localefwd.h:
 
@@ -2928,11 +2926,13 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/shared_ptr.hpp:
 
-/usr/include/boost/asio/ip/host_name.hpp:
-
-/usr/include/c++/11/cctype:
-
 /usr/include/c++/11/unordered_map:
+
+/usr/include/boost/asio/detail/limits.hpp:
+
+/usr/include/openssl/cryptoerr_legacy.h:
+
+/usr/include/x86_64-linux-gnu/bits/sigcontext.h:
 
 /usr/include/x86_64-linux-gnu/bits/stdint-intn.h:
 
@@ -2946,19 +2946,23 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/asio/ip/impl/basic_endpoint.hpp:
 
+/usr/include/boost/asio/detail/impl/service_registry.hpp:
+
 /usr/include/boost/asio/require.hpp:
 
-/usr/include/boost/predef/os/irix.h:
+/usr/include/boost/asio/detail/fenced_block.hpp:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/processors/hybi08.hpp:
+/usr/include/boost/asio/detail/handler_type_requirements.hpp:
 
-/usr/include/boost/date_time/gregorian/greg_day.hpp:
-
-/usr/include/boost/date_time/time_system_counted.hpp:
+/usr/include/boost/numeric/conversion/detail/udt_builtin_mixture.hpp:
 
 /usr/include/c++/11/bits/predefined_ops.h:
 
 /usr/include/boost/asio/detail/posix_thread.hpp:
+
+../externals/websocketpp/websocketpp/transport/iostream/connection.hpp:
+
+/usr/include/boost/smart_ptr/detail/sp_nullptr_t.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/struct_mutex.h:
 
@@ -2988,6 +2992,8 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/signal.h:
 
+/usr/include/boost/date_time/gregorian/greg_date.hpp:
+
 /usr/include/boost/is_placeholder.hpp:
 
 /usr/include/boost/asio/execution/impl/bad_executor.ipp:
@@ -3004,19 +3010,7 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/asio/impl/handler_alloc_hook.ipp:
 
-/usr/include/openssl/sslerr.h:
-
-/usr/include/c++/11/bits/locale_classes.tcc:
-
-/usr/include/c++/11/bits/cxxabi_init_exception.h:
-
-/usr/include/c++/11/string:
-
-/usr/include/boost/asio/detail/timer_queue_base.hpp:
-
-/usr/include/x86_64-linux-gnu/bits/select.h:
-
-/usr/include/boost/throw_exception.hpp:
+../externals/websocketpp/websocketpp/common/platforms.hpp:
 
 /usr/include/boost/asio/ssl/stream.hpp:
 
@@ -3024,15 +3018,19 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/x86_64-linux-gnu/bits/types/FILE.h:
 
-/usr/include/boost/asio/traits/set_value_member.hpp:
-
-/usr/include/boost/asio/traits/prefer_member.hpp:
-
 /usr/include/c++/11/tuple:
 
 /usr/include/net/if.h:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/http/parser.hpp:
+/usr/include/c++/11/debug/assertions.h:
+
+/usr/include/x86_64-linux-gnu/sys/eventfd.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/sigset_t.h:
+
+../externals/websocketpp/websocketpp/common/functional.hpp:
+
+/usr/include/x86_64-linux-gnu/c++/11/bits/cpu_defines.h:
 
 /usr/include/c++/11/exception:
 
@@ -3052,6 +3050,8 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/c++/11/bits/invoke.h:
 
+/usr/include/c++/11/functional:
+
 /usr/lib/gcc/x86_64-linux-gnu/11/include/syslimits.h:
 
 /usr/include/boost/asio/posix/basic_stream_descriptor.hpp:
@@ -3061,12 +3061,6 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 /usr/include/linux/version.h:
 
 /usr/include/c++/11/debug/debug.h:
-
-/usr/include/boost/asio/ssl/verify_context.hpp:
-
-/usr/include/c++/11/bits/shared_ptr.h:
-
-/usr/include/boost/mpl/aux_/msvc_eti_base.hpp:
 
 /usr/include/features-time64.h:
 
@@ -3082,6 +3076,8 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/openssl/buffererr.h:
 
+../externals/websocketpp/websocketpp/close.hpp:
+
 /usr/include/boost/asio/execution/set_error.hpp:
 
 /usr/include/x86_64-linux-gnu/asm/errno.h:
@@ -3096,9 +3092,9 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/mpl/aux_/arity.hpp:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/config/core_client.hpp:
-
 /usr/include/asm-generic/posix_types.h:
+
+../externals/rapidjson/include/rapidjson/internal/strtod.h:
 
 /usr/include/boost/asio/traits/require_free.hpp:
 
@@ -3106,11 +3102,23 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/x86_64-linux-gnu/sys/ioctl.h:
 
-/usr/include/boost/asio/traits/bulk_execute_member.hpp:
+/usr/include/x86_64-linux-gnu/asm/bitsperlong.h:
 
-/usr/include/openssl/pkcs7.h:
+/usr/include/c++/11/backward/binders.h:
 
-/usr/include/c++/11/streambuf:
+/usr/include/boost/throw_exception.hpp:
+
+/usr/include/x86_64-linux-gnu/bits/select.h:
+
+/usr/include/openssl/dsaerr.h:
+
+/usr/include/boost/asio/detail/date_time_fwd.hpp:
+
+/usr/include/c++/11/algorithm:
+
+/usr/include/boost/asio/traits/set_error_member.hpp:
+
+/usr/include/boost/date_time/posix_time/posix_time_types.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/setjmp.h:
 
@@ -3124,13 +3132,9 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/c++/11/ostream:
 
-/usr/include/c++/11/any:
-
 /usr/include/c++/11/bits/unique_ptr.h:
 
 /usr/include/x86_64-linux-gnu/bits/pthread_stack_min-dynamic.h:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/common/chrono.hpp:
 
 /usr/include/boost/asio/detail/string_view.hpp:
 
@@ -3142,11 +3146,13 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/c++/11/bits/streambuf_iterator.h:
 
+/usr/include/boost/predef/os/cygwin.h:
+
+/usr/include/boost/predef/compiler/dignus.h:
+
+/usr/include/x86_64-linux-gnu/bits/uintn-identity.h:
+
 /usr/include/c++/11/bits/node_handle.h:
-
-/usr/include/boost/mpl/bool.hpp:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/impl/utilities_impl.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/time64.h:
 
@@ -3162,11 +3168,21 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/c++/11/bits/atomic_base.h:
 
+/usr/include/boost/asio/detail/pop_options.hpp:
+
+/usr/include/c++/11/bits/random.tcc:
+
+/usr/include/features.h:
+
+../externals/websocketpp/websocketpp/common/stdint.hpp:
+
+/usr/include/boost/preprocessor/logical/compl.hpp:
+
 /usr/include/boost/asio/execution/executor.hpp:
 
-/usr/include/x86_64-linux-gnu/bits/endianness.h:
+../externals/websocketpp/websocketpp/common/cpp11.hpp:
 
-/usr/include/x86_64-linux-gnu/bits/timex.h:
+/usr/include/boost/mpl/aux_/comparison_op.hpp:
 
 /usr/include/boost/bind/arg.hpp:
 
@@ -3194,9 +3210,13 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/operators.hpp:
 
-/usr/include/c++/11/functional:
+/usr/include/boost/asio/ip/icmp.hpp:
 
-/vol/bitbucket/aap221/rapidjson/include/rapidjson/allocators.h:
+/usr/include/x86_64-linux-gnu/bits/posix2_lim.h:
+
+../externals/websocketpp/websocketpp/transport/asio/connection.hpp:
+
+../externals/rapidjson/include/rapidjson/internal/swap.h:
 
 /usr/include/boost/asio/ssl/detail/write_op.hpp:
 
@@ -3210,23 +3230,15 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/stdc-predef.h:
 
-/usr/include/boost/config.hpp:
-
-/usr/include/boost/asio/detail/cstdint.hpp:
-
-/usr/include/x86_64-linux-gnu/sys/eventfd.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/sigset_t.h:
-
-/usr/include/c++/11/debug/assertions.h:
-
-/usr/include/errno.h:
+/usr/include/c++/11/bits/alloc_traits.h:
 
 /usr/include/boost/asio/io_service_strand.hpp:
 
-/usr/include/boost/asio/detail/impl/strand_executor_service.ipp:
+/usr/include/errno.h:
 
-/usr/include/boost/asio/execution/outstanding_work.hpp:
+/usr/include/boost/config.hpp:
+
+/usr/include/boost/asio/detail/cstdint.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/types/__sigset_t.h:
 
@@ -3238,15 +3250,13 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/x86_64-linux-gnu/bits/socket.h:
 
+/usr/include/linux/falloc.h:
+
+/usr/include/boost/type_traits/conditional.hpp:
+
 /usr/lib/gcc/x86_64-linux-gnu/11/include/stdint.h:
 
 /usr/include/c++/11/bits/stl_algobase.h:
-
-/usr/include/strings.h:
-
-/usr/include/boost/asio/detail/handler_cont_helpers.hpp:
-
-/usr/include/boost/asio/detail/bind_handler.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/types/sig_atomic_t.h:
 
@@ -3264,19 +3274,13 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/asio/detail/scoped_lock.hpp:
 
-/usr/include/c++/11/stdlib.h:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/common/time.hpp:
-
-/usr/include/c++/11/bits/stl_tempbuf.h:
-
-/usr/include/asm-generic/sockios.h:
-
-/usr/include/boost/asio/detail/posix_static_mutex.hpp:
-
 /usr/include/boost/predef/hardware/simd/x86_amd.h:
 
 /usr/include/c++/11/bits/stl_queue.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/struct_timespec.h:
+
+../externals/websocketpp/websocketpp/version.hpp:
 
 /usr/include/c++/11/bits/stl_iterator_base_types.h:
 
@@ -3290,15 +3294,27 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/c++/11/bits/postypes.h:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/message_buffer/message.hpp:
-
 /usr/include/x86_64-linux-gnu/bits/in.h:
 
 /usr/include/boost/config/detail/select_stdlib_config.hpp:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/connection.hpp:
-
 /usr/include/boost/mpl/equal_to.hpp:
+
+/usr/include/boost/asio/detail/tss_ptr.hpp:
+
+/usr/include/boost/asio/traits/schedule_free.hpp:
+
+/usr/include/x86_64-linux-gnu/bits/wchar2.h:
+
+/usr/include/boost/asio/execution.hpp:
+
+/usr/include/c++/11/bits/allocated_ptr.h:
+
+../externals/websocketpp/websocketpp/concurrency/basic.hpp:
+
+/usr/include/boost/asio/basic_raw_socket.hpp:
+
+/usr/include/x86_64-linux-gnu/bits/floatn.h:
 
 /usr/include/boost/asio/ssl/stream_base.hpp:
 
@@ -3309,6 +3325,8 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 /usr/include/openssl/ssl.h:
 
 /usr/include/boost/asio/detail/reactive_socket_connect_op.hpp:
+
+../externals/websocketpp/websocketpp/message_buffer/alloc.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/environments.h:
 
@@ -3334,9 +3352,9 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/asm-generic/int-ll64.h:
 
-/usr/include/x86_64-linux-gnu/bits/cpu-set.h:
+/usr/include/boost/asio/execution/connect.hpp:
 
-/usr/include/boost/asio/ip/basic_endpoint.hpp:
+/usr/include/x86_64-linux-gnu/asm/posix_types_64.h:
 
 /usr/include/c++/11/typeinfo:
 
@@ -3356,11 +3374,23 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/c++/11/bits/string_view.tcc:
 
+../externals/websocketpp/websocketpp/common/system_error.hpp:
+
+../externals/websocketpp/websocketpp/processors/base.hpp:
+
 /usr/include/x86_64-linux-gnu/c++/11/bits/gthr.h:
 
 /usr/include/boost/asio/ssl/detail/impl/openssl_init.ipp:
 
+../externals/websocketpp/websocketpp/impl/utilities_impl.hpp:
+
 /usr/include/x86_64-linux-gnu/bits/types/__sigval_t.h:
+
+/usr/include/openssl/pkcs7.h:
+
+/usr/include/c++/11/streambuf:
+
+/usr/include/boost/asio/traits/bulk_execute_member.hpp:
 
 /usr/include/c++/11/iosfwd:
 
@@ -3368,13 +3398,37 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/c++/11/initializer_list:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/common/stdint.hpp:
-
 /usr/include/ctype.h:
+
+/usr/include/boost/asio/execution/detail/as_invocable.hpp:
+
+/usr/include/boost/asio/connect.hpp:
+
+/usr/include/boost/asio/ssl/verify_context.hpp:
+
+/usr/include/boost/mpl/aux_/msvc_eti_base.hpp:
+
+/usr/include/c++/11/bits/shared_ptr.h:
+
+/usr/include/strings.h:
+
+/usr/include/boost/asio/detail/bind_handler.hpp:
+
+/usr/include/boost/asio/detail/handler_cont_helpers.hpp:
+
+/usr/include/boost/asio/detail/impl/posix_mutex.ipp:
+
+/usr/include/c++/11/bits/stl_construct.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h:
+
+/usr/include/boost/mpl/aux_/adl_barrier.hpp:
 
 /usr/include/boost/asio/detail/impl/eventfd_select_interrupter.ipp:
 
 /usr/include/x86_64-linux-gnu/bits/libm-simd-decl-stubs.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h:
 
 /usr/include/netinet/tcp.h:
 
@@ -3384,16 +3438,6 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/date_time/gregorian/greg_ymd.hpp:
 
-/usr/include/features.h:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/common/cpp11.hpp:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/transport/asio/security/none.hpp:
-
-/usr/include/c++/11/cstdio:
-
-/usr/include/boost/asio/detail/impl/posix_thread.ipp:
-
 /usr/include/openssl/pkcs7err.h:
 
 /usr/include/stdlib.h:
@@ -3402,15 +3446,27 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/x86_64-linux-gnu/sys/select.h:
 
+/usr/include/c++/11/ext/aligned_buffer.h:
+
+/usr/include/openssl/sslerr.h:
+
+/usr/include/c++/11/bits/cxxabi_init_exception.h:
+
+/usr/include/c++/11/bits/locale_classes.tcc:
+
 /usr/include/boost/asio/execution/scheduler.hpp:
+
+../externals/websocketpp/websocketpp/transport/asio/security/base.hpp:
+
+/usr/include/x86_64-linux-gnu/bits/select2.h:
 
 /usr/include/alloca.h:
 
 /usr/include/boost/asio/detail/handler_work.hpp:
 
-/usr/include/x86_64-linux-gnu/bits/wordsize.h:
+/usr/include/c++/11/cwctype:
 
-/vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/meta.h:
+/usr/include/x86_64-linux-gnu/bits/wordsize.h:
 
 /usr/include/c++/11/chrono:
 
@@ -3422,33 +3478,43 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/stdio.h:
 
+/usr/include/x86_64-linux-gnu/bits/stdio.h:
+
+/usr/include/c++/11/bits/locale_facets.tcc:
+
+/usr/include/openssl/x509v3.h:
+
+/usr/include/boost/predef/compiler/kai.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/struct_tm.h:
+
+/usr/include/c++/11/bits/this_thread_sleep.h:
+
+/usr/include/boost/asio/basic_socket_streambuf.hpp:
+
 /usr/include/x86_64-linux-gnu/bits/types/cookie_io_functions_t.h:
 
 /usr/include/x86_64-linux-gnu/c++/11/bits/ctype_base.h:
 
-/usr/include/x86_64-linux-gnu/gnu/stubs.h:
-
 /usr/include/x86_64-linux-gnu/bits/fp-fast.h:
 
+/usr/include/x86_64-linux-gnu/gnu/stubs.h:
+
 /usr/include/boost/date_time/time_iterator.hpp:
-
-/usr/include/boost/mpl/aux_/preprocessor/default_params.hpp:
-
-/usr/include/boost/asio/ip/address_v6_range.hpp:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/processors/base.hpp:
-
-/usr/include/boost/asio/steady_timer.hpp:
 
 /usr/include/boost/asio/detail/regex_fwd.hpp:
 
 /usr/include/asm-generic/errno.h:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/transport/asio/security/base.hpp:
-
 /usr/include/x86_64-linux-gnu/bits/types/error_t.h:
 
 /usr/include/poll.h:
+
+../externals/websocketpp/websocketpp/common/md5.hpp:
+
+/usr/include/c++/11/vector:
 
 /usr/include/c++/11/bits/algorithmfwd.h:
 
@@ -3462,10 +3528,6 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/date_time/time_defs.hpp:
 
-/usr/include/c++/11/bits/alloc_traits.h:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/http/impl/request.hpp:
-
 /usr/include/c++/11/ios:
 
 /usr/include/boost/asio/detail/impl/scheduler.ipp:
@@ -3473,8 +3535,6 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 /usr/include/boost/asio/impl/system_context.ipp:
 
 /usr/include/c++/11/stdexcept:
-
-/usr/include/boost/asio/traits/equality_comparable.hpp:
 
 /usr/include/string.h:
 
@@ -3490,39 +3550,17 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/mpl/if.hpp:
 
-/usr/include/boost/asio/detail/pop_options.hpp:
-
-/usr/include/c++/11/bits/random.tcc:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/transport/asio/base.hpp:
-
-/usr/include/x86_64-linux-gnu/bits/termios-baud.h:
-
 /usr/include/c++/11/bits/atomic_lockfree_defines.h:
 
-/usr/include/boost/asio/ip/tcp.hpp:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/transport/iostream/endpoint.hpp:
-
 /usr/include/c++/11/bits/uniform_int_dist.h:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/utilities.hpp:
 
 /usr/include/boost/asio/traits/submit_free.hpp:
 
 /usr/include/c++/11/bits/locale_facets.h:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/extensions/extension.hpp:
-
-/usr/include/c++/11/cwctype:
+../externals/websocketpp/websocketpp/common/memory.hpp:
 
 /usr/include/x86_64-linux-gnu/c++/11/bits/ctype_inline.h:
-
-/usr/include/c++/11/bits/this_thread_sleep.h:
-
-/usr/include/boost/asio/basic_socket_streambuf.hpp:
-
-/usr/include/c++/11/bits/locale_facets.tcc:
 
 /usr/include/c++/11/istream:
 
@@ -3548,25 +3586,25 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/date_time/posix_time/posix_time_duration.hpp:
 
+/usr/include/c++/11/bits/hashtable_policy.h:
+
 /usr/include/c++/11/tr1/riemann_zeta.tcc:
 
 /usr/include/limits.h:
 
 /usr/include/boost/asio/associated_allocator.hpp:
 
+/usr/include/boost/asio/ip/detail/socket_option.hpp:
+
+/usr/include/c++/11/tr1/beta_function.tcc:
+
 /usr/include/boost/system/detail/config.hpp:
 
 /usr/include/c++/11/bits/unique_lock.h:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/error.hpp:
-
 /usr/include/boost/mpl/aux_/config/workaround.hpp:
 
-/usr/include/c++/11/bits/deque.tcc:
-
-/usr/include/boost/mpl/aux_/config/msvc_typename.hpp:
-
-/vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/strtod.h:
+/usr/include/boost/asio/detail/buffered_stream_storage.hpp:
 
 /usr/include/c++/11/bits/codecvt.h:
 
@@ -3588,9 +3626,13 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/c++/11/bits/erase_if.h:
 
-/usr/include/c++/11/vector:
-
 /usr/include/c++/11/bits/stl_uninitialized.h:
+
+/usr/include/boost/asio/detail/is_buffer_sequence.hpp:
+
+/usr/include/boost/asio/detail/event.hpp:
+
+../main.cpp:
 
 /usr/include/x86_64-linux-gnu/bits/types/clockid_t.h:
 
@@ -3604,31 +3646,25 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/c++/11/condition_variable:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/common/network.hpp:
+/usr/include/c++/11/string:
+
+../externals/websocketpp/websocketpp/utilities.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/sigstksz.h:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/impl/connection_impl.hpp:
-
-/usr/include/c++/11/ratio:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/utf8_validator.hpp:
-
 /usr/include/boost/asio/multiple_exceptions.hpp:
-
-/usr/include/x86_64-linux-gnu/bits/types/struct_sigstack.h:
-
-/usr/include/c++/11/limits:
 
 /usr/include/x86_64-linux-gnu/bits/pthreadtypes-arch.h:
 
 /usr/include/boost/asio/detail/reactive_socket_sendto_op.hpp:
 
+../externals/websocketpp/websocketpp/endpoint_base.hpp:
+
+/usr/include/boost/asio/traits/equality_comparable.hpp:
+
+../externals/websocketpp/websocketpp/error.hpp:
+
 /usr/include/c++/11/bits/parse_numbers.h:
-
-/usr/include/boost/asio/execution/occupancy.hpp:
-
-/usr/include/boost/date_time/gregorian_calendar.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/waitstatus.h:
 
@@ -3642,13 +3678,13 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/asio/traits/execute_free.hpp:
 
-/vol/bitbucket/aap221/rapidjson/include/rapidjson/memorystream.h:
-
 /usr/include/c++/11/bits/std_thread.h:
 
 /usr/include/boost/asio/high_resolution_timer.hpp:
 
 /usr/include/wctype.h:
+
+../externals/websocketpp/websocketpp/common/asio.hpp:
 
 /usr/include/boost/asio/detail/handler_tracking.hpp:
 
@@ -3656,33 +3692,17 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/linux/stddef.h:
 
-/usr/include/c++/11/bits/refwrap.h:
+../externals/websocketpp/websocketpp/client.hpp:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/client.hpp:
+/usr/include/c++/11/bits/specfun.h:
 
-/usr/include/c++/11/bits/random.h:
+/usr/include/x86_64-linux-gnu/bits/pthreadtypes.h:
 
-/usr/include/boost/mpl/aux_/has_apply.hpp:
+/usr/include/c++/11/bits/ostream.tcc:
 
-/vol/bitbucket/aap221/websocketpp/websocketpp/roles/client_endpoint.hpp:
+../externals/websocketpp/websocketpp/extensions/extension.hpp:
 
-/usr/include/boost/asio/execution/prefer_only.hpp:
-
-/usr/include/x86_64-linux-gnu/bits/types/struct_itimerspec.h:
-
-/usr/include/openssl/dsa.h:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/endpoint.hpp:
-
-/usr/include/boost/numeric/conversion/detail/conversion_traits.hpp:
-
-/usr/include/boost/asio/detail/posix_mutex.hpp:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/common/system_error.hpp:
-
-/usr/include/boost/asio/ip/resolver_base.hpp:
-
-/usr/include/boost/asio/ip/basic_resolver.hpp:
+/usr/include/c++/11/tr1/modified_bessel_func.tcc:
 
 /usr/include/c++/11/tr1/poly_hermite.tcc:
 
@@ -3696,6 +3716,8 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/x86_64-linux-gnu/sys/ucontext.h:
 
+/usr/include/linux/posix_types.h:
+
 /usr/include/openssl/x509err.h:
 
 /usr/include/x86_64-linux-gnu/asm/posix_types.h:
@@ -3704,11 +3726,47 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/c++/11/bits/concept_check.h:
 
+/usr/include/x86_64-linux-gnu/bits/siginfo-arch.h:
+
+/usr/include/x86_64-linux-gnu/bits/time.h:
+
+/usr/include/boost/asio/detail/thread.hpp:
+
 /usr/include/boost/asio/post.hpp:
 
 /usr/include/asm-generic/bitsperlong.h:
 
-/usr/include/c++/11/pstl/execution_defs.h:
+/usr/include/x86_64-linux-gnu/bits/socket2.h:
+
+/usr/include/boost/asio/detail/dependent_type.hpp:
+
+/usr/include/boost/asio/execution/context.hpp:
+
+/usr/include/c++/11/any:
+
+/usr/include/boost/date_time/gregorian_calendar.hpp:
+
+/usr/include/boost/asio/execution/occupancy.hpp:
+
+/usr/include/boost/asio/detail/impl/strand_executor_service.ipp:
+
+/usr/include/boost/asio/execution/outstanding_work.hpp:
+
+/usr/include/x86_64-linux-gnu/bits/types/struct_itimerspec.h:
+
+/usr/include/boost/asio/execution/prefer_only.hpp:
+
+/usr/include/boost/predef/architecture/pyramid.h:
+
+/usr/include/x86_64-linux-gnu/bits/sigevent-consts.h:
+
+/usr/include/boost/asio/ip/resolver_query_base.hpp:
+
+/usr/include/boost/asio/execution/relationship.hpp:
+
+/usr/include/boost/asio/io_context_strand.hpp:
+
+/usr/include/boost/asio/execution/submit.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/errno.h:
 
@@ -3721,6 +3779,8 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 /usr/include/boost/asio/execution_context.hpp:
 
 /usr/include/boost/asio/impl/execution_context.hpp:
+
+../externals/websocketpp/websocketpp/base64/base64.hpp:
 
 /usr/include/boost/asio/async_result.hpp:
 
@@ -3750,6 +3810,8 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/date_time/period.hpp:
 
+/usr/include/x86_64-linux-gnu/bits/string_fortified.h:
+
 /usr/include/c++/11/cstdint:
 
 /usr/include/boost/asio/serial_port_base.hpp:
@@ -3771,8 +3833,6 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 /usr/include/boost/mpl/aux_/static_cast.hpp:
 
 /usr/include/boost/asio/detail/handler_invoke_helpers.hpp:
-
-/usr/include/boost/asio/ip/multicast.hpp:
 
 /usr/include/boost/asio/handler_invoke_hook.hpp:
 
@@ -3820,19 +3880,19 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/asio/detail/impl/strand_service.ipp:
 
+/usr/include/c++/11/cstdio:
+
+/usr/include/boost/asio/detail/impl/posix_thread.ipp:
+
 /usr/include/c++/11/bits/functexcept.h:
 
 /usr/include/boost/asio/detail/concurrency_hint.hpp:
 
+../externals/websocketpp/websocketpp/http/request.hpp:
+
 /usr/include/boost/asio/basic_streambuf.hpp:
 
 /usr/include/boost/asio/detail/posix_signal_blocker.hpp:
-
-/usr/include/boost/asio/detail/limits.hpp:
-
-/usr/include/openssl/cryptoerr_legacy.h:
-
-/usr/include/x86_64-linux-gnu/bits/sigcontext.h:
 
 /usr/include/boost/asio/detail/reactor.hpp:
 
@@ -3848,8 +3908,6 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/mpl/aux_/config/compiler.hpp:
 
-/usr/include/boost/asio/detail/select_interrupter.hpp:
-
 /usr/include/boost/asio/detail/eventfd_select_interrupter.hpp:
 
 /usr/include/c++/11/ext/alloc_traits.h:
@@ -3864,11 +3922,15 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/x86_64-linux-gnu/bits/statx.h:
 
+/usr/include/linux/types.h:
+
 /usr/include/asm-generic/types.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_statx_timestamp.h:
 
 /usr/include/boost/asio/impl/executor.hpp:
+
+../externals/websocketpp/websocketpp/utf8_validator.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_statx.h:
 
@@ -3878,13 +3940,19 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/x86_64-linux-gnu/sys/poll.h:
 
+/usr/include/boost/asio/local/basic_endpoint.hpp:
+
+/usr/include/x86_64-linux-gnu/bits/fcntl-linux.h:
+
+/usr/include/x86_64-linux-gnu/bits/fcntl2.h:
+
+/usr/include/boost/mpl/identity.hpp:
+
 /usr/include/x86_64-linux-gnu/bits/eventfd.h:
 
 /usr/include/x86_64-linux-gnu/asm/ioctls.h:
 
 /usr/include/asm-generic/ioctls.h:
-
-/vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/clzll.h:
 
 /usr/include/linux/ioctl.h:
 
@@ -3902,11 +3970,13 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/x86_64-linux-gnu/sys/ttydefaults.h:
 
-/vol/bitbucket/aap221/rapidjson/include/rapidjson/internal/stack.h:
-
 /usr/include/x86_64-linux-gnu/bits/poll.h:
 
 /usr/include/boost/asio/wait_traits.hpp:
+
+../externals/rapidjson/include/rapidjson/error/error.h:
+
+/usr/include/x86_64-linux-gnu/bits/poll2.h:
 
 /usr/include/boost/predef/detail/_exception.h:
 
@@ -3928,25 +3998,21 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/x86_64-linux-gnu/bits/timerfd.h:
 
-/usr/include/boost/asio/detail/impl/epoll_reactor.hpp:
-
-/usr/include/boost/asio/execution/context.hpp:
-
-/usr/include/boost/asio/detail/dependent_type.hpp:
-
 /usr/include/boost/asio/detail/impl/epoll_reactor.ipp:
 
 /usr/include/boost/system/detail/std_interoperability.hpp:
 
 /usr/include/boost/type_traits/is_class.hpp:
 
+/usr/include/x86_64-linux-gnu/sys/epoll.h:
+
 /usr/include/x86_64-linux-gnu/bits/epoll.h:
+
+../externals/websocketpp/websocketpp/connection.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/types/stack_t.h:
 
 /usr/include/boost/asio/detail/scheduler_thread_info.hpp:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/common/random.hpp:
 
 /usr/include/boost/asio/detail/signal_blocker.hpp:
 
@@ -3964,14 +4030,6 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/x86_64-linux-gnu/bits/types/siginfo_t.h:
 
-/usr/include/x86_64-linux-gnu/bits/time.h:
-
-/usr/include/boost/asio/detail/thread.hpp:
-
-/usr/include/x86_64-linux-gnu/bits/siginfo-arch.h:
-
-/usr/include/boost/preprocessor/cat.hpp:
-
 /usr/include/x86_64-linux-gnu/bits/siginfo-consts.h:
 
 /usr/include/x86_64-linux-gnu/bits/siginfo-consts-arch.h:
@@ -3979,6 +4037,12 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 /usr/lib/gcc/x86_64-linux-gnu/11/include/stdarg.h:
 
 /usr/include/x86_64-linux-gnu/bits/ss_flags.h:
+
+/usr/include/c++/11/limits:
+
+/usr/include/x86_64-linux-gnu/bits/types/struct_sigstack.h:
+
+/usr/include/boost/asio/detail/thread_group.hpp:
 
 /usr/include/boost/asio/placeholders.hpp:
 
@@ -4002,7 +4066,11 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/date_time/c_time.hpp:
 
+../externals/websocketpp/websocketpp/roles/client_endpoint.hpp:
+
 /usr/include/boost/asio/ip/basic_resolver_entry.hpp:
+
+/usr/include/boost/detail/workaround.hpp:
 
 /usr/include/boost/predef/compiler/borland.h:
 
@@ -4032,6 +4100,8 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/smart_ptr/detail/sp_counted_base.hpp:
 
+../externals/websocketpp/websocketpp/frame.hpp:
+
 /usr/include/boost/smart_ptr/detail/sp_has_gcc_intrinsics.hpp:
 
 /usr/include/boost/predef/hardware/simd/ppc/versions.h:
@@ -4039,6 +4109,8 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 /usr/include/boost/predef/os/os400.h:
 
 /usr/include/boost/mpl/aux_/config/ttp.hpp:
+
+/usr/include/boost/smart_ptr/detail/sp_has_sync_intrinsics.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/signal_ext.h:
 
@@ -4069,8 +4141,6 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 /usr/include/c++/11/map:
 
 /usr/include/boost/smart_ptr/detail/sp_disable_deprecated.hpp:
-
-/usr/include/boost/smart_ptr/detail/sp_nullptr_t.hpp:
 
 /usr/include/boost/smart_ptr/detail/spinlock_pool.hpp:
 
@@ -4188,11 +4258,15 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/mpl/aux_/preprocessor/enum.hpp:
 
+/usr/include/boost/date_time/gregorian/greg_day.hpp:
+
+/usr/include/boost/date_time/time_system_counted.hpp:
+
 /usr/include/boost/asio/detail/signal_handler.hpp:
 
 /usr/include/boost/date_time/gregorian/greg_duration.hpp:
 
-/usr/include/boost/date_time/gregorian/greg_date.hpp:
+/usr/include/boost/date_time/date_duration.hpp:
 
 /usr/include/boost/date_time/wrapping_int.hpp:
 
@@ -4218,13 +4292,11 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/numeric/conversion/conversion_traits.hpp:
 
-/usr/include/boost/numeric/conversion/detail/meta.hpp:
+/usr/include/boost/numeric/conversion/detail/conversion_traits.hpp:
 
 /usr/include/boost/mpl/aux_/config/msvc.hpp:
 
 /usr/include/boost/mpl/aux_/na_spec.hpp:
-
-/usr/include/boost/mpl/lambda_fwd.hpp:
 
 /usr/include/boost/mpl/aux_/na.hpp:
 
@@ -4237,8 +4309,6 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 /usr/include/boost/preprocessor/punctuation/comma.hpp:
 
 /usr/include/boost/mpl/aux_/config/static_constant.hpp:
-
-/usr/include/boost/mpl/aux_/na_fwd.hpp:
 
 /usr/include/boost/mpl/int.hpp:
 
@@ -4274,10 +4344,6 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/preprocessor/punctuation/comma_if.hpp:
 
-/usr/include/x86_64-linux-gnu/bits/fcntl-linux.h:
-
-/usr/include/boost/asio/local/basic_endpoint.hpp:
-
 /usr/include/boost/preprocessor/logical/bool.hpp:
 
 /usr/include/boost/asio/detail/operation.hpp:
@@ -4292,11 +4358,15 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/asio/ip/network_v6.hpp:
 
+/usr/include/boost/preprocessor/debug/error.hpp:
+
 /usr/include/c++/11/bits/sstream.tcc:
 
 /usr/include/boost/mpl/limits/arity.hpp:
 
 /usr/include/boost/asio/detail/signal_op.hpp:
+
+../externals/websocketpp/websocketpp/processors/hybi00.hpp:
 
 /usr/include/boost/preprocessor/logical/bitand.hpp:
 
@@ -4312,13 +4382,13 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/preprocessor/list/detail/fold_left.hpp:
 
+../externals/websocketpp/websocketpp/transport/asio/security/tls.hpp:
+
 /usr/include/boost/preprocessor/list/adt.hpp:
 
 /usr/include/boost/mpl/aux_/type_wrapper.hpp:
 
 /usr/include/boost/preprocessor/detail/check.hpp:
-
-/usr/include/boost/preprocessor/logical/compl.hpp:
 
 /usr/include/boost/preprocessor/list/fold_right.hpp:
 
@@ -4334,6 +4404,8 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/preprocessor/facilities/overload.hpp:
 
+/usr/include/boost/asio/detail/impl/reactive_serial_port_service.ipp:
+
 /usr/include/boost/asio/uses_executor.hpp:
 
 /usr/include/boost/preprocessor/variadic/elem.hpp:
@@ -4342,9 +4414,13 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/preprocessor/arithmetic/sub.hpp:
 
-/usr/include/boost/asio/detached.hpp:
+/usr/include/boost/asio/detail/signal_set_service.hpp:
 
-/usr/include/boost/mpl/aux_/comparison_op.hpp:
+/usr/include/boost/asio/detail/push_options.hpp:
+
+/usr/include/boost/mpl/and.hpp:
+
+/usr/include/boost/asio/detached.hpp:
 
 /usr/include/boost/mpl/numeric_cast.hpp:
 
@@ -4382,6 +4458,8 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/mpl/aux_/preprocessed/gcc/apply_wrap.hpp:
 
+/usr/include/boost/mpl/tag.hpp:
+
 /usr/include/boost/mpl/void.hpp:
 
 /usr/include/c++/11/iostream:
@@ -4396,15 +4474,11 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/mpl/aux_/preprocessed/gcc/equal_to.hpp:
 
-/usr/include/boost/mpl/not.hpp:
-
 /usr/include/x86_64-linux-gnu/bits/types/struct_osockaddr.h:
 
 /usr/include/boost/mpl/aux_/nested_type_wknd.hpp:
 
 /usr/include/boost/mpl/aux_/preprocessed/gcc/and.hpp:
-
-/usr/include/boost/mpl/identity.hpp:
 
 /usr/include/c++/11/pstl/pstl_config.h:
 
@@ -4426,6 +4500,8 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/asio/detail/op_queue.hpp:
 
+../externals/websocketpp/websocketpp/sha1/sha1.hpp:
+
 /usr/include/boost/mpl/multiplies.hpp:
 
 /usr/include/sched.h:
@@ -4438,7 +4514,15 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/asio/ip/basic_resolver_query.hpp:
 
+../externals/websocketpp/websocketpp/common/connection_hdl.hpp:
+
 /usr/include/boost/mpl/aux_/preprocessed/gcc/times.hpp:
+
+/usr/include/boost/asio/ip/address_v6_range.hpp:
+
+/usr/include/boost/asio/steady_timer.hpp:
+
+/usr/include/boost/mpl/aux_/preprocessor/default_params.hpp:
 
 /usr/include/boost/mpl/aux_/preprocessed/gcc/less.hpp:
 
@@ -4496,6 +4580,18 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/asio/impl/defer.hpp:
 
+../externals/websocketpp/websocketpp/common/chrono.hpp:
+
+/usr/include/openssl/engine.h:
+
+/usr/include/boost/asio/is_read_buffered.hpp:
+
+/usr/include/c++/11/clocale:
+
+/usr/include/c++/11/bits/istream.tcc:
+
+/usr/include/boost/asio/awaitable.hpp:
+
 /usr/include/boost/asio/basic_datagram_socket.hpp:
 
 /usr/include/boost/mpl/aux_/config/ctps.hpp:
@@ -4503,10 +4599,6 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 /usr/include/boost/asio/detail/socket_option.hpp:
 
 /usr/include/boost/asio/detail/reactive_socket_service.hpp:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/transport/base/connection.hpp:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/endpoint_base.hpp:
 
 /usr/include/boost/asio/buffer.hpp:
 
@@ -4536,15 +4628,9 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/asio/detail/reactive_wait_op.hpp:
 
-/usr/include/boost/asio/ip/impl/host_name.ipp:
-
-/usr/include/boost/asio/basic_raw_socket.hpp:
-
 /usr/include/boost/asio/basic_seq_packet_socket.hpp:
 
 /usr/include/boost/asio/impl/buffered_read_stream.hpp:
-
-/vol/bitbucket/aap221/bitmex-api/include/bitmex/bitmex.hpp:
 
 /usr/include/boost/asio/execution/context_as.hpp:
 
@@ -4558,6 +4644,8 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/x86_64-linux-gnu/bits/termios-c_iflag.h:
 
+/usr/include/x86_64-linux-gnu/bits/termios-baud.h:
+
 /usr/include/x86_64-linux-gnu/bits/types/mbstate_t.h:
 
 /usr/include/x86_64-linux-gnu/bits/termios-c_cflag.h:
@@ -4565,6 +4653,8 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 /usr/include/c++/11/bits/std_abs.h:
 
 /usr/include/x86_64-linux-gnu/bits/termios-c_lflag.h:
+
+../externals/websocketpp/websocketpp/config/asio_no_tls_client.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/termios-misc.h:
 
@@ -4578,15 +4668,7 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/asio/detail/descriptor_read_op.hpp:
 
-/usr/include/boost/asio/detail/push_options.hpp:
-
-/usr/include/boost/mpl/and.hpp:
-
-/usr/include/boost/asio/detail/signal_set_service.hpp:
-
 /usr/include/boost/asio/detail/impl/signal_set_service.ipp:
-
-/usr/include/boost/asio/detail/static_mutex.hpp:
 
 /usr/include/c++/11/bits/exception_ptr.h:
 
@@ -4595,16 +4677,6 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 /usr/include/boost/preprocessor/list/reverse.hpp:
 
 /usr/include/boost/asio/basic_streambuf_fwd.hpp:
-
-/usr/include/boost/asio/buffered_read_stream.hpp:
-
-/usr/include/boost/asio/detail/buffered_stream_storage.hpp:
-
-/usr/include/boost/asio/buffered_write_stream.hpp:
-
-/usr/include/boost/predef/architecture.h:
-
-/usr/include/boost/asio/buffered_write_stream_fwd.hpp:
 
 /usr/include/boost/asio/detail/base_from_completion_cond.hpp:
 
@@ -4632,21 +4704,21 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/asio/executor.hpp:
 
+/usr/include/boost/asio/ip/unicast.hpp:
+
+/usr/include/boost/asio/traits/start_member.hpp:
+
+/usr/include/boost/preprocessor/tuple/rem.hpp:
+
+/usr/include/boost/asio/impl/executor.ipp:
+
 /usr/include/boost/asio/generic/detail/endpoint.hpp:
-
-/usr/include/boost/asio/execution/submit.hpp:
-
-/usr/include/boost/asio/io_context_strand.hpp:
 
 /usr/include/boost/asio/detail/impl/strand_service.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/uio_lim.h:
 
 /usr/include/boost/asio/io_service.hpp:
-
-/usr/include/c++/11/tr1/beta_function.tcc:
-
-/usr/include/boost/asio/ip/detail/socket_option.hpp:
 
 /usr/include/boost/preprocessor/tuple/eat.hpp:
 
@@ -4670,6 +4742,8 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/asio/ip/address_v4_range.hpp:
 
+/usr/include/boost/asio/ip/address_v6_iterator.hpp:
+
 /usr/include/c++/11/cassert:
 
 /usr/include/boost/asio/ip/impl/network_v4.hpp:
@@ -4686,9 +4760,7 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/asio/ip/basic_resolver_iterator.hpp:
 
-/usr/include/boost/asio/execution/relationship.hpp:
-
-/usr/include/boost/asio/ip/resolver_query_base.hpp:
+/usr/include/boost/asio/ip/resolver_base.hpp:
 
 /usr/include/boost/asio/detail/resolver_service.hpp:
 
@@ -4706,30 +4778,6 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/boost/asio/detail/impl/resolver_service_base.ipp:
 
-/usr/include/x86_64-linux-gnu/bits/posix2_lim.h:
+/usr/include/c++/11/cctype:
 
-/usr/include/boost/asio/ip/icmp.hpp:
-
-/vol/bitbucket/aap221/websocketpp/websocketpp/config/asio_client.hpp:
-
-/usr/include/boost/asio/ip/udp.hpp:
-
-/usr/include/boost/preprocessor/tuple/rem.hpp:
-
-/usr/include/boost/asio/traits/start_member.hpp:
-
-/usr/include/boost/asio/impl/executor.ipp:
-
-/usr/include/boost/asio/ip/unicast.hpp:
-
-/usr/include/openssl/engine.h:
-
-/usr/include/c++/11/clocale:
-
-/usr/include/c++/11/bits/istream.tcc:
-
-/usr/include/boost/asio/awaitable.hpp:
-
-/usr/include/boost/asio/is_read_buffered.hpp:
-
-/usr/include/boost/asio/local/detail/endpoint.hpp:
+/usr/include/boost/asio/ip/host_name.hpp:

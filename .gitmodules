@@ -1,0 +1,6 @@
+[submodule "externals/rapidjson"]
+	path = externals/rapidjson
+	url = https://github.com/Tencent/rapidjson.git
+[submodule "externals/websocketpp"]
+	path = externals/websocketpp
+	url = https://github.com/zaphoyd/websocketpp
