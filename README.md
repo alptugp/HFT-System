@@ -1,6 +1,4 @@
-# Bitmex Limit Order Book Builder
-
-Limit Order Book Builder for Bitmex
+# HFT System for Triangular Arbitrage on Centralized Cryptocurrency Exchanges
 
 ## Getting Started
 
@@ -11,13 +9,13 @@ Follow these instructions to get the project up and running on your local machin
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/alptugp/bitmex-book-builder.git
+    git clone --recursive https://github.com/alptugp/HFT-System.git
     ```
 
 2. Navigate to the project directory:
 
     ```bash
-    cd bitmex-book-builder
+    cd HFT-System
     ```
 
 3. Run the build script to set up the project:
@@ -26,9 +24,10 @@ Follow these instructions to get the project up and running on your local machin
     ./build_script.sh
     ```
 
-### Run the Project
+### Run the Project 
 
-Use the following command to run the project:
+Use the following command to run the project with specific CPU numbers:
 
 ```bash
-./build/bitmex-book-builder
+./build/main <cpu_number_1> <cpu_number_2>
+
