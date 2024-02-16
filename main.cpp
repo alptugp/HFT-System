@@ -77,16 +77,20 @@ void program(int cpu1, int cpu2)  {
     
     auto t2 = std::thread([&] {
       pinThread(cpu2);
-
+      
       OrderBook XBTUSDOrderBook = OrderBook("XBTUSD");
       OrderBook ETHUSDOrderBook = OrderBook("ETHUSD");
+      std::unordered_map<std::string, OrderBook> orderBookMap;
+      orderBookMap["XBTUSD"] = XBTUSDOrderBook;
+      orderBookMap["ETHUSD"] = ETHUSDOrderBook;
+
       ThroughputMonitor throughputMonitor(std::chrono::high_resolution_clock::now());
       
       bitmex::websocket::Client bmxClient;
 
-      auto onTradeCallBackLambda = [&XBTUSDOrderBook, &ETHUSDOrderBook, &throughputMonitor, &queue]([[maybe_unused]] const char* symbol, const char* action, 
+      auto onTradeCallBackLambda = [&orderBookMap, &throughputMonitor, &queue]([[maybe_unused]] const char* symbol, const char* action, 
         uint64_t id, const char* side, int size, double price, const char* timestamp) {
-        onTradeCallBack(XBTUSDOrderBook, ETHUSDOrderBook, throughputMonitor, queue, symbol, action, id, side, size, price, timestamp);
+        onTradeCallBack(orderBookMap, throughputMonitor, queue, symbol, action, id, side, size, price, timestamp);
       };
 
       bmxClient.on_trade(onTradeCallBackLambda);

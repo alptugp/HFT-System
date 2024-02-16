@@ -35,28 +35,26 @@ std::chrono::time_point<Clock> convertTimestampToTimePoint(const std::string& ti
 }
 
 
-static context_ptr on_tls_init(websocketpp::connection_hdl)
-{
+static context_ptr on_tls_init(websocketpp::connection_hdl) {
     using namespace boost::asio::ssl;
     context_ptr ctx = websocketpp::lib::make_shared<context>(context::sslv23);
     return ctx;
 }
 
-static void on_open(client* c, bitmex::websocket::Client* bmxClient, websocketpp::connection_hdl hdl)
-{
-    // Make a subscription message for "XBTUSD" symbol on the trade topic...
-    auto msg = bmxClient->make_subscribe(currencyPair, bitmex::websocket::Topic::OrderBookL2_25);
-    /// ...and send it over the WebSocket.
-    c->send(hdl, msg, websocketpp::frame::opcode::text);
+static void on_open(client* c, bitmex::websocket::Client* bmxClient, websocketpp::connection_hdl hdl) {
+    auto msgXBTUSD = bmxClient->make_subscribe("XBTUSD", bitmex::websocket::Topic::OrderBookL2_25);
+    c->send(hdl, msgXBTUSD, websocketpp::frame::opcode::text);
+
+    auto msgETHUSD = bmxClient->make_subscribe("ETHUSD", bitmex::websocket::Topic::OrderBookL2_25);
+    c->send(hdl, msgETHUSD, websocketpp::frame::opcode::text);
 }
 
-static void on_message(bitmex::websocket::Client* client, websocketpp::connection_hdl, client::message_ptr msg)
-{
+static void on_message(bitmex::websocket::Client* client, websocketpp::connection_hdl, client::message_ptr msg) {
     // Parse the message received from BitMEX. Note that "client" invokes all the relevant callbacks.
     client->parse_msg(msg->get_payload());
 }
 
-void onTradeCallBack(OrderBook& orderBook1, [[maybe_unused]] OrderBook& orderBook2, [[maybe_unused]] ThroughputMonitor& throughputMonitor, SPSCQueue<OrderBook>& queue, [[maybe_unused]] const char* symbol, 
+void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, [[maybe_unused]] ThroughputMonitor& throughputMonitor, SPSCQueue<OrderBook>& queue, [[maybe_unused]] const char* symbol, 
                     const char* action, uint64_t id, const char* side, int size, double price, [[maybe_unused]] const char* timestamp) {
     // auto programReceiveTime = Clock::now();
     // throughputMonitor.onTradeReceived();
@@ -68,13 +66,13 @@ void onTradeCallBack(OrderBook& orderBook1, [[maybe_unused]] OrderBook& orderBoo
         switch (action[0]) {
             case 'p':
             case 'i':
-                orderBook1.insertBuy(id, price, size);
+                orderBookMap[symbol].insertBuy(id, price, size);
                 break;
             case 'u':
-                orderBook1.updateBuy(id, size);
+                orderBookMap[symbol].updateBuy(id, size);
                 break;
             case 'd':
-                orderBook1.removeBuy(id);
+                orderBookMap[symbol].removeBuy(id);
                 break;
             default:
                 // Handle other message types if needed
@@ -84,13 +82,13 @@ void onTradeCallBack(OrderBook& orderBook1, [[maybe_unused]] OrderBook& orderBoo
         switch (action[0]) {
             case 'p':
             case 'i':
-                orderBook1.insertSell(id, price, size);
+                orderBookMap[symbol].insertSell(id, price, size);
                 break;
             case 'u':
-                orderBook1.updateSell(id, size);
+                orderBookMap[symbol].updateSell(id, size);
                 break;
             case 'd':
-                orderBook1.removeSell(id);
+                orderBookMap[symbol].removeSell(id);
                 break;
             default:
                 // Handle other message types if needed
@@ -98,7 +96,7 @@ void onTradeCallBack(OrderBook& orderBook1, [[maybe_unused]] OrderBook& orderBoo
         }
     }
     
-    while (!queue.push(orderBook1));
+    while (!queue.push(orderBookMap[symbol]));
 
     // auto bookBuildingEndTime = Clock::now();
     // auto bookBuildingDuration = std::chrono::duration_cast<std::chrono::microseconds>(bookBuildingEndTime - programReceiveTime);
