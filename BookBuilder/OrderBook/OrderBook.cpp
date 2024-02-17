@@ -4,6 +4,7 @@
 
 
 std::pair<double, double> OrderBook::getBestBuyAndSellPrice() {
+    // std::cout << (buyRoot != nullptr) << (sellRoot != nullptr) << std::endl;
     double bestBuyPrice = buyRoot != nullptr ? maxValueNode(this->buyRoot)->price : 0.0;
     double bestSellPrice = sellRoot != nullptr ? minValueNode(this->sellRoot)->price : 0.0;
 

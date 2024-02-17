@@ -15,7 +15,7 @@ std::pair<double, double> Graph::findTriangularArbitrage() {
     for (int direction = 1; direction < V; direction++) {
         int currentNode = startVertex;
         int nextNode = direction;
-        double weightMultiply = 1;
+        double weightMultiply = 1.0;
         do {
             weightMultiply *= adjList[currentNode][nextNode];
             for (int node = 0; node < V; node++) {
@@ -43,7 +43,7 @@ void strategy(int cpu, SPSCQueue<OrderBook>& queue) {
     symbolToGraphIndex["XBT"] = 1;
     symbolToGraphIndex["ETH"] = 2;
     
-    [[maybe_unused]] ThroughputMonitor throughputMonitorStrategyComponent("Strategy Component Throughput Monitor", std::chrono::high_resolution_clock::now());
+    ThroughputMonitor throughputMonitorStrategyComponent("Strategy Component Throughput Monitor", std::chrono::high_resolution_clock::now());
     while (true) {
       OrderBook orderBook;
       while (!queue.pop(orderBook));
@@ -53,11 +53,11 @@ void strategy(int cpu, SPSCQueue<OrderBook>& queue) {
       std::string symbol = orderBook.getSymbol();
       int firstCurrencyGraphIndex = symbolToGraphIndex[symbol.substr(0, 3)];
       int secondCurrencyGraphIndex = symbolToGraphIndex[symbol.substr(3, 6)];
-      graph.addEdge(firstCurrencyGraphIndex, secondCurrencyGraphIndex, bestSellPrice);
-      graph.addEdge(secondCurrencyGraphIndex, firstCurrencyGraphIndex, 1.0 / bestBuyPrice);
+      graph.addEdge(firstCurrencyGraphIndex, secondCurrencyGraphIndex, bestBuyPrice);
+      graph.addEdge(secondCurrencyGraphIndex, firstCurrencyGraphIndex, 1.0 / bestSellPrice);
       std::pair<double, double> returns = graph.findTriangularArbitrage();
-      [[maybe_unused]] double firstDirectionReturnsAfterFees = returns.first * std::pow(0.99925, 3);
-      [[maybe_unused]] double secondDirectionReturnsAfterFees = returns.second * std::pow(0.99925, 3);
+      double firstDirectionReturnsAfterFees = returns.first * std::pow(0.99925, 3);
+      double secondDirectionReturnsAfterFees = returns.second * std::pow(0.99925, 3);
     
       // std::cout << symbol << " - Best Sell: " << bestSellPrice << " Best Buy: " << bestBuyPrice << std::endl;
       std::cout << "USD -> XBT -> ETH -> USD: " << firstDirectionReturnsAfterFees << "      " << "USD -> ETH -> XBT -> USD: " << secondDirectionReturnsAfterFees << std::endl;

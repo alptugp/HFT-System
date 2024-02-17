@@ -17,22 +17,6 @@ using websocketpp::lib::placeholders::_2;
 
 using Clock = std::chrono::high_resolution_clock;
 
-std::chrono::time_point<Clock> convertTimestampToTimePoint(const std::string& timestamp) {
-    std::tm tm = {};
-    std::istringstream ss(timestamp);
-    ss >> std::get_time(&tm, "%Y-%m-%dT%H:%M:%S");
-
-    // If timestamp includes milliseconds, parse and add them
-    long milliseconds = 0;
-    if (ss && ss.peek() == '.') {
-        ss.ignore(); // Ignore the dot
-        ss >> milliseconds;
-    }
-
-    auto time_point = Clock::from_time_t(std::mktime(&tm)) + std::chrono::milliseconds(milliseconds);
-    return time_point;
-}
-
 
 static context_ptr on_tls_init(websocketpp::connection_hdl) {
     using namespace boost::asio::ssl;
@@ -40,15 +24,14 @@ static context_ptr on_tls_init(websocketpp::connection_hdl) {
     return ctx;
 }
 
+const std::vector<std::string> currencyPairs = {"XBTUSD", "ETHUSD", "XBTETH"};
+// const std::vector<std::string> currencyPairs = {"XBTUSD", "ETHUSD", "XBTETH", "XBTUSDT", "SOLUSD", "XRPUSD", "LINKUSD", "SOLUSD", "XRPUSD"};
+
 static void on_open(client* c, BitmexClient::websocket::Client* bmxClient, websocketpp::connection_hdl hdl) {
-    auto msgXBTUSD = bmxClient->make_subscribe("XBTUSD", BitmexClient::websocket::Topic::OrderBookL2_25);
-    c->send(hdl, msgXBTUSD, websocketpp::frame::opcode::text);
-
-    auto msgETHUSD = bmxClient->make_subscribe("ETHUSD", BitmexClient::websocket::Topic::OrderBookL2_25);
-    c->send(hdl, msgETHUSD, websocketpp::frame::opcode::text);
-
-    auto msgXBTETH = bmxClient->make_subscribe("XBTETH", BitmexClient::websocket::Topic::OrderBookL2_25);
-    c->send(hdl, msgXBTETH, websocketpp::frame::opcode::text);
+    for (std::string currencyPair : currencyPairs) {
+        auto msg = bmxClient->make_subscribe(currencyPair, BitmexClient::websocket::Topic::OrderBookL2_25);
+        c->send(hdl, msg, websocketpp::frame::opcode::text);
+    } 
 }
 
 static void on_message(BitmexClient::websocket::Client* client, websocketpp::connection_hdl, client::message_ptr msg) {
@@ -62,6 +45,7 @@ void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, [
     // throughputMonitor.onTradeReceived();
     // auto exchangeTimeStamp = convertTimestampToTimePoint(timestamp);
     // auto networkLatency = std::chrono::duration_cast<std::chrono::microseconds>(programReceiveTime - exchangeTimeStamp);
+    
     std::string sideStr(side);
     if (sideStr == "Buy") {
         switch (action[0]) {
@@ -96,8 +80,6 @@ void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, [
     }
     
     while (!queue.push(orderBookMap[symbol]));
-    // throughputMonitor.operationCompleted();
-
     // auto bookBuildingEndTime = Clock::now();
     // auto bookBuildingDuration = std::chrono::duration_cast<std::chrono::microseconds>(bookBuildingEndTime - programReceiveTime);
     // std::cout << "Symbol: " << symbol << " - Action: " << action << " - Size: " << size << " - Price: " << price << " (" << side << ")" << " - id: " << id << " - Timestamp: " << timestamp << std::endl;
@@ -111,13 +93,11 @@ void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, [
 void bookBuilder(int cpu, SPSCQueue<OrderBook>& queue) {
     pinThread(cpu);
 
-    OrderBook XBTUSDOrderBook = OrderBook("XBTUSD");
-    OrderBook ETHUSDOrderBook = OrderBook("ETHUSD");
-    OrderBook XBTETHOrderBook = OrderBook("XBTETH");
     std::unordered_map<std::string, OrderBook> orderBookMap;
-    orderBookMap["XBTUSD"] = XBTUSDOrderBook;
-    orderBookMap["ETHUSD"] = ETHUSDOrderBook;
-    orderBookMap["XBTETH"] = XBTETHOrderBook;
+
+    for (std::string currencyPair : currencyPairs) { 
+        orderBookMap[currencyPair] = OrderBook(currencyPair);
+    }
 
     ThroughputMonitor throughputMonitorBookBuilder("Book Builder Throughput Monitor", std::chrono::high_resolution_clock::now());
 

@@ -22,7 +22,7 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Compiler Features and Options
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_11)
-target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic -Werror -Wno-unused-function)
+target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic -Werror -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter)
 
 # Linked Libraries
 target_link_libraries(${PROJECT_NAME} PRIVATE pthread crypto ssl)
