@@ -44,7 +44,7 @@ void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, T
                     const char* action, uint64_t id, const char* side, int size, double price, const char* timestamp) {
     // auto programReceiveTime = Clock::now();
     updateThroughputMonitor.operationCompleted();
-    // auto exchangeTimeStamp = convertTimestampToTimePoint(timestamp);
+    std::chrono::time_point<std::chrono::high_resolution_clock> exchangeTimeStamp = convertTimestampToTimePoint(timestamp);
     // auto networkLatency = std::chrono::duration_cast<std::chrono::microseconds>(programReceiveTime - exchangeTimeStamp);
     
     std::string sideStr(side);
@@ -52,13 +52,13 @@ void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, T
         switch (action[0]) {
             case 'p':
             case 'i':
-                orderBookMap[symbol].insertBuy(id, price, size);
+                orderBookMap[symbol].insertBuy(id, price, size, exchangeTimeStamp);
                 break;
             case 'u':
-                orderBookMap[symbol].updateBuy(id, size);
+                orderBookMap[symbol].updateBuy(id, size, exchangeTimeStamp);
                 break;
             case 'd':
-                orderBookMap[symbol].removeBuy(id);
+                orderBookMap[symbol].removeBuy(id, exchangeTimeStamp);
                 break;
             default:
                 break;
@@ -67,13 +67,13 @@ void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, T
         switch (action[0]) {
             case 'p':
             case 'i':
-                orderBookMap[symbol].insertSell(id, price, size);
+                orderBookMap[symbol].insertSell(id, price, size, exchangeTimeStamp);
                 break;
             case 'u':
-                orderBookMap[symbol].updateSell(id, size);
+                orderBookMap[symbol].updateSell(id, size, exchangeTimeStamp);
                 break;
             case 'd':
-                orderBookMap[symbol].removeSell(id);
+                orderBookMap[symbol].removeSell(id, exchangeTimeStamp);
                 break;
             default:
                 break;

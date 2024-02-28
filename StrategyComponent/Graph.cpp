@@ -58,9 +58,11 @@ void strategy(int cpu, SPSCQueue<OrderBook>& queue) {
       std::pair<double, double> returns = graph.findTriangularArbitrage();
       double firstDirectionReturnsAfterFees = returns.first * std::pow(0.99925, 3);
       double secondDirectionReturnsAfterFees = returns.second * std::pow(0.99925, 3);
-    
       // std::cout << symbol << " - Best Sell: " << bestSellPrice << " Best Buy: " << bestBuyPrice << std::endl;
-      std::cout << "USD -> XBT -> ETH -> USD: " << firstDirectionReturnsAfterFees << "      " << "USD -> ETH -> XBT -> USD: " << secondDirectionReturnsAfterFees << std::endl;
+      std::cout << "USD -> XBT -> ETH -> USD: " << firstDirectionReturnsAfterFees << "      " 
+                << "USD -> ETH -> XBT -> USD: " << secondDirectionReturnsAfterFees << "      " 
+                << "Latency: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - orderBook.getExchangeTimestamp()).count()
+                << std::endl;
       // throughputMonitorStrategyComponent.operationCompleted();
     }
 }

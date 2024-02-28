@@ -6,6 +6,7 @@
 #include <limits>
 #include <unordered_map>
 #include <cmath>
+#include <chrono> 
 #include "../BookBuilder/OrderBook/OrderBook.hpp"
 #include "../SPSCQueue/SPSCQueue.hpp"
 #include "../Utils/Utils.hpp"

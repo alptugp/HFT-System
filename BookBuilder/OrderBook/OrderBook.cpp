@@ -177,33 +177,39 @@ AVLNode* OrderBook::deleteNode(AVLNode* root, double price) {
     return root;
 }
 
-void OrderBook::insertBuy(uint64_t id, double price, int size) {
+void OrderBook::insertBuy(uint64_t id, double price, int size, std::chrono::time_point<std::chrono::high_resolution_clock> timestamp) {
     buyRoot = insertHelper(buyRoot, id, price, size);
+    this->timestamp = timestamp;
     buyIdMap[id] = new AVLNode(id, price, size);
 }
 
-void OrderBook::updateBuy(uint64_t id, int size) {
+void OrderBook::updateBuy(uint64_t id, int size, std::chrono::time_point<std::chrono::high_resolution_clock> timestamp) {
     updateHelper(buyRoot, this->buyIdMap[id]->price, size);
+    this->timestamp = timestamp;
     this->buyIdMap[id]->size = size;
 }
 
-void OrderBook::removeBuy(uint64_t id) {
+void OrderBook::removeBuy(uint64_t id, std::chrono::time_point<std::chrono::high_resolution_clock> timestamp) {
     deleteNode(buyRoot, this->buyIdMap[id]->price);
+    this->timestamp = timestamp;
     this->buyIdMap.erase(id);
 }
 
-void OrderBook::insertSell(uint64_t id, double price, int size) {
+void OrderBook::insertSell(uint64_t id, double price, int size, std::chrono::time_point<std::chrono::high_resolution_clock> timestamp) {
     sellRoot = insertHelper(sellRoot, id, price, size);
+    this->timestamp = timestamp;
     sellIdMap[id] = new AVLNode(id, price, size);
 }
 
-void OrderBook::updateSell(uint64_t id, int size) {
+void OrderBook::updateSell(uint64_t id, int size, std::chrono::time_point<std::chrono::high_resolution_clock> timestamp) {
     updateHelper(sellRoot, this->sellIdMap[id]->price, size);
+    this->timestamp = timestamp;
     this->sellIdMap[id]->size = size;
 }
 
-void OrderBook::removeSell(uint64_t id) {
+void OrderBook::removeSell(uint64_t id, std::chrono::time_point<std::chrono::high_resolution_clock> timestamp) {
     deleteNode(sellRoot, this->sellIdMap[id]->price);
+    this->timestamp = timestamp;
     this->sellIdMap.erase(id);
 }
 
