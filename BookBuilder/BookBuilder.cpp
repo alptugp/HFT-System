@@ -26,6 +26,7 @@ static context_ptr on_tls_init(websocketpp::connection_hdl) {
 
 const std::vector<std::string> currencyPairs = {"XBTUSD", "ETHUSD", "XBTETH"};
 // const std::vector<std::string> currencyPairs = {"XBTUSD", "ETHUSD", "XBTETH", "XBTUSDT", "SOLUSD", "XRPUSD", "LINKUSD", "SOLUSD", "XRPUSD"};
+// const std::vector<std::string> currencyPairs = {"XBTUSD", "ETHUSD", "SOLUSD", "XBTUSDT", "DOGEUSD", "XBTH24", "LINKUSD", "XRPUSD", "SOLUSDT", "BCHUSD"};
 
 static void on_open(client* c, BitmexClient::websocket::Client* bmxClient, websocketpp::connection_hdl hdl) {
     for (std::string currencyPair : currencyPairs) {
@@ -39,10 +40,10 @@ static void on_message(BitmexClient::websocket::Client* client, websocketpp::con
     client->parse_msg(msg->get_payload());
 }
 
-void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, [[maybe_unused]] ThroughputMonitor& throughputMonitor, SPSCQueue<OrderBook>& queue, [[maybe_unused]] const char* symbol, 
-                    const char* action, uint64_t id, const char* side, int size, double price, [[maybe_unused]] const char* timestamp) {
+void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, ThroughputMonitor& updateThroughputMonitor, SPSCQueue<OrderBook>& queue, const char* symbol, 
+                    const char* action, uint64_t id, const char* side, int size, double price, const char* timestamp) {
     // auto programReceiveTime = Clock::now();
-    // throughputMonitor.onTradeReceived();
+    updateThroughputMonitor.operationCompleted();
     // auto exchangeTimeStamp = convertTimestampToTimePoint(timestamp);
     // auto networkLatency = std::chrono::duration_cast<std::chrono::microseconds>(programReceiveTime - exchangeTimeStamp);
     
@@ -80,6 +81,7 @@ void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, [
     }
     
     while (!queue.push(orderBookMap[symbol]));
+
     // auto bookBuildingEndTime = Clock::now();
     // auto bookBuildingDuration = std::chrono::duration_cast<std::chrono::microseconds>(bookBuildingEndTime - programReceiveTime);
     // std::cout << "Symbol: " << symbol << " - Action: " << action << " - Size: " << size << " - Price: " << price << " (" << side << ")" << " - id: " << id << " - Timestamp: " << timestamp << std::endl;
@@ -99,13 +101,13 @@ void bookBuilder(int cpu, SPSCQueue<OrderBook>& queue) {
         orderBookMap[currencyPair] = OrderBook(currencyPair);
     }
 
-    ThroughputMonitor throughputMonitorBookBuilder("Book Builder Throughput Monitor", std::chrono::high_resolution_clock::now());
+    ThroughputMonitor updateThroughputMonitorBookBuilder("Book Builder Throughput Monitor", std::chrono::high_resolution_clock::now());
 
     BitmexClient::websocket::Client bitmexClient;
 
-    auto onTradeCallBackLambda = [&orderBookMap, &throughputMonitorBookBuilder, &queue]([[maybe_unused]] const char* symbol, const char* action,
+    auto onTradeCallBackLambda = [&orderBookMap, &updateThroughputMonitorBookBuilder, &queue](const char* symbol, const char* action,
         uint64_t id, const char* side, int size, double price, const char* timestamp) {
-        onTradeCallBack(orderBookMap, throughputMonitorBookBuilder, queue, symbol, action, id, side, size, price, timestamp);
+        onTradeCallBack(orderBookMap, updateThroughputMonitorBookBuilder, queue, symbol, action, id, side, size, price, timestamp);
     };
 
     bitmexClient.on_trade(onTradeCallBackLambda);

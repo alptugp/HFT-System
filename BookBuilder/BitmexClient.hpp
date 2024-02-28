@@ -100,6 +100,8 @@ class Client {
     OnTradeCallback _on_trade;
 
 public:
+    ThroughputMonitor dataThroughputMonitor = ThroughputMonitor("Data Throughput Monitor", std::chrono::high_resolution_clock::now()); 
+
     /// Set the callback function that is invoked when a new trade is reported.
     void on_trade(OnTradeCallback on_trade)
     {
@@ -115,7 +117,7 @@ public:
     /// Parse a message and invoke the relevant callbacks.
     void parse_msg(const std::string& msg) const
     {   
-        // std::cout << msg << std::endl;
+        // std::cout << msg.size() << std::endl;
         rapidjson::Document doc;
         doc.Parse(msg.c_str());
         if (doc.HasParseError()) {

@@ -6,7 +6,7 @@
 class ThroughputMonitor {
 private:
     std::string id;
-    int operationCount;
+    std::atomic<size_t> operationCount;
     std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
 
 public:
