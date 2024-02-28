@@ -66,6 +66,8 @@ void buildBookAndDetectArbitrage(int cpu1, int cpu2)  {
 }
 
 int main(int argc, char *argv[]) {
+  std::setlocale(LC_ALL, "C");
+  
   int cpu1 = -1;
   int cpu2 = -1;
 
