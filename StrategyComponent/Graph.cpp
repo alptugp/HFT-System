@@ -59,9 +59,11 @@ void strategy(int cpu, SPSCQueue<OrderBook>& queue) {
       double firstDirectionReturnsAfterFees = returns.first * std::pow(0.99925, 3);
       double secondDirectionReturnsAfterFees = returns.second * std::pow(0.99925, 3);
       // std::cout << symbol << " - Best Sell: " << bestSellPrice << " Best Buy: " << bestBuyPrice << std::endl;
+      auto exchangeTimestamp = orderBook.getExchangeTimestamp();
       std::cout << "USD -> XBT -> ETH -> USD: " << firstDirectionReturnsAfterFees << "      " 
                 << "USD -> ETH -> XBT -> USD: " << secondDirectionReturnsAfterFees << "      " 
-                << "Latency: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - orderBook.getExchangeTimestamp()).count()
+                << "Latency: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - exchangeTimestamp).count() << "      " 
+                << "Timestamp: " << std::chrono::high_resolution_clock::to_time_t(exchangeTimestamp)
                 << std::endl;
       // throughputMonitorStrategyComponent.operationCompleted();
     }
