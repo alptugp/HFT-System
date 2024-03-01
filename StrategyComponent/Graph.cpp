@@ -62,8 +62,8 @@ void strategy(int cpu, SPSCQueue<OrderBook>& queue) {
       auto exchangeTimestamp = orderBook.getExchangeTimestamp();
       std::cout << "USD -> XBT -> ETH -> USD: " << firstDirectionReturnsAfterFees << "      " 
                 << "USD -> ETH -> XBT -> USD: " << secondDirectionReturnsAfterFees << "      " 
-                << "Latency: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - exchangeTimestamp).count() << "      " 
-                << "Timestamp: " << std::chrono::high_resolution_clock::to_time_t(exchangeTimestamp)
+                << "Latency (ms): " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - exchangeTimestamp).count() << "      " 
+                << "Timestamp: " << std::chrono::duration_cast<std::chrono::milliseconds>(exchangeTimestamp.time_since_epoch()).count()
                 << std::endl;
       // throughputMonitorStrategyComponent.operationCompleted();
     }
