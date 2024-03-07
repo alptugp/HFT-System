@@ -1,5 +1,7 @@
 #include "Graph.hpp"
 
+using namespace std::chrono;
+
 Graph::Graph(int vertices) : V(vertices) {
     adjList.resize(V, std::vector<double>(V, 1.0));
 }
@@ -46,6 +48,8 @@ void strategy(int cpu, SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<s
     symbolToGraphIndex["XBT"] = 0;
     symbolToGraphIndex["USD"] = 1;
     symbolToGraphIndex["ETH"] = 2;
+
+    system_clock::duration startingTimestamp = system_clock::duration::zero();
     
     ThroughputMonitor throughputMonitorStrategyComponent("Strategy Component Throughput Monitor", std::chrono::high_resolution_clock::now());
     while (true) {
@@ -66,13 +70,16 @@ void strategy(int cpu, SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<s
       auto exchangeTimestamp = orderBook.getExchangeTimestamp();
       std::cout << "XBT->USD->ETH->XBT: " << firstDirectionReturnsAfterFees << "      " 
                 << "XBT->ETH->USD->XBT: " << secondDirectionReturnsAfterFees << "      " 
-                << "Latency (ms): " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - exchangeTimestamp).count() << "      " 
-                << "Timestamp: " << std::chrono::duration_cast<std::chrono::milliseconds>(exchangeTimestamp.time_since_epoch()).count()
+                << "Latency (ms): " << duration_cast<milliseconds>(high_resolution_clock::now() - exchangeTimestamp).count() << "      " 
+                << "Timestamp: " << duration_cast<milliseconds>(exchangeTimestamp.time_since_epoch()).count()
                 << std::endl;
+      if (startingTimestamp == system_clock::duration::zero()) {
+        startingTimestamp = exchangeTimestamp.time_since_epoch();
+      }
       // throughputMonitorStrategyComponent.operationCompleted();
       // "symbol=XBTUSD&side=Buy&orderQty=1&price=50000&ordType=Limit"
 
-      if (firstDirectionReturnsAfterFees > 1.0 && firstDirectionReturnsAfterFees < 1.5) {
+      if (firstDirectionReturnsAfterFees > 1.0 && (duration_cast<milliseconds>(exchangeTimestamp.time_since_epoch() - startingTimestamp).count() > 1000)) {
         std::cout << "PROFIT POSSIBLE for XBT->USD->ETH->XBT" << std::endl;
 
         std::string firstLeg = std::string("symbol=XBTUSD&side=Sell&orderQty=100") + "&price=" + std::to_string(graph.getExchangeRateBetween(0, 1)) + "&ordType=Limit";
@@ -87,16 +94,16 @@ void strategy(int cpu, SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<s
         break;
       }
 
-      if (secondDirectionReturnsAfterFees > 1.0 && secondDirectionReturnsAfterFees < 1.5) {
+      if (secondDirectionReturnsAfterFees > 1.0 && (duration_cast<milliseconds>(exchangeTimestamp.time_since_epoch() - startingTimestamp).count() > 1000)) {
         std::cout << "PROFIT POSSIBLE for XBT->ETH->USD->XBT" << std::endl;
 
         std::string firstLeg = std::string("symbol=ETHXBT&side=Buy&orderQty=100") + "&price=" + std::to_string(graph.getExchangeRateBetween(0, 2)) + "&ordType=Limit";
         while (!strategyToOrderManagerQueue.push(firstLeg));
 
-        std::string secondLeg = std::string("symbol=ETHUSD&side=Buy&orderQty=1") + "&price=" + std::to_string(graph.getExchangeRateBetween(1, 2)) + "&ordType=Limit";
+        std::string secondLeg = std::string("symbol=ETHUSD&side=Sell&orderQty=1") + "&price=" + std::to_string(graph.getExchangeRateBetween(2, 1)) + "&ordType=Limit";
         while (!strategyToOrderManagerQueue.push(secondLeg));
 
-        std::string thirdLeg = std::string("symbol=USDXBT&side=Sell&orderQty=100") + "&price=" + std::to_string(graph.getExchangeRateBetween(2, 0)) + "&ordType=Limit";
+        std::string thirdLeg = std::string("symbol=XBTUSD&side=Buy&orderQty=100") + "&price=" + std::to_string(graph.getExchangeRateBetween(1, 0)) + "&ordType=Limit";
         while (!strategyToOrderManagerQueue.push(thirdLeg));
 
         break;
