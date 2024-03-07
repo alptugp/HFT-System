@@ -70,7 +70,7 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
             std::string signature = CalcHmacSHA256(apiSecret, concatenatedString);
             std::string hexSignature = toHex(signature);        
             // Print the hexSignature
-            std::cout << "Signature: " << hexSignature << std::endl;
+            // std::cout << "Signature: " << hexSignature << std::endl;
             // Build the headers
             struct curl_slist* headers = NULL;
             headers = curl_slist_append(headers, ("api-key: " + apiKey).c_str());

@@ -23,7 +23,7 @@ static context_ptr on_tls_init(websocketpp::connection_hdl) {
     return ctx;
 }
 
-const std::vector<std::string> currencyPairs = {"XBTUSD", "ETHUSD", "XBTETH"};
+const std::vector<std::string> currencyPairs = {"XBTETH", "XBTUSDT", "ETHUSDT"};
 // const std::vector<std::string> currencyPairs = {"XBTUSD", "ETHUSD", "XBTETH", "XBTUSDT", "SOLUSD", "XRPUSD", "LINKUSD", "SOLUSD", "XRPUSD"};
 // const std::vector<std::string> currencyPairs = {"XBTUSD", "ETHUSD", "SOLUSD", "XBTUSDT", "DOGEUSD", "XBTH24", "LINKUSD", "XRPUSD", "SOLUSDT", "BCHUSD"};
 
