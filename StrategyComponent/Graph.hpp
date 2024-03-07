@@ -22,8 +22,9 @@ public:
 
     void addEdge(int u, int v, double weight);
     std::pair<double, double> findTriangularArbitrage();
+    double getExchangeRateBetween(int u, int v);
 };
 
-void strategy(int cpu, SPSCQueue<OrderBook>& queue);
+void strategy(int cpu, SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::string>& strategyToOrderManagerQueue);
 
 #endif // GRAPH_HPP

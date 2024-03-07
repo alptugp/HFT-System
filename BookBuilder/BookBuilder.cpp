@@ -17,7 +17,6 @@ using websocketpp::lib::placeholders::_2;
 
 using Clock = std::chrono::high_resolution_clock;
 
-
 static context_ptr on_tls_init(websocketpp::connection_hdl) {
     using namespace boost::asio::ssl;
     context_ptr ctx = websocketpp::lib::make_shared<context>(context::sslv23);
@@ -40,7 +39,7 @@ static void on_message(BitmexClient::websocket::Client* client, websocketpp::con
     client->parse_msg(msg->get_payload());
 }
 
-void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, ThroughputMonitor& updateThroughputMonitor, SPSCQueue<OrderBook>& queue, const char* symbol, 
+void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, ThroughputMonitor& updateThroughputMonitor, SPSCQueue<OrderBook>& bookBuilderToStrategyQueue, const char* symbol, 
                     const char* action, uint64_t id, const char* side, int size, double price, const char* timestamp) {
     // auto programReceiveTime = Clock::now();
     updateThroughputMonitor.operationCompleted();
@@ -80,7 +79,7 @@ void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, T
         }
     }
     
-    while (!queue.push(orderBookMap[symbol]));
+    while (!bookBuilderToStrategyQueue.push(orderBookMap[symbol]));
 
     // auto bookBuildingEndTime = Clock::now();
     // auto bookBuildingDuration = std::chrono::duration_cast<std::chrono::microseconds>(bookBuildingEndTime - programReceiveTime);
@@ -92,7 +91,7 @@ void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, T
     // orderBook.updateOrderBookMemoryUsage();
 }
 
-void bookBuilder(int cpu, SPSCQueue<OrderBook>& queue) {
+void bookBuilder(int cpu, SPSCQueue<OrderBook>& bookBuilderToStrategyQueue) {
     pinThread(cpu);
 
     std::unordered_map<std::string, OrderBook> orderBookMap;
@@ -105,14 +104,16 @@ void bookBuilder(int cpu, SPSCQueue<OrderBook>& queue) {
 
     BitmexClient::websocket::Client bitmexClient;
 
-    auto onTradeCallBackLambda = [&orderBookMap, &updateThroughputMonitorBookBuilder, &queue](const char* symbol, const char* action,
+    auto onTradeCallBackLambda = [&orderBookMap, &updateThroughputMonitorBookBuilder, &bookBuilderToStrategyQueue](const char* symbol, const char* action,
         uint64_t id, const char* side, int size, double price, const char* timestamp) {
-        onTradeCallBack(orderBookMap, updateThroughputMonitorBookBuilder, queue, symbol, action, id, side, size, price, timestamp);
+        onTradeCallBack(orderBookMap, updateThroughputMonitorBookBuilder, bookBuilderToStrategyQueue, symbol, action, id, side, size, price, timestamp);
     };
 
     bitmexClient.on_trade(onTradeCallBackLambda);
 
-    std::string uri = "wss://www.bitmex.com/realtime";
+    std::string uri = "wss://ws.testnet.bitmex.com/realtime"; 
+    // std::string uri = "wss://www.bitmex.com/realtime"; 
+    
     client c;
     c.clear_access_channels(websocketpp::log::alevel::frame_payload);
     c.init_asio();

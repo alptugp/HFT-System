@@ -11,6 +11,7 @@
 #include "BookBuilder/BookBuilder.cpp"
 #include "Utils/Utils.hpp"
 #include "StrategyComponent/Graph.hpp"
+#include "OrderManager/OrderManager.hpp"
 
 template <typename T> 
 void bench(int cpu1, int cpu2) {
@@ -49,33 +50,41 @@ void bench(int cpu1, int cpu2) {
   t2.join();
 }
 
-void buildBookAndDetectArbitrage(int cpu1, int cpu2)  {   
-    const size_t queueSize = 100000;
-    SPSCQueue<OrderBook> queue(queueSize);
+void runAlgo(int cpu1, int cpu2, int cpu3)  {   
+    const size_t queueSize = 10000;
+    SPSCQueue<OrderBook> builderToStrategyQueue(queueSize);
+    SPSCQueue<std::string> strategyToOrderManagerQueue(queueSize);
 
-    auto t1 = std::thread([&cpu1, &queue] {
-      strategy(cpu1, queue);
+    auto t1 = std::thread([&cpu1, &builderToStrategyQueue, &strategyToOrderManagerQueue] {
+      strategy(cpu1, builderToStrategyQueue, strategyToOrderManagerQueue);
     });
 
-    auto t2 = std::thread([&cpu2, &queue] {
-      bookBuilder(cpu2, queue);
+    auto t2 = std::thread([&cpu2, &builderToStrategyQueue] {
+      bookBuilder(cpu2, builderToStrategyQueue);
+    });
+
+    auto t3 = std::thread([&cpu3, &strategyToOrderManagerQueue] {
+      orderManager(cpu3, strategyToOrderManagerQueue);
     });
 
     t2.join();
     t1.join();
+    t3.join();
 }
 
 int main(int argc, char *argv[]) {
   int cpu1 = -1;
   int cpu2 = -1;
-
-  if (argc == 3) {
+  int cpu3 = -1;
+  
+  if (argc == 4) {
     cpu1 = std::stoi(argv[1]);
     cpu2 = std::stoi(argv[2]);
+    cpu3 = std::stoi(argv[3]);
   }
 
   // bench<SPSCQueue<OrderBook>>(cpu1, cpu2);
-  buildBookAndDetectArbitrage(cpu1, cpu2);
+  runAlgo(cpu1, cpu2, cpu3);
 
   return 0;
 }
