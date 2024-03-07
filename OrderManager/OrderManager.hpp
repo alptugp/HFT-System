@@ -10,6 +10,5 @@
 #include "../SPSCQueue/SPSCQueue.hpp"
 #include "../Utils/Utils.hpp"
 
-
 size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* output);
 void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue);

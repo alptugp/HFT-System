@@ -48,58 +48,59 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
         // Set the BitMEX API endpoint
         curl_easy_setopt(curl, CURLOPT_URL, "https://testnet.bitmex.com/api/v1/order");
 
-        // Set the necessary POST data
-        std::string orderData;
-        while (!strategyToOrderManagerQueue.pop(orderData));
+        while (true) {
+            // Set the necessary POST data
+            std::string orderData;
+            while (!strategyToOrderManagerQueue.pop(orderData));
 
-        // Get the current time_point
-        std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
-        // Add 1 hour to the current time_point
-        std::chrono::system_clock::time_point oneHourLater = now - std::chrono::hours(1);
-        // Convert the time_point to a Unix timestamp
-        std::time_t timestamp = std::chrono::system_clock::to_time_t(oneHourLater);
-        // Convert the timestamp to a string
-        std::string expires = std::to_string(timestamp);
-        std::cout << "expires: " << expires << std::endl;
+            // Get the current time_point
+            std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+            // Add 1 hour to the current time_point
+            std::chrono::system_clock::time_point oneHourLater = now + std::chrono::hours(1);
+            // Convert the time_point to a Unix timestamp
+            std::time_t timestamp = std::chrono::system_clock::to_time_t(oneHourLater);
+            // Convert the timestamp to a string
+            std::string expires = std::to_string(timestamp);
+            std::cout << "expires: " << expires << std::endl;
 
-        std::string verb = "POST";
-        std::string path = "/api/v1/order";
-        std::string data = "{\"symbol\":\"XBTUSD\",\"price\":0.1,\"orderQty\":1}";
-        
-        // Concatenate the string to be hashed
-        std::string concatenatedString = verb + path + expires + data;
+            std::string verb = "POST";
+            std::string path = "/api/v1/order";
+            
+            // Concatenate the string to be hashed
+            std::string concatenatedString = verb + path + expires + orderData;
 
-        // Calculate HMAC-SHA256
-        std::string signature = CalcHmacSHA256(apiSecret, concatenatedString);
-        std::string hexSignature = toHex(signature);        
-        // Print the hexSignature
-        std::cout << "Signature: " << hexSignature << std::endl;
+            // Calculate HMAC-SHA256
+            std::string signature = CalcHmacSHA256(apiSecret, concatenatedString);
+            std::string hexSignature = toHex(signature);        
+            // Print the hexSignature
+            std::cout << "Signature: " << hexSignature << std::endl;
 
-        // Build the headers
-        struct curl_slist* headers = NULL;
-        headers = curl_slist_append(headers, ("api-key: " + apiKey).c_str());
-        headers = curl_slist_append(headers, ("api-expires: " + expires).c_str());
-        headers = curl_slist_append(headers, ("api-signature: " + hexSignature).c_str());
-        headers = curl_slist_append(headers, "Content-Type: application/x-www-form-urlencoded");
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+            // Build the headers
+            struct curl_slist* headers = NULL;
+            headers = curl_slist_append(headers, ("api-key: " + apiKey).c_str());
+            headers = curl_slist_append(headers, ("api-expires: " + expires).c_str());
+            headers = curl_slist_append(headers, ("api-signature: " + hexSignature).c_str());
+            headers = curl_slist_append(headers, "Content-Type: application/x-www-form-urlencoded");
+            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
-        // Set the POST data and other options
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, orderData.c_str());
+            // Set the POST data and other options
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, orderData.c_str());
 
-        // Declare 'response' here
-        std::string response;
+            // Declare 'response' here
+            std::string response;
 
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+            curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
 
-        // Perform the request
-        res = curl_easy_perform(curl);
+            // Perform the request
+            res = curl_easy_perform(curl);
 
-        // Check for errors
-        if (res != CURLE_OK)
-            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-        else
-            std::cout << "Response:\n" << response << std::endl;
+            // Check for errors
+            if (res != CURLE_OK)
+                fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+            else
+                std::cout << "Response:\n" << response << std::endl;
+        }
 
         // Cleanup
         curl_slist_free_all(headers);
