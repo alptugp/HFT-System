@@ -34,7 +34,7 @@ std::pair<double, double> Graph::findTriangularArbitrage() {
     return std::make_pair(weightMultiplyFirstDirection, weightMultiplySecondDirection);
 }
 
-void strategy(int cpu, SPSCQueue<OrderBook>& queue) {
+void strategy(int cpu, SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::string>& strategyToOrderManagerQueue) {
     pinThread(cpu);
     Graph graph(3);
 
@@ -46,7 +46,7 @@ void strategy(int cpu, SPSCQueue<OrderBook>& queue) {
     ThroughputMonitor throughputMonitorStrategyComponent("Strategy Component Throughput Monitor", std::chrono::high_resolution_clock::now());
     while (true) {
       OrderBook orderBook;
-      while (!queue.pop(orderBook));
+      while (!builderToStrategyQueue.pop(orderBook));
       std::pair<double, double> bestBuyAndSellPrice = orderBook.getBestBuyAndSellPrice();
       double bestBuyPrice = bestBuyAndSellPrice.first;
       double bestSellPrice = bestBuyAndSellPrice.second;
@@ -60,11 +60,27 @@ void strategy(int cpu, SPSCQueue<OrderBook>& queue) {
       double secondDirectionReturnsAfterFees = returns.second * std::pow(0.99925, 3);
       // std::cout << symbol << " - Best Sell: " << bestSellPrice << " Best Buy: " << bestBuyPrice << std::endl;
       auto exchangeTimestamp = orderBook.getExchangeTimestamp();
-      std::cout << "USD -> XBT -> ETH -> USD: " << firstDirectionReturnsAfterFees << "      " 
-                << "USD -> ETH -> XBT -> USD: " << secondDirectionReturnsAfterFees << "      " 
+      std::cout << "USD->XBT->ETH->USD: " << firstDirectionReturnsAfterFees << "      " 
+                << "USD->ETH->XBT->USD: " << secondDirectionReturnsAfterFees << "      " 
                 << "Latency (ms): " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - exchangeTimestamp).count() << "      " 
                 << "Timestamp: " << std::chrono::duration_cast<std::chrono::milliseconds>(exchangeTimestamp.time_since_epoch()).count()
                 << std::endl;
       // throughputMonitorStrategyComponent.operationCompleted();
+      // "symbol=XBTUSD&side=Buy&orderQty=1&price=50000&ordType=Limit"
+
+      if (firstDirectionReturnsAfterFees > 1.0) {
+        std::cout << "PROFIT POSSIBLE for USD->XBT->ETH->USD" << std::endl;
+        while (!strategyToOrderManagerQueue.push(std::string("symbol=XBTUSD") +  "&side=Buy" + "&orderQty=0" + "&price=0" + "&ordType=Limit"));
+        while (!strategyToOrderManagerQueue.push(std::string("symbol=ETHXBT") +  "&side=Buy" + "&orderQty=0" + "&price=0" + "&ordType=Limit"));
+        while (!strategyToOrderManagerQueue.push(std::string("symbol=ETHUSD") +  "&side=Sell" + "&orderQty=0" + "&price=0" + "&ordType=Limit"));
+      }
+
+      if (secondDirectionReturnsAfterFees > 1.0) {
+        std::cout << "PROFIT POSSIBLE for USD->XBT->ETH->USD" << std::endl;
+        while (!strategyToOrderManagerQueue.push(std::string("symbol=ETHUSD") +  "&side=Buy" + "&orderQty=0" + "&price=0" + "&ordType=Limit"));
+        while (!strategyToOrderManagerQueue.push(std::string("symbol=ETHXBT") +  "&side=Sell" + "&orderQty=0" + "&price=0" + "&ordType=Limit"));
+        while (!strategyToOrderManagerQueue.push(std::string("symbol=XBTUSD") +  "&side=Sell" + "&orderQty=0" + "&price=0" + "&ordType=Limit"));
+      }
+      
     }
 }

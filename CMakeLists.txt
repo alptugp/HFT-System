@@ -12,6 +12,7 @@ include_directories(
 set(SOURCES
     ${PROJECT_NAME}.cpp
     ./BookBuilder/OrderBook/OrderBook.cpp
+    ./OrderManager/OrderManager.cpp
     ./BookBuilder/ThroughputMonitor/ThroughputMonitor.cpp
     ./Utils/Utils.cpp
     ./StrategyComponent/Graph.cpp
@@ -25,4 +26,4 @@ target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_11)
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic -Werror -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter)
 
 # Linked Libraries
-target_link_libraries(${PROJECT_NAME} PRIVATE pthread crypto ssl)
+target_link_libraries(${PROJECT_NAME} PRIVATE pthread crypto ssl curl)

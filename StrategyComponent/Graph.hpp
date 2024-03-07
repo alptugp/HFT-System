@@ -24,6 +24,6 @@ public:
     std::pair<double, double> findTriangularArbitrage();
 };
 
-void strategy(int cpu, SPSCQueue<OrderBook>& queue);
+void strategy(int cpu, SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::string>& strategyToOrderManagerQueue);
 
 #endif // GRAPH_HPP
