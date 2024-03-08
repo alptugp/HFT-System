@@ -68,10 +68,12 @@ void strategy(int cpu, SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<s
       double secondDirectionReturnsAfterFees = returns.second * std::pow(0.99925, 3);
       // std::cout << symbol << " - Best Sell: " << bestSellPrice << " Best Buy: " << bestBuyPrice << std::endl;
       auto exchangeTimestamp = orderBook.getExchangeTimestamp();
+      auto strategyTimestamp = high_resolution_clock::now();
+      auto strategyTimepoint = std::to_string(duration_cast<milliseconds>(strategyTimestamp.time_since_epoch()).count());
       std::cout << "XBT->USDT->ETH->XBT: " << firstDirectionReturnsAfterFees << "      " 
                 << "XBT->ETH->USDT->XBT: " << secondDirectionReturnsAfterFees << "      " 
-                << "Latency (ms): " << duration_cast<milliseconds>(high_resolution_clock::now() - exchangeTimestamp).count() << "      " 
-                << "Timestamp: " << duration_cast<milliseconds>(exchangeTimestamp.time_since_epoch()).count()
+                << "Builder to Strategy Latency (ms): " << duration_cast<milliseconds>(strategyTimestamp - exchangeTimestamp).count() << "      " 
+                << "Exch. Ts.: " << duration_cast<milliseconds>(exchangeTimestamp.time_since_epoch()).count()
                 << std::endl;
       if (startingTimestamp == system_clock::duration::zero()) {
         startingTimestamp = exchangeTimestamp.time_since_epoch();
@@ -79,23 +81,24 @@ void strategy(int cpu, SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<s
       // throughputMonitorStrategyComponent.operationCompleted();
       // "symbol=XBTUSD&side=Buy&orderQty=1&price=50000&ordType=Limit"
 
+
       if (firstDirectionReturnsAfterFees > 1.0 && (duration_cast<milliseconds>(exchangeTimestamp.time_since_epoch() - startingTimestamp).count() > 1000)) {
         std::cout << "PROFIT POSSIBLE for XBT->USDT->ETH->XBT" << std::endl;
 
         //std::cout << "firstLegPrice: " << graph.getExchangeRateBetween(0, 1) << std::endl;
         //double usdConvertedAmount = 0.001 * graph.getExchangeRateBetween(0, 1) * 0.99925;
         //std::cout << "converted usd amount: " << usdConvertedAmount << std::endl;
-        std::string firstLeg = std::string("symbol=XBTUSDT&side=Sell&orderQty=1000") + "&ordType=Market";
+        std::string firstLeg = std::string("symbol=XBTUSDT&side=Sell&orderQty=1000") + "&ordType=Market" + strategyTimepoint;
         while (!strategyToOrderManagerQueue.push(firstLeg));
 
         //double ethConvertedAmount = usdConvertedAmount * graph.getExchangeRateBetween(1, 2) * 0.99925;
         //std::cout << "converted eth amount: " << ethConvertedAmount << std::endl;
-        std::string secondLeg = std::string("symbol=ETHUSDT&side=Buy&orderQty=1000") + "&ordType=Market";
+        std::string secondLeg = std::string("symbol=ETHUSDT&side=Buy&orderQty=1000") + "&ordType=Market" + strategyTimepoint;
         while (!strategyToOrderManagerQueue.push(secondLeg));
 
         //double xbtConvertedAmount = ethConvertedAmount * graph.getExchangeRateBetween(2, 0) * 0.99925;
         //std::cout << "converted xbt amount: " << xbtConvertedAmount << std::endl;
-        std::string thirdLeg = std::string("symbol=XBTETH&side=Buy&orderQty=1") + "&ordType=Market";
+        std::string thirdLeg = std::string("symbol=XBTETH&side=Buy&orderQty=1") + "&ordType=Market" + strategyTimepoint;
         while (!strategyToOrderManagerQueue.push(thirdLeg));
 
         break;
@@ -104,13 +107,13 @@ void strategy(int cpu, SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<s
       if (secondDirectionReturnsAfterFees > 1.0 && (duration_cast<milliseconds>(exchangeTimestamp.time_since_epoch() - startingTimestamp).count() > 1000)) {
         std::cout << "PROFIT POSSIBLE for XBT->ETH->USDT->XBT" << std::endl;
 
-        std::string firstLeg = std::string("symbol=XBTETH&side=Sell&orderQty=1") + "&ordType=Market";
+        std::string firstLeg = std::string("symbol=XBTETH&side=Sell&orderQty=1") + "&ordType=Market" + strategyTimepoint;
         while (!strategyToOrderManagerQueue.push(firstLeg));
 
-        std::string secondLeg = std::string("symbol=ETHUSDT&side=Sell&orderQty=1") + "&ordType=Market";
+        std::string secondLeg = std::string("symbol=ETHUSDT&side=Sell&orderQty=1") + "&ordType=Market" + strategyTimepoint;
         while (!strategyToOrderManagerQueue.push(secondLeg));
 
-        std::string thirdLeg = std::string("symbol=XBTUSDT&side=Buy&orderQty=1") + "&ordType=Market";
+        std::string thirdLeg = std::string("symbol=XBTUSDT&side=Buy&orderQty=1") + "&ordType=Market" + strategyTimepoint;
         while (!strategyToOrderManagerQueue.push(thirdLeg));
 
         break;

@@ -6,6 +6,7 @@ project(main)
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/externals/websocketpp
     ${CMAKE_CURRENT_SOURCE_DIR}/externals/rapidjson/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/externals/json/include
 )
 
 # Source Files

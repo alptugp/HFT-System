@@ -1,5 +1,8 @@
 #include "OrderManager.hpp"
 
+using json = nlohmann::json;
+using namespace std::chrono;
+
 size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* output) {
     size_t total_size = size * nmemb;
     output->append((char*)contents, total_size);
@@ -50,8 +53,14 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
 
         while (true) {
             // Set the necessary POST data
-            std::string orderData;
-            while (!strategyToOrderManagerQueue.pop(orderData));
+            std::string data;
+            while (!strategyToOrderManagerQueue.pop(data));
+
+            std::string strategyTimepoint = data.substr(data.length() - 13);
+            std::string orderData = data.substr(0, data.length() - 13);
+
+            std::cout << "Order data: " << orderData << std::endl;
+            std::cout << "Strategy timepoint: " << strategyTimepoint << std::endl;
             // Get the current time_point
             std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
             // Add 1 hour to the current time_point
@@ -60,7 +69,7 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
             std::time_t timestamp = std::chrono::system_clock::to_time_t(oneHourLater);
             // Convert the timestamp to a string
             std::string expires = std::to_string(timestamp);
-            std::cout << "expires: " << expires << std::endl;
+            // std::cout << "expires: " << expires << std::endl;
             std::string verb = "POST";
             std::string path = "/api/v1/order";
             
@@ -89,8 +98,17 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
             // Check for errors
             if (res != CURLE_OK)
                 fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-            else
-                std::cout << "Response:\n" << response << std::endl;
+            else {
+                json jsonResponse = json::parse(response);
+
+                // Access the "orderID" field
+                auto exchangeExecutionTimestamp = convertTimestampToTimePoint(jsonResponse["timestamp"]);
+
+                // Do something with the orderID
+                std::cout << "Exchange execution timestamp: " << duration_cast<milliseconds>(exchangeExecutionTimestamp.time_since_epoch()).count() << std::endl;
+                std::cout << "Response from exchange:\n" << response << std::endl;
+                std::cout << "Strategy to Order Execution Latency: " << duration_cast<milliseconds>(exchangeExecutionTimestamp.time_since_epoch() - std::chrono::milliseconds(std::stoll(strategyTimepoint))).count() << " (ms)\n" << std::endl;
+            }
             // Cleanup
             curl_slist_free_all(headers);
         }

@@ -7,6 +7,7 @@
 #include <array>
 #include <cstring>
 #include <iomanip>
+#include <nlohmann/json.hpp>
 #include "../SPSCQueue/SPSCQueue.hpp"
 #include "../Utils/Utils.hpp"
 
