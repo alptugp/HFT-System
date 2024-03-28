@@ -102,12 +102,12 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
                 json jsonResponse = json::parse(response);
 
                 // Access the "orderID" field
-                auto exchangeExecutionTimestamp = convertTimestampToTimePoint(jsonResponse["timestamp"]);
+                long exchangeExecutionTimestamp = convertTimestampToTimePoint(jsonResponse["timestamp"]);
 
                 // Do something with the orderID
-                std::cout << "Exchange execution timestamp: " << duration_cast<milliseconds>(exchangeExecutionTimestamp.time_since_epoch()).count() << std::endl;
+                std::cout << "Exchange execution timestamp: " << exchangeExecutionTimestamp << std::endl;
                 std::cout << "Response from exchange:\n" << response << std::endl;
-                std::cout << "Strategy to Order Execution Latency: " << duration_cast<milliseconds>(exchangeExecutionTimestamp.time_since_epoch() - std::chrono::milliseconds(std::stoll(strategyTimepoint))).count() << " (ms)\n" << std::endl;
+                std::cout << "Strategy to Order Execution Latency: " << exchangeExecutionTimestamp - std::stoll(strategyTimepoint) << " (ms)\n" << std::endl;
             }
             // Cleanup
             curl_slist_free_all(headers);

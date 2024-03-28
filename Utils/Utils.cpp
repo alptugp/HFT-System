@@ -5,20 +5,33 @@
 #include <iomanip> 
 #include <sstream>
 
-std::chrono::time_point<std::chrono::high_resolution_clock> convertTimestampToTimePoint(const std::string& timestamp) {
-    std::tm tm = {};
+long convertTimestampToTimePoint(const std::string& timestamp) {
     std::istringstream ss(timestamp);
+    std::tm tm = {};
     ss >> std::get_time(&tm, "%Y-%m-%dT%H:%M:%S");
-
-    // If timestamp includes milliseconds, parse and add them
-    long milliseconds = 0;
-    if (ss && ss.peek() == '.') {
-        ss.ignore(); // Ignore the dot
-        ss >> milliseconds;
+    if (ss.fail()) {
+        // Failed to parse timestamp
+        return -1; // Indicate failure
     }
 
-    auto time_point = std::chrono::high_resolution_clock::from_time_t(std::mktime(&tm)) + std::chrono::milliseconds(milliseconds);
-    return time_point;
+    // If there are milliseconds in the timestamp, parse and add them
+    long milliseconds = 0;
+    if (ss.peek() == '.') {
+        ss.ignore(); // Ignore the dot
+        ss >> milliseconds;
+        if (ss.fail()) {
+            // Failed to parse milliseconds
+            return -1; // Indicate failure
+        }
+    }
+
+    // Convert std::tm to std::chrono::system_clock::time_point
+    auto time_point = std::chrono::system_clock::from_time_t(std::mktime(&tm));
+
+    // Convert std::chrono::system_clock::time_point to duration since epoch
+    auto duration = time_point.time_since_epoch() + std::chrono::milliseconds(milliseconds);
+
+    return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
 }
 
 void pinThread(int cpu) {

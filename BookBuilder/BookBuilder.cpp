@@ -43,21 +43,23 @@ void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, T
                     const char* action, uint64_t id, const char* side, int size, double price, const char* timestamp) {
     // auto programReceiveTime = Clock::now();
     updateThroughputMonitor.operationCompleted();
-    std::chrono::time_point<std::chrono::high_resolution_clock> exchangeTimeStamp = convertTimestampToTimePoint(timestamp);
-    // auto networkLatency = std::chrono::duration_cast<std::chrono::microseconds>(programReceiveTime - exchangeTimeStamp);
+
+    long exchangeUnixTimestamp = convertTimestampToTimePoint(timestamp);
+    /*std::cout << timestamp << std::endl;*/
+    // auto networkLatency = std::chrono::duration_cast<std::chrono::microseconds>(programReceiveTime - exchangeUnixTimestamp);
     
     std::string sideStr(side);
     if (sideStr == "Buy") {
         switch (action[0]) {
             case 'p':
             case 'i':
-                orderBookMap[symbol].insertBuy(id, price, size, exchangeTimeStamp);
+                orderBookMap[symbol].insertBuy(id, price, size, exchangeUnixTimestamp);
                 break;
             case 'u':
-                orderBookMap[symbol].updateBuy(id, size, exchangeTimeStamp);
+                orderBookMap[symbol].updateBuy(id, size, exchangeUnixTimestamp);
                 break;
             case 'd':
-                orderBookMap[symbol].removeBuy(id, exchangeTimeStamp);
+                orderBookMap[symbol].removeBuy(id, exchangeUnixTimestamp);
                 break;
             default:
                 break;
@@ -66,13 +68,13 @@ void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, T
         switch (action[0]) {
             case 'p':
             case 'i':
-                orderBookMap[symbol].insertSell(id, price, size, exchangeTimeStamp);
+                orderBookMap[symbol].insertSell(id, price, size, exchangeUnixTimestamp);
                 break;
             case 'u':
-                orderBookMap[symbol].updateSell(id, size, exchangeTimeStamp);
+                orderBookMap[symbol].updateSell(id, size, exchangeUnixTimestamp);
                 break;
             case 'd':
-                orderBookMap[symbol].removeSell(id, exchangeTimeStamp);
+                orderBookMap[symbol].removeSell(id, exchangeUnixTimestamp);
                 break;
             default:
                 break;
@@ -111,8 +113,8 @@ void bookBuilder(int cpu, SPSCQueue<OrderBook>& bookBuilderToStrategyQueue) {
 
     bitmexClient.on_trade(onTradeCallBackLambda);
 
-    std::string uri = "wss://ws.testnet.bitmex.com/realtime"; 
-    // std::string uri = "wss://www.bitmex.com/realtime"; 
+    /*std::string uri = "wss://ws.testnet.bitmex.com/realtime"; */
+    std::string uri = "wss://www.bitmex.com/realtime";
     
     client c;
     c.clear_access_channels(websocketpp::log::alevel::frame_payload);

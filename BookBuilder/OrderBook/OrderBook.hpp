@@ -26,7 +26,7 @@ private:
     std::unordered_map<uint64_t, AVLNode*> buyIdMap;
     std::unordered_map<uint64_t, AVLNode*> sellIdMap;
     std::string symbol;
-    std::chrono::time_point<std::chrono::high_resolution_clock> timestamp;
+    long timestamp;
     std::vector<size_t> memoryUsages;  // Store memory usage values for average memory usage calculation
     static const int PRINT_INTERVAL = 100;
 
@@ -56,20 +56,20 @@ public:
     std::string getSymbol() const {
         return this->symbol;
     }
-    std::chrono::time_point<std::chrono::high_resolution_clock> getExchangeTimestamp() {
+    long getExchangeTimestamp() {
         return this->timestamp;
     }
     std::pair<double, double> getBestBuyAndSellPrice();
 
     // Buy side functions
-    void insertBuy(uint64_t id, double price, int size, std::chrono::time_point<std::chrono::high_resolution_clock> timestamp);
-    void updateBuy(uint64_t id, int size, std::chrono::time_point<std::chrono::high_resolution_clock> timestamp);
-    void removeBuy(uint64_t id, std::chrono::time_point<std::chrono::high_resolution_clock> timestamp);
+    void insertBuy(uint64_t id, double price, int size, long timestamp);
+    void updateBuy(uint64_t id, int size, long timestamp);
+    void removeBuy(uint64_t id, long timestamp);
 
     // Sell side functions
-    void insertSell(uint64_t id, double price, int size, std::chrono::time_point<std::chrono::high_resolution_clock> timestamp);
-    void updateSell(uint64_t id, int size, std::chrono::time_point<std::chrono::high_resolution_clock> timestamp);
-    void removeSell(uint64_t id, std::chrono::time_point<std::chrono::high_resolution_clock> timestamp);
+    void insertSell(uint64_t id, double price, int size, long timestamp);
+    void updateSell(uint64_t id, int size, long timestamp);
+    void removeSell(uint64_t id, long timestamp);
 
     void updateOrderBookMemoryUsage();
 };

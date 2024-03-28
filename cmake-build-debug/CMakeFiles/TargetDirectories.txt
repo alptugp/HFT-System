@@ -1,0 +1,3 @@
+/vol/bitbucket/aap221/HFT-System/cmake-build-debug/CMakeFiles/main.dir
+/vol/bitbucket/aap221/HFT-System/cmake-build-debug/CMakeFiles/edit_cache.dir
+/vol/bitbucket/aap221/HFT-System/cmake-build-debug/CMakeFiles/rebuild_cache.dir

@@ -49,8 +49,6 @@ void strategy(int cpu, SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<s
     symbolToGraphIndex["USDT"] = 1;
     symbolToGraphIndex["ETH"] = 2;
 
-    system_clock::duration startingTimestamp = system_clock::duration::zero();
-    
     ThroughputMonitor throughputMonitorStrategyComponent("Strategy Component Throughput Monitor", std::chrono::high_resolution_clock::now());
     while (true) {
       OrderBook orderBook;
@@ -67,22 +65,23 @@ void strategy(int cpu, SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<s
       double firstDirectionReturnsAfterFees = returns.first * std::pow(0.99925, 3);
       double secondDirectionReturnsAfterFees = returns.second * std::pow(0.99925, 3);
       // std::cout << symbol << " - Best Sell: " << bestSellPrice << " Best Buy: " << bestBuyPrice << std::endl;
-      auto exchangeTimestamp = orderBook.getExchangeTimestamp();
-      auto strategyTimestamp = high_resolution_clock::now();
+      long exchangeTimestamp = orderBook.getExchangeTimestamp();
+      auto exchangeTimePoint = std::chrono::time_point<std::chrono::high_resolution_clock>(
+                std::chrono::milliseconds(exchangeTimestamp));
+      system_clock::time_point strategyTimestamp = high_resolution_clock::now();
       auto strategyTimepoint = std::to_string(duration_cast<milliseconds>(strategyTimestamp.time_since_epoch()).count());
       std::cout << "XBT->USDT->ETH->XBT: " << firstDirectionReturnsAfterFees << "      " 
                 << "XBT->ETH->USDT->XBT: " << secondDirectionReturnsAfterFees << "      " 
-                << "Builder to Strategy Latency (ms): " << duration_cast<milliseconds>(strategyTimestamp - exchangeTimestamp).count() << "      " 
-                << "Exch. Ts.: " << duration_cast<milliseconds>(exchangeTimestamp.time_since_epoch()).count()
+                << "Builder to Strategy Latency (ms): " << duration_cast<milliseconds>(strategyTimestamp - exchangeTimePoint).count() << "      "
+                << "Exch. Ts.: " << exchangeTimestamp << "      "
+                << "Strat. Ts.: " << strategyTimepoint
                 << std::endl;
-      if (startingTimestamp == system_clock::duration::zero()) {
-        startingTimestamp = exchangeTimestamp.time_since_epoch();
-      }
+
       // throughputMonitorStrategyComponent.operationCompleted();
       // "symbol=XBTUSD&side=Buy&orderQty=1&price=50000&ordType=Limit"
 
 
-      if (firstDirectionReturnsAfterFees > 1.0 && (duration_cast<milliseconds>(exchangeTimestamp.time_since_epoch() - startingTimestamp).count() > 1000)) {
+      if (firstDirectionReturnsAfterFees > 1.0 && (duration_cast<milliseconds>(strategyTimestamp - exchangeTimePoint).count() > 1000)) {
         std::cout << "PROFIT POSSIBLE for XBT->USDT->ETH->XBT" << std::endl;
 
         //std::cout << "firstLegPrice: " << graph.getExchangeRateBetween(0, 1) << std::endl;
@@ -104,7 +103,7 @@ void strategy(int cpu, SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<s
         break;
       }
 
-      if (secondDirectionReturnsAfterFees > 1.0 && (duration_cast<milliseconds>(exchangeTimestamp.time_since_epoch() - startingTimestamp).count() > 1000)) {
+      if (secondDirectionReturnsAfterFees > 1.0 && (duration_cast<milliseconds>(strategyTimestamp - exchangeTimePoint).count() > 1000)) {
         std::cout << "PROFIT POSSIBLE for XBT->ETH->USDT->XBT" << std::endl;
 
         std::string firstLeg = std::string("symbol=XBTETH&side=Sell&orderQty=1") + "&ordType=Market" + strategyTimepoint;

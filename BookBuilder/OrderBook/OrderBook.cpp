@@ -177,37 +177,37 @@ AVLNode* OrderBook::deleteNode(AVLNode* root, double price) {
     return root;
 }
 
-void OrderBook::insertBuy(uint64_t id, double price, int size, std::chrono::time_point<std::chrono::high_resolution_clock> timestamp) {
+void OrderBook::insertBuy(uint64_t id, double price, int size, long timestamp) {
     buyRoot = insertHelper(buyRoot, id, price, size);
     this->timestamp = timestamp;
     buyIdMap[id] = new AVLNode(id, price, size);
 }
 
-void OrderBook::updateBuy(uint64_t id, int size, std::chrono::time_point<std::chrono::high_resolution_clock> timestamp) {
+void OrderBook::updateBuy(uint64_t id, int size, long timestamp) {
     updateHelper(buyRoot, this->buyIdMap[id]->price, size);
     this->timestamp = timestamp;
     this->buyIdMap[id]->size = size;
 }
 
-void OrderBook::removeBuy(uint64_t id, std::chrono::time_point<std::chrono::high_resolution_clock> timestamp) {
+void OrderBook::removeBuy(uint64_t id, long timestamp) {
     deleteNode(buyRoot, this->buyIdMap[id]->price);
     this->timestamp = timestamp;
     this->buyIdMap.erase(id);
 }
 
-void OrderBook::insertSell(uint64_t id, double price, int size, std::chrono::time_point<std::chrono::high_resolution_clock> timestamp) {
+void OrderBook::insertSell(uint64_t id, double price, int size, long timestamp) {
     sellRoot = insertHelper(sellRoot, id, price, size);
     this->timestamp = timestamp;
     sellIdMap[id] = new AVLNode(id, price, size);
 }
 
-void OrderBook::updateSell(uint64_t id, int size, std::chrono::time_point<std::chrono::high_resolution_clock> timestamp) {
+void OrderBook::updateSell(uint64_t id, int size, long timestamp) {
     updateHelper(sellRoot, this->sellIdMap[id]->price, size);
     this->timestamp = timestamp;
     this->sellIdMap[id]->size = size;
 }
 
-void OrderBook::removeSell(uint64_t id, std::chrono::time_point<std::chrono::high_resolution_clock> timestamp) {
+void OrderBook::removeSell(uint64_t id, long timestamp) {
     deleteNode(sellRoot, this->sellIdMap[id]->price);
     this->timestamp = timestamp;
     this->sellIdMap.erase(id);
