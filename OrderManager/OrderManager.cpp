@@ -41,8 +41,8 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
 
     CURL* curl;
     CURLcode res;
-    std::string apiKey = "urLbZmnnFvTiIEgtUEOPe15k";
-    std::string apiSecret = "7fdNCO8Jol1LW3iD67dTcSXFjqYY-LRi1Uvpcevr7Mg6IwFm";
+    std::string apiKey = "63ObNQpYqaCVrjTuBbhgFm2p";
+    std::string apiSecret = "D2OBzpfW-i6FfgmqGnrhpYqKPrxCvIYnu5KZKsZQW_09XkF-";
 
     curl_global_init(CURL_GLOBAL_DEFAULT);
 
@@ -56,11 +56,15 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
             std::string data;
             while (!strategyToOrderManagerQueue.pop(data));
 
-            std::string strategyTimepoint = data.substr(data.length() - 13);
-            std::string orderData = data.substr(0, data.length() - 13);
 
-            std::cout << "Order data: " << orderData << std::endl;
+            std::string orderData = data.substr(0, data.length() - 39);
+            std::string updateExchangeTimepoint = data.substr(data.length() - 39, 13);
+            std::string updateReceiveTimepoint = data.substr(data.length() - 26, 13);
+            std::string strategyTimepoint = data.substr(data.length() - 13);
+
+            /*std::cout << "Order data: " << orderData << std::endl;
             std::cout << "Strategy timepoint: " << strategyTimepoint << std::endl;
+            std::cout << "Update Exchange timepoint: " << updateExchangeTimepoint << std::endl;*/
             // Get the current time_point
             std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
             // Add 1 hour to the current time_point
@@ -89,6 +93,8 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
             curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
             // Set the POST data and other options
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, orderData.c_str());
+            system_clock::time_point submissionTimestamp = high_resolution_clock::now();
+            std::string submissionTimepoint = std::to_string(duration_cast<milliseconds>(submissionTimestamp.time_since_epoch()).count());
             // Declare 'response' here
             std::string response;
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
@@ -100,14 +106,31 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
                 fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
             else {
                 json jsonResponse = json::parse(response);
-
                 // Access the "orderID" field
+
                 long exchangeExecutionTimestamp = convertTimestampToTimePoint(jsonResponse["timestamp"]);
 
                 // Do something with the orderID
-                std::cout << "Exchange execution timestamp: " << exchangeExecutionTimestamp << std::endl;
-                std::cout << "Response from exchange:\n" << response << std::endl;
-                std::cout << "Strategy to Order Execution Latency: " << exchangeExecutionTimestamp - std::stoll(strategyTimepoint) << " (ms)\n" << std::endl;
+
+                std::cout
+                          << "===========================================================================================\n"
+                          << "NEW ORDER EXECUTED\n"
+                          << "Exchange to Receival (ms): " << getTimeDifferenceInMillis(updateExchangeTimepoint, updateReceiveTimepoint) << "      "
+                          << "Receival to Detection (ms): " << getTimeDifferenceInMillis(updateReceiveTimepoint, strategyTimepoint) << "      "
+                          << "Detection to Submission (ms): " << getTimeDifferenceInMillis(strategyTimepoint, submissionTimepoint) << "      "
+                          << "Submission to Execution (ms): " << getTimeDifferenceInMillis(submissionTimepoint, std::to_string(exchangeExecutionTimestamp)) << "      "
+                          << "Total Latency: " << getTimeDifferenceInMillis(updateExchangeTimepoint, std::to_string(exchangeExecutionTimestamp)) << "      "
+                          << "Sync Diff: " << getTimeDifferenceInMillis(updateExchangeTimepoint, std::to_string(exchangeExecutionTimestamp)) - (
+                                                                                            getTimeDifferenceInMillis(strategyTimepoint, std::to_string(exchangeExecutionTimestamp))
+                                                                                                + getTimeDifferenceInMillis(updateExchangeTimepoint, strategyTimepoint)) << "      \n"
+
+                          << "Update Exch. Ts.: " << updateExchangeTimepoint << "      "
+                          << "Update Rec. Ts.: " << updateReceiveTimepoint << "      "
+                          << "Strat. Ts.: " << strategyTimepoint << "      "
+                          << "Submission. Ts.: " << submissionTimepoint << "      "
+                          << "Execution. Ts.: " << exchangeExecutionTimestamp << "      \n"
+                          << "Response from exchange:\n" << response
+                          << std::endl;
             }
             // Cleanup
             curl_slist_free_all(headers);

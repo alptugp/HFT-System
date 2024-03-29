@@ -9,6 +9,8 @@
 /// See the following documentation for more details:
 ///
 /// https://www.bitmex.com/app/wsAPI
+using namespace std::chrono;
+
 namespace BitmexClient::websocket {
 
 /// BitMEX subscription topic.
@@ -89,7 +91,8 @@ inline const std::string to_string(Topic topic)
 }
 
 /// Callback function that is invoked when a trade is reported.
-using OnTradeCallback = std::function<void(const char* symbol, const char* action, uint64_t id, const char* side, int size, double price, const char* timestamp)>;
+using OnTradeCallback = std::function<void(const char* symbol, const char* action, uint64_t id, const char* side,
+        int size, double price, const char* timestamp, system_clock::time_point marketUpdateReceiveTimestamp)>;
 /// BitMEX WebSocket API client.
 ///
 /// This class provides an interface for interacting with the BitMEX
@@ -116,8 +119,8 @@ public:
 
     /// Parse a message and invoke the relevant callbacks.
     void parse_msg(const std::string& msg) const
-    {   
-        // std::cout << msg.size() << std::endl;
+    {
+        system_clock::time_point marketUpdateReceiveTimestamp = high_resolution_clock::now();
         rapidjson::Document doc;
         doc.Parse(msg.c_str());
         if (doc.HasParseError()) {
@@ -154,8 +157,8 @@ public:
             auto size = maybe_int(data->value[i], "size");
             auto price = maybe_double(data->value[i], "price");
             auto timestamp = maybe_string(data->value[i], "timestamp");
-            
-            _on_trade(*symbol, *actionType, *id, *side, *size, *price, *timestamp);
+
+            _on_trade(*symbol, *actionType, *id, *side, *size, *price, *timestamp, marketUpdateReceiveTimestamp);
         }
     }
 

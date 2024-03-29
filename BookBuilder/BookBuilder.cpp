@@ -23,6 +23,7 @@ static context_ptr on_tls_init(websocketpp::connection_hdl) {
     return ctx;
 }
 
+/*const std::vector<std::string> currencyPairs = {"BTCUSD", "ETHBTC", "ETHUSD"};*/
 const std::vector<std::string> currencyPairs = {"XBTETH", "XBTUSDT", "ETHUSDT"};
 // const std::vector<std::string> currencyPairs = {"XBTUSD", "ETHUSD", "XBTETH", "XBTUSDT", "SOLUSD", "XRPUSD", "LINKUSD", "SOLUSD", "XRPUSD"};
 // const std::vector<std::string> currencyPairs = {"XBTUSD", "ETHUSD", "SOLUSD", "XBTUSDT", "DOGEUSD", "XBTH24", "LINKUSD", "XRPUSD", "SOLUSDT", "BCHUSD"};
@@ -40,12 +41,12 @@ static void on_message(BitmexClient::websocket::Client* client, websocketpp::con
 }
 
 void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, ThroughputMonitor& updateThroughputMonitor, SPSCQueue<OrderBook>& bookBuilderToStrategyQueue, const char* symbol, 
-                    const char* action, uint64_t id, const char* side, int size, double price, const char* timestamp) {
+                    const char* action, uint64_t id, const char* side, int size, double price, const char* timestamp, system_clock::time_point marketUpdateReceiveTimestamp) {
     // auto programReceiveTime = Clock::now();
     updateThroughputMonitor.operationCompleted();
 
-    long exchangeUnixTimestamp = convertTimestampToTimePoint(timestamp);
-    /*std::cout << timestamp << std::endl;*/
+    long exchangeUpdateTimestamp = convertTimestampToTimePoint(timestamp);
+    /*std::cout << updateExchangeTimestamp << std::endl;*/
     // auto networkLatency = std::chrono::duration_cast<std::chrono::microseconds>(programReceiveTime - exchangeUnixTimestamp);
     
     std::string sideStr(side);
@@ -53,13 +54,13 @@ void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, T
         switch (action[0]) {
             case 'p':
             case 'i':
-                orderBookMap[symbol].insertBuy(id, price, size, exchangeUnixTimestamp);
+                orderBookMap[symbol].insertBuy(id, price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
                 break;
             case 'u':
-                orderBookMap[symbol].updateBuy(id, size, exchangeUnixTimestamp);
+                orderBookMap[symbol].updateBuy(id, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
                 break;
             case 'd':
-                orderBookMap[symbol].removeBuy(id, exchangeUnixTimestamp);
+                orderBookMap[symbol].removeBuy(id, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
                 break;
             default:
                 break;
@@ -68,13 +69,13 @@ void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, T
         switch (action[0]) {
             case 'p':
             case 'i':
-                orderBookMap[symbol].insertSell(id, price, size, exchangeUnixTimestamp);
+                orderBookMap[symbol].insertSell(id, price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
                 break;
             case 'u':
-                orderBookMap[symbol].updateSell(id, size, exchangeUnixTimestamp);
+                orderBookMap[symbol].updateSell(id, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
                 break;
             case 'd':
-                orderBookMap[symbol].removeSell(id, exchangeUnixTimestamp);
+                orderBookMap[symbol].removeSell(id, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
                 break;
             default:
                 break;
@@ -85,10 +86,10 @@ void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, T
 
     // auto bookBuildingEndTime = Clock::now();
     // auto bookBuildingDuration = std::chrono::duration_cast<std::chrono::microseconds>(bookBuildingEndTime - programReceiveTime);
-    // std::cout << "Symbol: " << symbol << " - Action: " << action << " - Size: " << size << " - Price: " << price << " (" << side << ")" << " - id: " << id << " - Timestamp: " << timestamp << std::endl;
+    // std::cout << "Symbol: " << symbol << " - Action: " << action << " - Size: " << size << " - Price: " << price << " (" << side << ")" << " - id: " << id << " - Timestamp: " << updateExchangeTimestamp << std::endl;
     // std::cout << "Time taken to receive market update: " << networkLatency.count() << " microseconds" << std::endl;
     // std::cout << "Time taken to process market update: " << bookBuildingDuration.count() << " microseconds" << std::endl;
-    // std::cout << "Timestamp: " << timestamp << std::endl;
+    // std::cout << "Timestamp: " << updateExchangeTimestamp << std::endl;
     // orderBook.printOrderBook();
     // orderBook.updateOrderBookMemoryUsage();
 }
@@ -107,14 +108,14 @@ void bookBuilder(int cpu, SPSCQueue<OrderBook>& bookBuilderToStrategyQueue) {
     BitmexClient::websocket::Client bitmexClient;
 
     auto onTradeCallBackLambda = [&orderBookMap, &updateThroughputMonitorBookBuilder, &bookBuilderToStrategyQueue](const char* symbol, const char* action,
-        uint64_t id, const char* side, int size, double price, const char* timestamp) {
-        onTradeCallBack(orderBookMap, updateThroughputMonitorBookBuilder, bookBuilderToStrategyQueue, symbol, action, id, side, size, price, timestamp);
+        uint64_t id, const char* side, int size, double price, const char* timestamp, system_clock::time_point marketUpdateReceiveTimestamp) {
+        onTradeCallBack(orderBookMap, updateThroughputMonitorBookBuilder, bookBuilderToStrategyQueue, symbol, action, id, side, size, price, timestamp, marketUpdateReceiveTimestamp);
     };
 
     bitmexClient.on_trade(onTradeCallBackLambda);
 
-    /*std::string uri = "wss://ws.testnet.bitmex.com/realtime"; */
-    std::string uri = "wss://www.bitmex.com/realtime";
+    std::string uri = "wss://ws.testnet.bitmex.com/realtime";
+    /*std::string uri = "wss://www.bitmex.com/realtime";*/
     
     client c;
     c.clear_access_channels(websocketpp::log::alevel::frame_payload);

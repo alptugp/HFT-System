@@ -63,13 +63,13 @@ void runAlgo(int cpu1, int cpu2, int cpu3)  {
       bookBuilder(cpu2, builderToStrategyQueue);
     });
 
-    /*auto t3 = std::thread([&cpu3, &strategyToOrderManagerQueue] {
+    auto t3 = std::thread([&cpu3, &strategyToOrderManagerQueue] {
       orderManager(cpu3, strategyToOrderManagerQueue);
-    });*/
+    });
 
     t2.join();
     t1.join();
-    /*t3.join();*/
+    t3.join();
 }
 
 int main(int argc, char *argv[]) {

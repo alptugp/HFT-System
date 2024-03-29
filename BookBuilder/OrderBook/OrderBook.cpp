@@ -177,39 +177,45 @@ AVLNode* OrderBook::deleteNode(AVLNode* root, double price) {
     return root;
 }
 
-void OrderBook::insertBuy(uint64_t id, double price, int size, long timestamp) {
+void OrderBook::insertBuy(uint64_t id, double price, int size, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
     buyRoot = insertHelper(buyRoot, id, price, size);
-    this->timestamp = timestamp;
+    this->updateExchangeTimestamp_ = updateExchangeTimestamp;
+    this->updateReceiveTimestamp_ = updateReceiveTimestamp;
     buyIdMap[id] = new AVLNode(id, price, size);
 }
 
-void OrderBook::updateBuy(uint64_t id, int size, long timestamp) {
+void OrderBook::updateBuy(uint64_t id, int size, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
     updateHelper(buyRoot, this->buyIdMap[id]->price, size);
-    this->timestamp = timestamp;
+    this->updateExchangeTimestamp_ = updateExchangeTimestamp;
+    this->updateReceiveTimestamp_ = updateReceiveTimestamp;
     this->buyIdMap[id]->size = size;
 }
 
-void OrderBook::removeBuy(uint64_t id, long timestamp) {
+void OrderBook::removeBuy(uint64_t id, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
     deleteNode(buyRoot, this->buyIdMap[id]->price);
-    this->timestamp = timestamp;
+    this->updateExchangeTimestamp_ = updateExchangeTimestamp;
+    this->updateReceiveTimestamp_ = updateReceiveTimestamp;
     this->buyIdMap.erase(id);
 }
 
-void OrderBook::insertSell(uint64_t id, double price, int size, long timestamp) {
+void OrderBook::insertSell(uint64_t id, double price, int size, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
     sellRoot = insertHelper(sellRoot, id, price, size);
-    this->timestamp = timestamp;
+    this->updateExchangeTimestamp_ = updateExchangeTimestamp;
+    this->updateReceiveTimestamp_ = updateReceiveTimestamp;
     sellIdMap[id] = new AVLNode(id, price, size);
 }
 
-void OrderBook::updateSell(uint64_t id, int size, long timestamp) {
+void OrderBook::updateSell(uint64_t id, int size, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
     updateHelper(sellRoot, this->sellIdMap[id]->price, size);
-    this->timestamp = timestamp;
+    this->updateExchangeTimestamp_ = updateExchangeTimestamp;
+    this->updateReceiveTimestamp_ = updateReceiveTimestamp;
     this->sellIdMap[id]->size = size;
 }
 
-void OrderBook::removeSell(uint64_t id, long timestamp) {
+void OrderBook::removeSell(uint64_t id, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
     deleteNode(sellRoot, this->sellIdMap[id]->price);
-    this->timestamp = timestamp;
+    this->updateExchangeTimestamp_ = updateExchangeTimestamp;
+    this->updateReceiveTimestamp_ = updateReceiveTimestamp;
     this->sellIdMap.erase(id);
 }
 

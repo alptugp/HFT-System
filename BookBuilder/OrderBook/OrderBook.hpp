@@ -6,7 +6,10 @@
 #include <iostream>
 #include <unordered_map>
 #include <vector>
-#include <chrono> 
+#include <chrono>
+
+
+using namespace std::chrono;
 
 struct AVLNode {
     uint64_t id;
@@ -26,7 +29,8 @@ private:
     std::unordered_map<uint64_t, AVLNode*> buyIdMap;
     std::unordered_map<uint64_t, AVLNode*> sellIdMap;
     std::string symbol;
-    long timestamp;
+    long updateExchangeTimestamp_;
+    system_clock::time_point updateReceiveTimestamp_;
     std::vector<size_t> memoryUsages;  // Store memory usage values for average memory usage calculation
     static const int PRINT_INTERVAL = 100;
 
@@ -56,20 +60,24 @@ public:
     std::string getSymbol() const {
         return this->symbol;
     }
-    long getExchangeTimestamp() {
-        return this->timestamp;
+    long getUpdateExchangeTimestamp() {
+        return this->updateExchangeTimestamp_;
     }
+    system_clock::time_point getUpdateReceiveTimestamp() {
+        return this->updateReceiveTimestamp_;
+    }
+
     std::pair<double, double> getBestBuyAndSellPrice();
 
     // Buy side functions
-    void insertBuy(uint64_t id, double price, int size, long timestamp);
-    void updateBuy(uint64_t id, int size, long timestamp);
-    void removeBuy(uint64_t id, long timestamp);
+    void insertBuy(uint64_t id, double price, int size, long timestamp, system_clock::time_point updateReceiveTimestamp);
+    void updateBuy(uint64_t id, int size, long timestamp, system_clock::time_point updateReceiveTimestamp);
+    void removeBuy(uint64_t id, long timestamp, system_clock::time_point updateReceiveTimestamp);
 
     // Sell side functions
-    void insertSell(uint64_t id, double price, int size, long timestamp);
-    void updateSell(uint64_t id, int size, long timestamp);
-    void removeSell(uint64_t id, long timestamp);
+    void insertSell(uint64_t id, double price, int size, long timestamp, system_clock::time_point updateReceiveTimestamp);
+    void updateSell(uint64_t id, int size, long timestamp, system_clock::time_point updateReceiveTimestamp);
+    void removeSell(uint64_t id, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp);
 
     void updateOrderBookMemoryUsage();
 };
