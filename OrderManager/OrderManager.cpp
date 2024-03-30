@@ -129,7 +129,7 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
                           << "Strat. Ts.: " << strategyTimepoint << "      "
                           << "Submission. Ts.: " << submissionTimepoint << "      "
                           << "Execution. Ts.: " << exchangeExecutionTimestamp << "      \n"
-                          << "Response from exchange:\n" << response
+                          << "\nResponse from exchange:\n" << response
                           << std::endl;
             }
             // Cleanup

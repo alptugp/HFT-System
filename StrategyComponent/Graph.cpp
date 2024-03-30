@@ -110,8 +110,6 @@ void strategy(int cpu, SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<s
         //std::cout << "converted xbt amount: " << xbtConvertedAmount << std::endl;
         std::string thirdLeg = std::string("symbol=XBTETH&side=Buy&orderQty=1") + "&ordType=Market" + updateExchangeTimepointStr + updateReceiveTimepointStr + strategyTimepoint;
         while (!strategyToOrderManagerQueue.push(thirdLeg));
-
-        break;
       }
 
       if (/*secondDirectionReturnsAfterFees > 1.0 &&*/ (duration_cast<milliseconds>(strategyTimestamp - startingTimestamp).count() > 1000)) {
@@ -125,8 +123,6 @@ void strategy(int cpu, SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<s
 
         std::string thirdLeg = std::string("symbol=XBTUSDT&side=Buy&orderQty=1") + "&ordType=Market" + updateExchangeTimepointStr + updateReceiveTimepointStr + strategyTimepoint;
         while (!strategyToOrderManagerQueue.push(thirdLeg));
-
-        break;
       }
     }
 }
