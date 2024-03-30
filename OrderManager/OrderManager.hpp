@@ -8,8 +8,10 @@
 #include <cstring>
 #include <iomanip>
 #include <nlohmann/json.hpp>
+#include <thread>
 #include "../SPSCQueue/SPSCQueue.hpp"
 #include "../Utils/Utils.hpp"
 
+void sendOrderAsync(const std::string& apiKey, const std::string& apiSecret, const std::string& data);
 size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* output);
 void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue);
