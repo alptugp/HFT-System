@@ -118,10 +118,10 @@ void strategy(int cpu, SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<s
         std::string firstLeg = std::string("symbol=XBTETH&side=Sell&orderQty=1") + "&ordType=Market" + updateExchangeTimepointStr + updateReceiveTimepointStr + strategyTimepoint;
         while (!strategyToOrderManagerQueue.push(firstLeg));
 
-        std::string secondLeg = std::string("symbol=ETHUSDT&side=Sell&orderQty=1") + "&ordType=Market" + updateExchangeTimepointStr + updateReceiveTimepointStr + strategyTimepoint;
+        std::string secondLeg = std::string("symbol=ETHUSDT&side=Sell&orderQty=1000") + "&ordType=Market" + updateExchangeTimepointStr + updateReceiveTimepointStr + strategyTimepoint;
         while (!strategyToOrderManagerQueue.push(secondLeg));
 
-        std::string thirdLeg = std::string("symbol=XBTUSDT&side=Buy&orderQty=1") + "&ordType=Market" + updateExchangeTimepointStr + updateReceiveTimepointStr + strategyTimepoint;
+        std::string thirdLeg = std::string("symbol=XBTUSDT&side=Buy&orderQty=1000") + "&ordType=Market" + updateExchangeTimepointStr + updateReceiveTimepointStr + strategyTimepoint;
         while (!strategyToOrderManagerQueue.push(thirdLeg));
       }
     }
