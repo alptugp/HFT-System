@@ -108,6 +108,9 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
                 json jsonResponse = json::parse(response);
                 // Access the "orderID" field
 
+                if (jsonResponse["message"] == "Rate limit exceeded, retry in 1 seconds.")
+                    continue;
+
                 long exchangeExecutionTimestamp = convertTimestampToTimePoint(jsonResponse["timestamp"]);
 
                 // Do something with the orderID
