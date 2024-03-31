@@ -1,9 +1,8 @@
 #include "OrderManager.hpp"
-#include <mutex>
+
 
 using json = nlohmann::json;
 using namespace std::chrono;
-std::mutex handleMutex;
 
 size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* output) {
     size_t total_size = size * nmemb;
@@ -45,13 +44,15 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
 
     // Initialize libcurl
     curl_global_init(CURL_GLOBAL_DEFAULT);
-    static const int HANDLE_COUNT = 2;
+    static const int HANDLE_COUNT = 3;
 
     // Create multi handle
     CURL* easyHandles[HANDLE_COUNT];
+    std::mutex mutexArray[HANDLE_COUNT]{};
 
-    for (int i = 0; i < HANDLE_COUNT; i++)
+    for (int i = 0; i < HANDLE_COUNT; i++) {
         easyHandles[i] = curl_easy_init();
+    }
 
     int handleIndex = 0;
     while (true) {
@@ -60,19 +61,25 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
         while (!strategyToOrderManagerQueue.pop(data));
 
         // Send the order asynchronously
-        sendOrderAsync(data, easyHandles[handleIndex % HANDLE_COUNT]);
+        sendOrderAsync(data, easyHandles[handleIndex % HANDLE_COUNT], mutexArray[handleIndex % HANDLE_COUNT]);
 
         handleIndex++;
-        if (handleIndex == 2) {
+        if (handleIndex == 18) {
             break;
         }
     }
 
+    /*for (int i = 0; i < HANDLE_COUNT; i++) {
+        curl_easy_cleanup(easyHandles[i]);
+    }*/
+
+
     curl_global_cleanup();
 }
 
-void sendOrderAsync(const std::string& data, CURL*& easyHandle) {
-    std::thread requestThread([data, easyHandle]() {
+void sendOrderAsync(const std::string& data, CURL*& easyHandle, std::mutex& handleMutex) {
+    std::thread requestThread([data, &easyHandle, &handleMutex]() {
+        std::unique_lock<std::mutex> lock(handleMutex);
         std::string apiKey = "63ObNQpYqaCVrjTuBbhgFm2p";
         std::string apiSecret = "D2OBzpfW-i6FfgmqGnrhpYqKPrxCvIYnu5KZKsZQW_09XkF-";
 
@@ -106,7 +113,7 @@ void sendOrderAsync(const std::string& data, CURL*& easyHandle) {
 
         if (easyHandle) {
             curl_easy_setopt(easyHandle, CURLOPT_URL, "https://testnet.bitmex.com/api/v1/order");
-            curl_easy_setopt(easyHandle, CURLOPT_VERBOSE, 1L);
+            /*curl_easy_setopt(easyHandle, CURLOPT_VERBOSE, 1L);*/
 
             // Build the headers
             struct curl_slist *headers = NULL;
@@ -130,7 +137,9 @@ void sendOrderAsync(const std::string& data, CURL*& easyHandle) {
             curl_easy_setopt(easyHandle, CURLOPT_WRITEDATA, &response);
 
             // Perform the request
+            std::cout << "ABOUT TO BE PERFORMED" << std::endl;
             CURLcode res = curl_easy_perform(easyHandle);
+            std::cout << "PERFORMED" << std::endl;
             // Check for errors
             if (res != CURLE_OK)
                 fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
@@ -139,6 +148,7 @@ void sendOrderAsync(const std::string& data, CURL*& easyHandle) {
                 // Access the "orderID" field
 
                 if (jsonResponse["error"]["name"] == "RateLimitError") {
+                    std::cout << "Rate Limit Exceeded" << std::endl;
                     std::this_thread::sleep_for(milliseconds(15000));
                 }
 
@@ -176,9 +186,8 @@ void sendOrderAsync(const std::string& data, CURL*& easyHandle) {
                         << std::endl;
             }
             curl_slist_free_all(headers);
-            // Cleanup
-            curl_easy_cleanup(easyHandle);
         }
+        std::this_thread::sleep_for(milliseconds(1500));
     });
     requestThread.detach();
 }
