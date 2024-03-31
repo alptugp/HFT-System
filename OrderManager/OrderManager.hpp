@@ -12,6 +12,7 @@
 #include <mutex>
 #include "../SPSCQueue/SPSCQueue.hpp"
 #include "../Utils/Utils.hpp"
+#include "./ThreadPool.hpp"
 
 void sendOrderAsync(const std::string& data, CURL*& easyHandle, std::mutex& handleMutex);
 size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* output);
