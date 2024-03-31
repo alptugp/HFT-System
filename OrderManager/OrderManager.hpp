@@ -12,6 +12,7 @@
 #include "../SPSCQueue/SPSCQueue.hpp"
 #include "../Utils/Utils.hpp"
 
-void sendOrderAsync(const std::string& apiKey, const std::string& apiSecret, const std::string& data);
+void sendOrderAsync(CURLM* multiHandle, const std::string& data);
 size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* output);
 void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue);
+struct curl_slist* copyCurlSlist(const curl_slist* original);

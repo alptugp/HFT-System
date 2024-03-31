@@ -3,9 +3,14 @@
 using json = nlohmann::json;
 using namespace std::chrono;
 
+
 size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* output) {
     size_t total_size = size * nmemb;
+    std::cout << (char*)contents << std::endl;
     output->append((char*)contents, total_size);
+    json jsonResponse = json::parse(*output);
+    std::cout << jsonResponse["timestamp"] << std::endl;
+
     return total_size;
 }
 
@@ -39,136 +44,130 @@ std::string toHex(const std::string& input) {
 
 void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) {
     pinThread(cpu);
+    int i = 0;
 
-    std::string apiKey = "63ObNQpYqaCVrjTuBbhgFm2p";
-    std::string apiSecret = "D2OBzpfW-i6FfgmqGnrhpYqKPrxCvIYnu5KZKsZQW_09XkF-";
+    // Initialize libcurl
+    curl_global_init(CURL_GLOBAL_ALL);
 
+    // Create multi handle
+    CURLM* multiHandle = curl_multi_init();
+
+    // Loop indefinitely
     while (true) {
         std::string data;
         // Pop the data from the queue synchronously
         while (!strategyToOrderManagerQueue.pop(data));
 
         // Send the order asynchronously
-        sendOrderAsync(apiKey, apiSecret, data);
+        sendOrderAsync(multiHandle, data);
+
+        i++;
+        if (i == 3) {
+            break;
+        }
     }
+
+    int still_running = 0;
+    curl_multi_perform(multiHandle, &still_running);
+    while(still_running) {
+        CURLMcode mc = curl_multi_perform(multiHandle, &still_running);
+
+        if(still_running) /*wait for activity, timeout or "nothing"*/
+            mc = curl_multi_poll(multiHandle, NULL, 0, 1000, NULL);
+
+        if(mc)
+            break;
+    }
+
+    // Clean up
+    curl_multi_cleanup(multiHandle);
+
+    curl_global_cleanup();
 }
 
-void sendOrderAsync(const std::string& apiKey, const std::string& apiSecret, const std::string& data) {
-    // Perform the request asynchronously
-    std::thread requestThread([apiKey, apiSecret, data]() {
-        std::string orderData = data.substr(0, data.length() - 39);
-        std::string updateExchangeTimepoint = data.substr(data.length() - 39, 13);
-        std::string updateReceiveTimepoint = data.substr(data.length() - 26, 13);
-        std::string strategyTimepoint = data.substr(data.length() - 13);
+void sendOrderAsync(CURLM* multiHandle, const std::string& data) {
+    std::string apiKey = "63ObNQpYqaCVrjTuBbhgFm2p";
+    std::string apiSecret = "D2OBzpfW-i6FfgmqGnrhpYqKPrxCvIYnu5KZKsZQW_09XkF-";
 
-        /*std::cout << "Order data: " << orderData << std::endl;
-                std::cout << "Strategy timepoint: " << strategyTimepoint << std::endl;
-                std::cout << "Update Exchange timepoint: " << updateExchangeTimepoint << std::endl;*/
-        // Get the current time_point
-        system_clock::time_point now = system_clock::now();
-        // Add 1 hour to the current time_point
-        system_clock::time_point oneHourLater = now + hours(1);
-        // Convert the time_point to a Unix timestamp
-        std::time_t timestamp = system_clock::to_time_t(oneHourLater);
-        // Convert the timestamp to a string
-        std::string expires = std::to_string(timestamp);
-        // std::cout << "expires: " << expires << std::endl;
-        std::string verb = "POST";
-        std::string path = "/api/v1/order";
-        // Concatenate the string to be hashed
-        std::string concatenatedString = verb + path + expires + orderData;
+    CURL* easyHandle;
 
-        // Calculate HMAC-SHA256
-        std::string signature = CalcHmacSHA256(apiSecret, concatenatedString);
-        std::string hexSignature = toHex(signature);
-        /*std::cout << hexSignature << std::endl;*/
+    std::string orderData = data.substr(0, data.length() - 39);
+    std::cout << orderData << std::endl;
+    std::string updateExchangeTimepoint = data.substr(data.length() - 39, 13);
+    std::string updateReceiveTimepoint = data.substr(data.length() - 26, 13);
+    std::string strategyTimepoint = data.substr(data.length() - 13);
 
-        CURL* curl;
-        curl_global_init(CURL_GLOBAL_DEFAULT);
+    /*std::cout << "Order data: " << orderData << std::endl;
+            std::cout << "Strategy timepoint: " << strategyTimepoint << std::endl;
+            std::cout << "Update Exchange timepoint: " << updateExchangeTimepoint << std::endl;*/
+    // Get the current time_point
+    std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+    // Add 1 hour to the current time_point
+    std::chrono::system_clock::time_point oneHourLater = now + std::chrono::hours(1);
+    // Convert the time_point to a Unix timestamp
+    std::time_t timestamp = std::chrono::system_clock::to_time_t(oneHourLater);
+    // Convert the timestamp to a string
+    std::string expires = std::to_string(timestamp);
 
-        curl = curl_easy_init();
+    // std::cout << "expires: " << expires << std::endl;
+    std::string verb = "POST";
+    std::string path = "/api/v1/order";
+    // Concatenate the string to be hashed
+    std::string concatenatedString = verb + path + expires + orderData;
 
-        if (curl) {
-            // Set the BitMEX API endpoint
-            curl_easy_setopt(curl, CURLOPT_URL, "https://testnet.bitmex.com/api/v1/order");
+    // Calculate HMAC-SHA256
+    std::string signature = CalcHmacSHA256(apiSecret, concatenatedString);
+    std::string hexSignature = toHex(signature);
 
-            CURLcode res;
-            // Build the headers
-            struct curl_slist *headers = NULL;
-            headers = curl_slist_append(headers, ("api-key: " + apiKey).c_str());
-            headers = curl_slist_append(headers, ("api-expires: " + expires).c_str());
-            headers = curl_slist_append(headers, ("api-signature: " + hexSignature).c_str());
-            headers = curl_slist_append(headers, "Content-Type: application/x-www-form-urlencoded");
-            /*std::cout << headers->data << std::endl;*/
-            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-            // Set the POST data and other options
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, orderData.c_str());
-            system_clock::time_point submissionTimestamp = high_resolution_clock::now();
-            std::string submissionTimepoint = std::to_string(
-                    duration_cast<milliseconds>(submissionTimestamp.time_since_epoch()).count());
-            // Declare 'response' here
-            std::string response;
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-            /*curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);*/
-            // Perform the request
-            res = curl_easy_perform(curl);
-            // Check for errors
-            if (res != CURLE_OK)
-                fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-            else {
-                // Process the response here
-                // Access the "orderID" field
-                json jsonResponse = json::parse(response);
-                std::cout << response << std::endl;
-                if (jsonResponse["error"]["name"] == "RateLimitError") {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(150000));
-                    // Retry the request if necessary
-                    sendOrderAsync(apiKey, apiSecret, orderData);
-                    return;
-                }
+    easyHandle = curl_easy_init();
+    if (easyHandle) {
 
-                long exchangeExecutionTimestamp = convertTimestampToTimePoint(jsonResponse["timestamp"]);
+        curl_easy_setopt(easyHandle, CURLOPT_URL, "https://testnet.bitmex.com/api/v1/order");
+        /*curl_easy_setopt(easyHandle, CURLOPT_VERBOSE, 1L);*/
 
-                // Do something with the orderID
+        // Build the headers
+        struct curl_slist* headers = NULL;
+        headers = curl_slist_append(headers, ("api-key: " + apiKey).c_str());
+        headers = curl_slist_append(headers, ("api-expires: " + expires).c_str());
+        headers = curl_slist_append(headers, ("api-signature: " + hexSignature).c_str());
+        headers = curl_slist_append(headers, "Content-Type: application/x-www-form-urlencoded");
 
-                std::cout
-                        << "===========================================================================================\n"
-                        << "NEW ORDER EXECUTED\n"
-                        << "Exchange to Receival (ms): "
-                        << getTimeDifferenceInMillis(updateExchangeTimepoint, updateReceiveTimepoint) << "      "
-                        << "Receival to Detection (ms): "
-                        << getTimeDifferenceInMillis(updateReceiveTimepoint, strategyTimepoint) << "      "
-                        << "Detection to Submission (ms): "
-                        << getTimeDifferenceInMillis(strategyTimepoint, submissionTimepoint) << "      "
-                        << "Submission to Execution (ms): "
-                        << getTimeDifferenceInMillis(submissionTimepoint, std::to_string(exchangeExecutionTimestamp))
-                        << "      "
-                        << "Total Latency: " << getTimeDifferenceInMillis(updateExchangeTimepoint,
-                                                                          std::to_string(exchangeExecutionTimestamp))
-                        << "      "
-                        << "Sync Diff: " <<
-                        getTimeDifferenceInMillis(updateExchangeTimepoint, std::to_string(exchangeExecutionTimestamp)) -
-                        (
-                                getTimeDifferenceInMillis(strategyTimepoint, std::to_string(exchangeExecutionTimestamp))
-                                + getTimeDifferenceInMillis(updateExchangeTimepoint, strategyTimepoint)) << "      \n"
+        // Add headers to the easy handle
+        curl_easy_setopt(easyHandle, CURLOPT_HTTPHEADER, headers);
 
-                        << "Update Exch. Ts.: " << updateExchangeTimepoint << "      "
-                        << "Update Rec. Ts.: " << updateReceiveTimepoint << "      "
-                        << "Strat. Ts.: " << strategyTimepoint << "      "
-                        << "Submission. Ts.: " << submissionTimepoint << "      "
-                        << "Execution. Ts.: " << exchangeExecutionTimestamp << "      \n"
-                        << "\nResponse from exchange:\n" << response
-                        << std::endl;
-            }
-            // Cleanup
-            curl_slist_free_all(headers);
-            curl_easy_cleanup(curl);
-        }
-        curl_global_cleanup();
-    });
+        // Set the POST data
+        curl_easy_setopt(easyHandle, CURLOPT_POSTFIELDS, orderData.c_str());
+        system_clock::time_point submissionTimestamp = high_resolution_clock::now();
+        std::string submissionTimepoint = std::to_string(
+                duration_cast<milliseconds>(submissionTimestamp.time_since_epoch()).count());
 
-    // Detach the thread to allow it to run independently
-    requestThread.detach();
+        // Set the write callback function
+        std::string response;
+        curl_easy_setopt(easyHandle, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(easyHandle, CURLOPT_WRITEDATA, &response);
+
+        // Add the easy handle to the multi handle
+        curl_multi_add_handle(multiHandle, easyHandle);
+
+        std::cout
+                << "===========================================================================================\n"
+                << "NEW ORDER EXECUTED\n"
+                << "Exchange to Receival (ms): "
+                << getTimeDifferenceInMillis(updateExchangeTimepoint, updateReceiveTimepoint) << "      "
+                << "Receival to Detection (ms): "
+                << getTimeDifferenceInMillis(updateReceiveTimepoint, strategyTimepoint) << "      "
+                << "Detection to Submission (ms): "
+                << getTimeDifferenceInMillis(strategyTimepoint, submissionTimepoint) << "      \n"
+
+                << "Update Exch. Ts.: " << updateExchangeTimepoint << "      "
+                << "Update Rec. Ts.: " << updateReceiveTimepoint << "      "
+                << "Strat. Ts.: " << strategyTimepoint << "      "
+                << "Submission. Ts.: " << submissionTimepoint << "      \n"
+                << "\nResponse from exchange:\n" << response
+                << std::endl;
+
+        /*curl_slist_free_all(headers);*/
+        /*curl_easy_cleanup(easyHandle);*/
+    }
 }
 
