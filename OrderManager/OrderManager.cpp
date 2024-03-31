@@ -4,6 +4,11 @@
 using json = nlohmann::json;
 using namespace std::chrono;
 
+static const std::string apiKey = "63ObNQpYqaCVrjTuBbhgFm2p";
+static const std::string apiSecret = "D2OBzpfW-i6FfgmqGnrhpYqKPrxCvIYnu5KZKsZQW_09XkF-";
+static const std::string verb = "POST";
+static const std::string path = "/api/v1/order";
+
 size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* output) {
     size_t total_size = size * nmemb;
     /*std::cout << (char*)contents << std::endl;*/
@@ -52,6 +57,10 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
 
     for (int i = 0; i < HANDLE_COUNT; i++) {
         easyHandles[i] = curl_easy_init();
+        if (easyHandles[i]) {
+            curl_easy_setopt(easyHandles[i], CURLOPT_URL, "https://testnet.bitmex.com/api/v1/order");
+            curl_easy_setopt(easyHandles[i], CURLOPT_WRITEFUNCTION, WriteCallback);
+        }
     }
 
     int handleIndex = 0;
@@ -80,8 +89,6 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
 void sendOrderAsync(const std::string& data, CURL*& easyHandle, std::mutex& handleMutex) {
     std::thread requestThread([data, &easyHandle, &handleMutex]() {
         std::unique_lock<std::mutex> lock(handleMutex);
-        std::string apiKey = "63ObNQpYqaCVrjTuBbhgFm2p";
-        std::string apiSecret = "D2OBzpfW-i6FfgmqGnrhpYqKPrxCvIYnu5KZKsZQW_09XkF-";
 
         std::string orderData = data.substr(0, data.length() - 39);
         std::cout << orderData << std::endl;
@@ -89,9 +96,6 @@ void sendOrderAsync(const std::string& data, CURL*& easyHandle, std::mutex& hand
         std::string updateReceiveTimepoint = data.substr(data.length() - 26, 13);
         std::string strategyTimepoint = data.substr(data.length() - 13);
 
-        /*std::cout << "Order data: " << orderData << std::endl;
-                std::cout << "Strategy timepoint: " << strategyTimepoint << std::endl;
-                std::cout << "Update Exchange timepoint: " << updateExchangeTimepoint << std::endl;*/
         // Get the current time_point
         std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
         // Add 1 hour to the current time_point
@@ -101,9 +105,6 @@ void sendOrderAsync(const std::string& data, CURL*& easyHandle, std::mutex& hand
         // Convert the timestamp to a string
         std::string expires = std::to_string(timestamp);
 
-        // std::cout << "expires: " << expires << std::endl;
-        std::string verb = "POST";
-        std::string path = "/api/v1/order";
         // Concatenate the string to be hashed
         std::string concatenatedString = verb + path + expires + orderData;
 
@@ -112,7 +113,6 @@ void sendOrderAsync(const std::string& data, CURL*& easyHandle, std::mutex& hand
         std::string hexSignature = toHex(signature);
 
         if (easyHandle) {
-            curl_easy_setopt(easyHandle, CURLOPT_URL, "https://testnet.bitmex.com/api/v1/order");
             /*curl_easy_setopt(easyHandle, CURLOPT_VERBOSE, 1L);*/
 
             // Build the headers
@@ -133,13 +133,11 @@ void sendOrderAsync(const std::string& data, CURL*& easyHandle, std::mutex& hand
 
             // Set the write callback function
             std::string response;
-            curl_easy_setopt(easyHandle, CURLOPT_WRITEFUNCTION, WriteCallback);
             curl_easy_setopt(easyHandle, CURLOPT_WRITEDATA, &response);
 
             // Perform the request
-            std::cout << "ABOUT TO BE PERFORMED" << std::endl;
             CURLcode res = curl_easy_perform(easyHandle);
-            std::cout << "PERFORMED" << std::endl;
+
             // Check for errors
             if (res != CURLE_OK)
                 fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
