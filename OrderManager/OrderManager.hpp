@@ -15,5 +15,6 @@
 #include "./ThreadPool.hpp"
 
 void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue);
-void sendOrderAsync(const std::string& data, CURL*& easyHandle, bool unfillableOrder = false);
+void sendOrderAsync(const std::string& data, CURL*& easyHandle, bool isInvalidOrder = false);
+void testRoundTripTime(const std::string& requestVerb, const std::string& requestPath, CURL*& easyHandle);
 size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* output);
