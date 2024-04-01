@@ -62,6 +62,12 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
         }
     }
 
+    // Initially send unfillable orders to the exchange to make the submission-execution latency for subsequent orders lower
+    static const std::string unfillableOrderData = "symbol=XBTUSDT&side=Sell&orderQty=0&ordType=Market";
+    for (int i = 0; i < HANDLE_COUNT; i++) {
+        pool.enqueue(sendOrderAsync, unfillableOrderData, easyHandles[i % HANDLE_COUNT], true);
+    }
+
     int handleIndex = 0;
     while (true) {
         std::string data;
@@ -69,7 +75,7 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
         while (!strategyToOrderManagerQueue.pop(data));
 
         // Send the order asynchronously
-        pool.enqueue(sendOrderAsync, data, easyHandles[handleIndex % HANDLE_COUNT]);
+        pool.enqueue(sendOrderAsync, data, easyHandles[handleIndex % HANDLE_COUNT], false);
 
         handleIndex++;
     }
@@ -81,18 +87,28 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
     curl_global_cleanup();
 }
 
-void sendOrderAsync(const std::string& data, CURL*& easyHandle) {
-    std::string orderData = data.substr(0, data.length() - 39);
-    std::cout << orderData << std::endl;
-    std::string updateExchangeTimepoint = data.substr(data.length() - 39, 13);
-    std::string updateReceiveTimepoint = data.substr(data.length() - 26, 13);
-    std::string strategyTimepoint = data.substr(data.length() - 13);
+void sendOrderAsync(const std::string& data, CURL*& easyHandle, bool unfillableOrder) {
+    std::string orderData;
+    std::string updateExchangeTimepoint;
+    std::string updateReceiveTimepoint;
+    std::string strategyTimepoint;
+
+    if (!unfillableOrder) {
+        orderData = data.substr(0, data.length() - 39);
+        std::cout << orderData << std::endl;
+        updateExchangeTimepoint = data.substr(data.length() - 39, 13);
+        updateReceiveTimepoint = data.substr(data.length() - 26, 13);
+        strategyTimepoint = data.substr(data.length() - 13);
+    } else {
+        orderData = data;
+    }
+
     // Get the current time_point
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
     // Add 10 seconds to the current time_point
-    std::chrono::system_clock::time_point oneHourLater = now + std::chrono::seconds (10);
+    std::chrono::system_clock::time_point tenSecondsLater = now + std::chrono::seconds (10);
     // Convert the time_point to a Unix timestamp
-    std::time_t timestamp = std::chrono::system_clock::to_time_t(oneHourLater);
+    std::time_t timestamp = std::chrono::system_clock::to_time_t(tenSecondsLater);
     // Convert the timestamp to a string
     std::string expires = std::to_string(timestamp);
     // Concatenate the string to be hashed
@@ -100,6 +116,7 @@ void sendOrderAsync(const std::string& data, CURL*& easyHandle) {
     // Calculate HMAC-SHA256
     std::string signature = CalcHmacSHA256(apiSecret, concatenatedString);
     std::string hexSignature = toHex(signature);
+
     if (easyHandle) {
         // Build the headers
         struct curl_slist *headers = NULL;
@@ -120,6 +137,18 @@ void sendOrderAsync(const std::string& data, CURL*& easyHandle) {
 
         // Perform the request
         CURLcode res = curl_easy_perform(easyHandle);
+
+        if (unfillableOrder) {
+            std::cout
+            << "===========================================================================================\n"
+            << "Response from exchange for unfillable order:\n" << response
+            << "\n===========================================================================================\n"
+            << std::endl;
+
+            curl_slist_free_all(headers);
+            return;
+        }
+
         // Check for errors
         if (res != CURLE_OK)
             fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
@@ -133,27 +162,28 @@ void sendOrderAsync(const std::string& data, CURL*& easyHandle) {
             long exchangeExecutionTimestamp = convertTimestampToTimePoint(jsonResponse["timestamp"]);
             // Do something with the orderID
             std::cout
-                    << "===========================================================================================\n"
-                    << "NEW ORDER EXECUTED\n"
-                    << "Exchange to Receival (ms): "
-                    << getTimeDifferenceInMillis(updateExchangeTimepoint, updateReceiveTimepoint) << "      "
-                    << "Receival to Detection (ms): "
-                    << getTimeDifferenceInMillis(updateReceiveTimepoint, strategyTimepoint) << "      "
-                    << "Detection to Submission (ms): "
-                    << getTimeDifferenceInMillis(strategyTimepoint, submissionTimepoint) << "      "
-                    << "Submission to Execution (ms): "
-                    << getTimeDifferenceInMillis(submissionTimepoint, std::to_string(exchangeExecutionTimestamp)) << "      "
-                    << "Total Latency: " << getTimeDifferenceInMillis(updateExchangeTimepoint,std::to_string(exchangeExecutionTimestamp))
-                    << "      \n"
-                    << "Update Exch. Ts.: " << updateExchangeTimepoint << "      "
-                    << "Update Rec. Ts.: " << updateReceiveTimepoint << "      "
-                    << "Strat. Ts.: " << strategyTimepoint << "      "
-                    << "Submission. Ts.: " << submissionTimepoint << "      "
-                    << "Execution. Ts.: " << exchangeExecutionTimestamp << "      \n"
-                    << "Response from exchange:\n" << response
-                    << "===========================================================================================\n"
-                    << std::endl;
+            << "===========================================================================================\n"
+            << "NEW ORDER EXECUTED\n"
+            << "Exchange to Receival (ms): "
+            << getTimeDifferenceInMillis(updateExchangeTimepoint, updateReceiveTimepoint) << "      "
+            << "Receival to Detection (ms): "
+            << getTimeDifferenceInMillis(updateReceiveTimepoint, strategyTimepoint) << "      "
+            << "Detection to Submission (ms): "
+            << getTimeDifferenceInMillis(strategyTimepoint, submissionTimepoint) << "      "
+            << "Submission to Execution (ms): "
+            << getTimeDifferenceInMillis(submissionTimepoint, std::to_string(exchangeExecutionTimestamp)) << "      "
+            << "Total Latency: " << getTimeDifferenceInMillis(updateExchangeTimepoint,std::to_string(exchangeExecutionTimestamp))
+            << "      \n"
+            << "Update Exch. Ts.: " << updateExchangeTimepoint << "      "
+            << "Update Rec. Ts.: " << updateReceiveTimepoint << "      "
+            << "Strat. Ts.: " << strategyTimepoint << "      "
+            << "Submission. Ts.: " << submissionTimepoint << "      "
+            << "Execution. Ts.: " << exchangeExecutionTimestamp << "      \n"
+            << "Response from exchange:\n" << response
+            << "\n===========================================================================================\n"
+            << std::endl;
         }
+
         curl_slist_free_all(headers);
     }
 }
