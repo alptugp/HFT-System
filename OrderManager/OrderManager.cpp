@@ -62,13 +62,18 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
     }
 
     // Initially send unfillable/invalid orders to the exchange to make the submission-execution latency for subsequent orders lower
-    /*static const std::string invalidOrderData = "symbol=XBTUSDT&side=Sell&orderQty=0&ordType=Market";
+    static const std::string invalidOrderData = "symbol=XBTUSDT&side=Sell&orderQty=0&ordType=Market";
     for (int i = 0; i < HANDLE_COUNT; i++) {
         pool.enqueue(sendOrderAsync, invalidOrderData, easyHandles[i % HANDLE_COUNT], true);
-    }*/
+    }
 
-    /*pool.enqueue(testRoundTripTime, "GET", "/api/v1/position", R"("filter={"symbol":"XBTUSDT"}&columns=["timestamp"])", easyHandles[0]);*/
-    testRoundTripTime("GET", "/api/v1/position?filter=%7B%22symbol%22%3A%20%22XBTUSDT%22%7D&columns=%5B%22timestamp%22%5D", easyHandles[0]);
+    {
+        ThreadPool rttPool(1);
+        CURL *rttEasyHandle = curl_easy_init();
+        curl_easy_setopt(rttEasyHandle, CURLOPT_WRITEFUNCTION, WriteCallback);
+        rttPool.enqueue(testRoundTripTime, "GET", "/api/v1/position?filter=%7B%22symbol%22%3A%20%22XBTUSDT%22%7D&columns=%5B%22timestamp%22%5D", rttEasyHandle);
+        rttPool.enqueue(testRoundTripTime, "GET", "/api/v1/position?filter=%7B%22symbol%22%3A%20%22XBTUSDT%22%7D&columns=%5B%22timestamp%22%5D", rttEasyHandle);
+    }
 
     int handleIndex = 0;
     while (true) {
@@ -143,9 +148,13 @@ void sendOrderAsync(const std::string& data, CURL*& easyHandle, const bool isInv
         CURLcode res = curl_easy_perform(easyHandle);
 
         if (isInvalidOrder) {
+            std::string responseTimestamp = std::to_string(duration_cast<milliseconds>(high_resolution_clock::now().time_since_epoch()).count());
+
             std::cout
             << "===========================================================================================\n"
-            << "Response from exchange for unfillable order:\n" << response
+            << "Response from exchange for unfillable order:\n" << response << "\n"
+            << "RTT (ms): "
+            << getTimeDifferenceInMillis(submissionTimepoint, responseTimestamp)
             << "\n===========================================================================================\n"
             << std::endl;
 
@@ -194,7 +203,9 @@ void sendOrderAsync(const std::string& data, CURL*& easyHandle, const bool isInv
 }
 
 void testRoundTripTime(const std::string& requestVerb, const std::string& requestPath, CURL*& easyHandle) {
-    curl_easy_setopt(easyHandle, CURLOPT_URL, "https://testnet.bitmex.com/api/v1/position?filter=%7B%22symbol%22%3A%20%22XBTUSDT%22%7D&columns=%5B%22timestamp%22%5D");
+    std::string requestUrl = "https://testnet.bitmex.com";
+    requestUrl += requestPath;
+    curl_easy_setopt(easyHandle, CURLOPT_URL, requestUrl.c_str());
 
     // Get the current time_point
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
@@ -209,7 +220,6 @@ void testRoundTripTime(const std::string& requestVerb, const std::string& reques
     // Calculate HMAC-SHA256
     std::string signature = CalcHmacSHA256(apiSecret, concatenatedString);
     std::string hexSignature = toHex(signature);
-
     if (easyHandle) {
         // Build the headers
         struct curl_slist *headers = NULL;
@@ -224,37 +234,21 @@ void testRoundTripTime(const std::string& requestVerb, const std::string& reques
         curl_easy_setopt(easyHandle, CURLOPT_WRITEDATA, &response);
 
         std::string requestTimepoint = std::to_string(duration_cast<milliseconds>(high_resolution_clock::now().time_since_epoch()).count());
-
         // Perform the request
         CURLcode res = curl_easy_perform(easyHandle);
-
         // Check for errors
         if (res != CURLE_OK)
             fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
         else {
-            std::cout << response << std::endl;
-            json jsonResponse = json::parse(response);
-            // Access the "orderID" field
+            std::string responseTimestamp = std::to_string(duration_cast<milliseconds>(high_resolution_clock::now().time_since_epoch()).count());
 
-            if (jsonResponse[0]["error"]["name"] == "RateLimitError") {
-                std::cout << "Rate Limit Exceeded" << std::endl;
-                std::this_thread::sleep_for(milliseconds(1500));
-                testRoundTripTime(requestVerb, requestPath, easyHandle);
-            }
-
-            long exchangeReceivalTimestamp = convertTimestampToTimePoint(jsonResponse[0]["timestamp"]);
-            // Do something with the orderID
             std::cout
                     << "===========================================================================================\n"
                     << "RESPONSE FOR REQUEST RECEIVED\n"
-                    << "Request-Exchange (ms): "
-                    << getTimeDifferenceInMillis(requestTimepoint, std::to_string(exchangeReceivalTimestamp)) << "      \n"
                     << "RTT (ms): "
-                    << getTimeDifferenceInMillis(requestTimepoint,  std::to_string(duration_cast<milliseconds>(high_resolution_clock::now().time_since_epoch()).count())) << "      \n"
-                    << "      \n"
+                    << getTimeDifferenceInMillis(requestTimepoint, responseTimestamp) << "      \n"
                     << "Request Ts.: " << requestTimepoint << "      "
-                    << "Response Receival by Exchange Ts.: " << exchangeReceivalTimestamp << "      \n"
-                    << "Response From Exchange:\n" << response
+                    << "Response Ts.: " << responseTimestamp
                     << "\n===========================================================================================\n"
                     << std::endl;
         }
