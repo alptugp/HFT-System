@@ -1,6 +1,5 @@
 #include "OrderManager.hpp"
 
-
 using json = nlohmann::json;
 using namespace std::chrono;
 
@@ -73,10 +72,6 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
         pool.enqueue(sendOrderAsync, data, easyHandles[handleIndex % HANDLE_COUNT]);
 
         handleIndex++;
-        
-        if (handleIndex == 6) {
-            break;
-        }
     }
 
     /*for (int i = 0; i < HANDLE_COUNT; i++) {
@@ -94,8 +89,8 @@ void sendOrderAsync(const std::string& data, CURL*& easyHandle) {
     std::string strategyTimepoint = data.substr(data.length() - 13);
     // Get the current time_point
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
-    // Add 1 hour to the current time_point
-    std::chrono::system_clock::time_point oneHourLater = now + std::chrono::hours(1);
+    // Add 10 seconds to the current time_point
+    std::chrono::system_clock::time_point oneHourLater = now + std::chrono::seconds (10);
     // Convert the time_point to a Unix timestamp
     std::time_t timestamp = std::chrono::system_clock::to_time_t(oneHourLater);
     // Convert the timestamp to a string
@@ -147,22 +142,16 @@ void sendOrderAsync(const std::string& data, CURL*& easyHandle) {
                     << "Detection to Submission (ms): "
                     << getTimeDifferenceInMillis(strategyTimepoint, submissionTimepoint) << "      "
                     << "Submission to Execution (ms): "
-                    << getTimeDifferenceInMillis(submissionTimepoint, std::to_string(exchangeExecutionTimestamp))
-                    << "      "
-                    << "Total Latency: " << getTimeDifferenceInMillis(updateExchangeTimepoint,
-                                                                      std::to_string(exchangeExecutionTimestamp))
-                    << "      "
-                    << "Sync Diff: " <<
-                    getTimeDifferenceInMillis(updateExchangeTimepoint, std::to_string(exchangeExecutionTimestamp)) -
-                    (
-                            getTimeDifferenceInMillis(strategyTimepoint, std::to_string(exchangeExecutionTimestamp))
-                            + getTimeDifferenceInMillis(updateExchangeTimepoint, strategyTimepoint)) << "      \n"
+                    << getTimeDifferenceInMillis(submissionTimepoint, std::to_string(exchangeExecutionTimestamp)) << "      "
+                    << "Total Latency: " << getTimeDifferenceInMillis(updateExchangeTimepoint,std::to_string(exchangeExecutionTimestamp))
+                    << "      \n"
                     << "Update Exch. Ts.: " << updateExchangeTimepoint << "      "
                     << "Update Rec. Ts.: " << updateReceiveTimepoint << "      "
                     << "Strat. Ts.: " << strategyTimepoint << "      "
                     << "Submission. Ts.: " << submissionTimepoint << "      "
                     << "Execution. Ts.: " << exchangeExecutionTimestamp << "      \n"
-                    << "\nResponse from exchange:\n" << response
+                    << "Response from exchange:\n" << response
+                    << "===========================================================================================\n"
                     << std::endl;
         }
         curl_slist_free_all(headers);
