@@ -59,6 +59,7 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
         if (easyHandles[i]) {
             curl_easy_setopt(easyHandles[i], CURLOPT_URL, "https://testnet.bitmex.com/api/v1/order");
             curl_easy_setopt(easyHandles[i], CURLOPT_WRITEFUNCTION, WriteCallback);
+            /*curl_easy_setopt(easyHandle, CURLOPT_VERBOSE, 1L);*/
         }
     }
 
@@ -81,7 +82,6 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
     /*for (int i = 0; i < HANDLE_COUNT; i++) {
         curl_easy_cleanup(easyHandles[i]);
     }*/
-
 
     curl_global_cleanup();
 }
@@ -106,7 +106,6 @@ void sendOrderAsync(const std::string& data, CURL*& easyHandle) {
     std::string signature = CalcHmacSHA256(apiSecret, concatenatedString);
     std::string hexSignature = toHex(signature);
     if (easyHandle) {
-        /*curl_easy_setopt(easyHandle, CURLOPT_VERBOSE, 1L);*/
         // Build the headers
         struct curl_slist *headers = NULL;
         headers = curl_slist_append(headers, ("api-key: " + apiKey).c_str());
@@ -117,12 +116,13 @@ void sendOrderAsync(const std::string& data, CURL*& easyHandle) {
         curl_easy_setopt(easyHandle, CURLOPT_HTTPHEADER, headers);
         // Set the POST data
         curl_easy_setopt(easyHandle, CURLOPT_POSTFIELDS, orderData.c_str());
-        system_clock::time_point submissionTimestamp = high_resolution_clock::now();
-        std::string submissionTimepoint = std::to_string(
-                duration_cast<milliseconds>(submissionTimestamp.time_since_epoch()).count());
         // Set the write callback function
         std::string response;
         curl_easy_setopt(easyHandle, CURLOPT_WRITEDATA, &response);
+
+        system_clock::time_point submissionTimestamp = high_resolution_clock::now();
+        std::string submissionTimepoint = std::to_string(duration_cast<milliseconds>(submissionTimestamp.time_since_epoch()).count());
+
         // Perform the request
         CURLcode res = curl_easy_perform(easyHandle);
         // Check for errors
@@ -167,6 +167,5 @@ void sendOrderAsync(const std::string& data, CURL*& easyHandle) {
         }
         curl_slist_free_all(headers);
     }
-    std::this_thread::sleep_for(milliseconds(7000));
 }
 
