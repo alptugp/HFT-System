@@ -12,8 +12,16 @@
 class ThreadPool {
 public:
     ThreadPool(size_t numThreads);
-    template<class F, class... Args>
-    void enqueue(F&& f, Args&&... args);
+
+    template<typename F, typename... Args>
+    void enqueue(F&& f, Args&&... args) {
+        {
+            std::unique_lock<std::mutex> lock(queue_mutex);
+            tasks.emplace(std::bind(std::forward<F>(f), std::forward<Args>(args)...));
+        }
+        condition.notify_one();
+    }
+
     ~ThreadPool();
 
 private:

@@ -1,4 +1,4 @@
-#include "ThreadPool.h"
+#include "ThreadPool.hpp"
 
 ThreadPool::ThreadPool(size_t numThreads) : stop(false) {
     for (size_t i = 0; i < numThreads; ++i) {
@@ -17,15 +17,6 @@ ThreadPool::ThreadPool(size_t numThreads) : stop(false) {
             }
         });
     }
-}
-
-template<class F, class... Args>
-void ThreadPool::enqueue(F&& f, Args&&... args) {
-    {
-        std::unique_lock<std::mutex> lock(queue_mutex);
-        tasks.emplace([=]() { std::forward<F>(f)(std::forward<Args>(args)...); });
-    }
-    condition.notify_one();
 }
 
 ThreadPool::~ThreadPool() {
