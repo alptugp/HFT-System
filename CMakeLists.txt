@@ -17,6 +17,7 @@ set(SOURCES
     ./BookBuilder/ThroughputMonitor/ThroughputMonitor.cpp
     ./Utils/Utils.cpp
     ./StrategyComponent/Graph.cpp
+    ./OrderManager/ThreadPool.cpp
 )
 
 # Executable
