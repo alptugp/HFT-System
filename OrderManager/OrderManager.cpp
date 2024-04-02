@@ -73,6 +73,13 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
         curl_easy_setopt(rttEasyHandle, CURLOPT_WRITEFUNCTION, WriteCallback);
         rttPool.enqueue(testRoundTripTime, "GET", "/api/v1/position?filter=%7B%22symbol%22%3A%20%22XBTUSDT%22%7D&columns=%5B%22timestamp%22%5D", rttEasyHandle);
         rttPool.enqueue(testRoundTripTime, "GET", "/api/v1/position?filter=%7B%22symbol%22%3A%20%22XBTUSDT%22%7D&columns=%5B%22timestamp%22%5D", rttEasyHandle);
+        rttPool.enqueue(testRoundTripTime, "GET", "/api/v1/address", rttEasyHandle);
+        rttPool.enqueue(testRoundTripTime, "GET", "/api/v1/apiKey", rttEasyHandle);
+        rttPool.enqueue(testRoundTripTime, "GET", "/api/v1/globalNotification", rttEasyHandle);
+        rttPool.enqueue(testRoundTripTime, "GET", "/api/v1/globalNotification", rttEasyHandle);
+        rttPool.enqueue(testRoundTripTime, "GET", "/api/v1/globalNotification", rttEasyHandle);
+        rttPool.enqueue(testRoundTripTime, "GET", "/api/v1/globalNotification", rttEasyHandle);
+        rttPool.enqueue(testRoundTripTime, "GET", "/api/v1/globalNotification", rttEasyHandle);
     }
 
     int handleIndex = 0;
@@ -244,7 +251,7 @@ void testRoundTripTime(const std::string& requestVerb, const std::string& reques
 
             std::cout
                     << "===========================================================================================\n"
-                    << "RESPONSE FOR REQUEST RECEIVED\n"
+                    << "RESPONSE FOR ADDITIONAL REQUEST RECEIVED\n"
                     << "RTT (ms): "
                     << getTimeDifferenceInMillis(requestTimepoint, responseTimestamp) << "      \n"
                     << "Request Ts.: " << requestTimepoint << "      "
