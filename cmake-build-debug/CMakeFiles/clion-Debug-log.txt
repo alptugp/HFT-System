@@ -1,4 +1,4 @@
 /vol/bitbucket/aap221/3d8b36b2566c3_CLion-241.14494.229/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/vol/bitbucket/aap221/3d8b36b2566c3_CLion-241.14494.229/bin/ninja/linux/x64/ninja -G Ninja -S /vol/bitbucket/aap221/HFT-System -B /vol/bitbucket/aap221/HFT-System/cmake-build-debug
--- Configuring done (0.8s)
--- Generating done (0.2s)
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
 -- Build files have been written to: /vol/bitbucket/aap221/HFT-System/cmake-build-debug

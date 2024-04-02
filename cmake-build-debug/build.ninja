@@ -91,6 +91,13 @@ build CMakeFiles/main.dir/StrategyComponent/Graph.cpp.o: CXX_COMPILER__main_unsc
   OBJECT_DIR = CMakeFiles/main.dir
   OBJECT_FILE_DIR = CMakeFiles/main.dir/StrategyComponent
 
+build CMakeFiles/main.dir/OrderManager/ThreadPool.cpp.o: CXX_COMPILER__main_unscanned_Debug /vol/bitbucket/aap221/HFT-System/OrderManager/ThreadPool.cpp || cmake_object_order_depends_target_main
+  DEP_FILE = CMakeFiles/main.dir/OrderManager/ThreadPool.cpp.o.d
+  FLAGS = -g -fdiagnostics-color=always -Wall -Wextra -pedantic -Werror -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter
+  INCLUDES = -I/vol/bitbucket/aap221/HFT-System/externals/websocketpp -I/vol/bitbucket/aap221/HFT-System/externals/rapidjson/include -I/vol/bitbucket/aap221/HFT-System/externals/json/include
+  OBJECT_DIR = CMakeFiles/main.dir
+  OBJECT_FILE_DIR = CMakeFiles/main.dir/OrderManager
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target main
@@ -99,7 +106,7 @@ build CMakeFiles/main.dir/StrategyComponent/Graph.cpp.o: CXX_COMPILER__main_unsc
 #############################################
 # Link the executable main
 
-build main: CXX_EXECUTABLE_LINKER__main_Debug CMakeFiles/main.dir/main.cpp.o CMakeFiles/main.dir/BookBuilder/OrderBook/OrderBook.cpp.o CMakeFiles/main.dir/OrderManager/OrderManager.cpp.o CMakeFiles/main.dir/BookBuilder/ThroughputMonitor/ThroughputMonitor.cpp.o CMakeFiles/main.dir/Utils/Utils.cpp.o CMakeFiles/main.dir/StrategyComponent/Graph.cpp.o
+build main: CXX_EXECUTABLE_LINKER__main_Debug CMakeFiles/main.dir/main.cpp.o CMakeFiles/main.dir/BookBuilder/OrderBook/OrderBook.cpp.o CMakeFiles/main.dir/OrderManager/OrderManager.cpp.o CMakeFiles/main.dir/BookBuilder/ThroughputMonitor/ThroughputMonitor.cpp.o CMakeFiles/main.dir/Utils/Utils.cpp.o CMakeFiles/main.dir/StrategyComponent/Graph.cpp.o CMakeFiles/main.dir/OrderManager/ThreadPool.cpp.o
   FLAGS = -g
   LINK_LIBRARIES = -lpthread  -lcrypto  -lssl  -lcurl
   OBJECT_DIR = CMakeFiles/main.dir
