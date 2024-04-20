@@ -14,6 +14,36 @@ static const char *const apiSecret = "D2OBzpfW-i6FfgmqGnrhpYqKPrxCvIYnu5KZKsZQW_
 static const char *const  verb = "POST";
 static const char *const  path = "/api/v1/order";
 
+// Function to extract and return JSON data from a buffer
+json extract_json_from_buffer(const std::string& buffer) {
+    size_t json_start = buffer.find("{");
+    if (json_start != std::string::npos) {
+        size_t json_end = buffer.find("}", json_start);
+
+        if (json_end != std::string::npos) {
+            size_t json_len = json_end - json_start + 1;
+
+            std::string json_buffer = buffer.substr(json_start, json_len);
+
+            // Parse the JSON data using nlohmann::json
+            try {
+                json parsed_json = json::parse(json_buffer);
+                return parsed_json;
+
+            } catch (const std::exception& e) {
+                std::cerr << "Error parsing JSON: " << e.what() << std::endl;
+            }
+        } else {
+            std::cerr << "End of JSON not found" << std::endl;
+        }
+    } else {
+        std::cerr << "Start of JSON not found" << std::endl;
+    }
+
+    // Return an empty JSON object if parsing fails or JSON is not found
+    return json();
+}
+
 std::string getCurrentTime() {
     // Get current time
     auto now = std::chrono::system_clock::now();
@@ -111,7 +141,7 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
 
             int revents = fdset[i].revents;
             if (revents & POLLIN)
-                if (do_sock_read(&clients[i]) == -1)
+                if (do_sock_read(&clients[i], true) == -1)
                     break;
 
             if (revents & POLLOUT)
@@ -127,16 +157,22 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
         }
     }
 
-    printf("SSL handshake done\n");
-    int batch_index = 0;
+    printf("SSL handshake done for all sockets\n");
 
     while (true) {
         std::string orderData[BATCH_SIZE];
 
         for (int i = 0; i < BATCH_SIZE; ++i) {
             std::string orderData_i;
-            while (!strategyToOrderManagerQueue.pop(orderData_i));
-            orderData[i] = orderData_i;
+            /*while (!strategyToOrderManagerQueue.pop(orderData_i));
+            orderData[i] = orderData_i.substr(0, orderData_i.length() - 39);*/
+            const char * postData = "symbol=XBTUSDT&side=Sell&orderQty=1000&price=1&ordType=Limit";
+            orderData[i] = std::string(postData);
+            /*const char *postData = tempString.c_str();*/
+            /*std::cout << postData << strlen(postData) << std::endl;*/
+            /*std::string updateExchangeTimepoint = orderData[i].substr(orderData[i].length() - 39, 13);
+            std::string updateReceiveTimepoint = orderData[i].substr(orderData[i].length() - 26, 13);
+            std::string strategyTimepoint = orderData[i].substr(orderData[i].length() - 13);*/
         }
 
         for (int i = 0; i < BATCH_SIZE; ++i) {
@@ -147,15 +183,7 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
             time_t tenSecondsLater = now + 10;
             strftime(expires, sizeof(expires), "%s", localtime(&tenSecondsLater));
 
-            std::string tempString = orderData[i].substr(0, orderData[i].length() - 39);
-            /*const char *postData = tempString.c_str();*/
-            /*std::cout << postData << strlen(postData) << std::endl;*/
-            const char * postData = "symbol=XBTUSDT&side=Sell&orderQty=1000&price=1&ordType=Limit";
-            std::string updateExchangeTimepoint = orderData[i].substr(orderData[i].length() - 39, 13);
-            std::string updateReceiveTimepoint = orderData[i].substr(orderData[i].length() - 26, 13);
-            std::string strategyTimepoint = orderData[i].substr(orderData[i].length() - 13);
-
-            snprintf(unencrypted_signature, sizeof(unencrypted_signature), "%s%s%s%s", verb, path, expires, postData);
+            snprintf(unencrypted_signature, sizeof(unencrypted_signature), "%s%s%s%s", verb, path, expires, orderData[i].c_str());
             char *signature = api_get_signature(apiSecret, strlen(apiSecret), unencrypted_signature, strlen(unencrypted_signature));
 
             printf("Unix Timestamp (expires): %s\n", expires);
@@ -171,8 +199,10 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
                                          "Content-Type: application/x-www-form-urlencoded\r\n"
                                          "Content-Length: %zu\r\n"
                                          "\r\n"
-                                         "%s", apiKey, expires, signature, strlen(postData), postData);
-            send_unencrypted_bytes(&clients[i], unencrypted_request, sizeof(unencrypted_request));
+                                         "%s", apiKey, expires, signature, strlen(orderData[i].c_str()), orderData[i].c_str());
+
+
+            send_unencrypted_bytes(&clients[i], unencrypted_request, strlen(unencrypted_request));
             do_encrypt(&clients[i]);
         }
 
@@ -227,7 +257,7 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
         bool fd_read[BATCH_SIZE] = {false};
         while (true) {
             int nready = poll(&fdset[0], BATCH_SIZE, -1);
-            /*printf("nready: %d %d\n", nready, break_polling);*/
+            printf("nready: %d %d ", nready, break_polling);
 
             if (nready == 0)
                 continue; /* no fd ready */
@@ -235,22 +265,26 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
             for (int i = 0; i < BATCH_SIZE; ++i) {
                 int revents = fdset[i].revents;
                 if (revents & POLLIN) {
-                    /*printf("DATA RECEIVED TO BE READ\n");*/
-                    if (do_sock_read(&clients[i]) == -1 && !fd_read[i]) {
-                        /*printf("BREAKING");*/
+                    printf("DATA RECEIVED TO BE READ");
+                    if (do_sock_read(&clients[i], false) == -1 && !fd_read[i]) {
+                        printf("BREAKING1\n");
                         break_polling++;
                         fd_read[i] = true;
                     }
                 }
 
-                if (revents & (POLLERR | POLLHUP | POLLNVAL))
+                if (revents & (POLLERR | POLLHUP | POLLNVAL)) {
+                    std::cout << "BREAKING2" << std::endl;
                     break;
+                }
             }
 
             if (break_polling >= BATCH_SIZE)
                 break;
         }
 
+        printf("%s\n", clients[0].response_buf);
+        extract_json_from_buffer(std::string(clients[0].response_buf));
         break;
     }
 
