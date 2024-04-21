@@ -14,34 +14,18 @@ static const char *const apiSecret = "D2OBzpfW-i6FfgmqGnrhpYqKPrxCvIYnu5KZKsZQW_
 static const char *const  verb = "POST";
 static const char *const  path = "/api/v1/order";
 
-// Function to extract and return JSON data from a buffer
-json extract_json_from_buffer(const std::string& buffer) {
-    size_t json_start = buffer.find("{");
+std::string extract_json(const std::string& response) {
+    // Find the position of the start of the JSON string
+    size_t json_start = response.find("{");
+
+    // Check if the start of JSON string is found
     if (json_start != std::string::npos) {
-        size_t json_end = buffer.find("}", json_start);
-
-        if (json_end != std::string::npos) {
-            size_t json_len = json_end - json_start + 1;
-
-            std::string json_buffer = buffer.substr(json_start, json_len);
-
-            // Parse the JSON data using nlohmann::json
-            try {
-                json parsed_json = json::parse(json_buffer);
-                return parsed_json;
-
-            } catch (const std::exception& e) {
-                std::cerr << "Error parsing JSON: " << e.what() << std::endl;
-            }
-        } else {
-            std::cerr << "End of JSON not found" << std::endl;
-        }
+        // Extract the JSON string from the response
+        return response.substr(json_start);
     } else {
-        std::cerr << "Start of JSON not found" << std::endl;
+        // JSON string not found
+        return "";
     }
-
-    // Return an empty JSON object if parsing fails or JSON is not found
-    return json();
 }
 
 std::string getCurrentTime() {
@@ -123,13 +107,9 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
     for (int i = 0; i < BATCH_SIZE; i++) {
         do_ssl_handshake(&clients[i]);
         printf("Performing SSL handshake\n");
-        while (1) {
-            if (!strcmp("SSL negotiation finished successfully", clients[i].last_state)) {
-                if (do_sock_write(&clients[i]) == -1) {
-                    return;
-                }
+        while (true) {
+            if (SSL_is_init_finished(clients[i].ssl))
                 break;
-            }
 
             fdset[i].events &= ~POLLOUT;
             fdset[i].events |= ssl_client_want_write(&clients[i]) ? POLLOUT : 0;
@@ -159,12 +139,13 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
 
     printf("SSL handshake done for all sockets\n");
 
+    int stop = 0;
     while (true) {
         std::string orderData[BATCH_SIZE];
 
         for (int i = 0; i < BATCH_SIZE; ++i) {
-            std::string orderData_i;
-            /*while (!strategyToOrderManagerQueue.pop(orderData_i));
+            /*std::string orderData_i;
+            while (!strategyToOrderManagerQueue.pop(orderData_i));
             orderData[i] = orderData_i.substr(0, orderData_i.length() - 39);*/
             const char * postData = "symbol=XBTUSDT&side=Sell&orderQty=1000&price=1&ordType=Limit";
             orderData[i] = std::string(postData);
@@ -200,7 +181,6 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
                                          "Content-Length: %zu\r\n"
                                          "\r\n"
                                          "%s", apiKey, expires, signature, strlen(orderData[i].c_str()), orderData[i].c_str());
-
 
             send_unencrypted_bytes(&clients[i], unencrypted_request, strlen(unencrypted_request));
             do_encrypt(&clients[i]);
@@ -254,7 +234,6 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
         }
 
         int break_polling = 0;
-        bool fd_read[BATCH_SIZE] = {false};
         while (true) {
             int nready = poll(&fdset[0], BATCH_SIZE, -1);
             printf("nready: %d %d ", nready, break_polling);
@@ -265,28 +244,33 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
             for (int i = 0; i < BATCH_SIZE; ++i) {
                 int revents = fdset[i].revents;
                 if (revents & POLLIN) {
-                    printf("DATA RECEIVED TO BE READ");
-                    if (do_sock_read(&clients[i], false) == -1 && !fd_read[i]) {
-                        printf("BREAKING1\n");
+                    int bytes_read = do_sock_read(&clients[i], false);
+                    size_t last_char_index = strlen(clients[i].response_buf) - 1;
+                    printf("exits %d %c\n", bytes_read, clients[i].response_buf[strlen(clients[i].response_buf) - 1]);
+                    if (clients[i].response_buf[last_char_index] == '}') {
                         break_polling++;
-                        fd_read[i] = true;
+                        std::cout<< "\nBUM1\n" << extract_json(std::string(clients[i].response_buf)) << "\nBUM2\n" << std::endl;
+                        
+                        memset(clients[i].response_buf, 0, sizeof(clients[i].response_buf));
                     }
+
                 }
 
-                if (revents & (POLLERR | POLLHUP | POLLNVAL)) {
-                    std::cout << "BREAKING2" << std::endl;
+                if (revents & (POLLERR | POLLHUP | POLLNVAL))
                     break;
-                }
+
             }
 
             if (break_polling >= BATCH_SIZE)
                 break;
         }
 
-        printf("%s\n", clients[0].response_buf);
-        extract_json_from_buffer(std::string(clients[0].response_buf));
-        break;
+        stop++;
+
+        if (stop == 2)
+            break;
     }
+
 
     for (int i = 0; i < BATCH_SIZE; ++i) {
         close(fdset[i].fd);

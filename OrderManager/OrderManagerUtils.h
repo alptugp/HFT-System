@@ -21,7 +21,7 @@
 /* Global SSL context */
 SSL_CTX *ctx;
 
-#define DEFAULT_BUF_SIZE 2048
+#define DEFAULT_BUF_SIZE 8192
 #define BATCH_SIZE 3
 #define EVP_MAX_MD_SIZE 64
 
@@ -92,7 +92,7 @@ struct ssl_client
     char* encrypt_buf;
     size_t encrypt_len;
 
-    char response_buf[DEFAULT_BUF_SIZE];
+    char response_buf[10000];
 
     /* Store the previous state string */
     const char * last_state;
@@ -235,11 +235,13 @@ enum sslstatus do_ssl_handshake(struct ssl_client *client)
    SSL object to be unencrypted.  On success, returns 0, on SSL error -1. */
 int on_read_cb(struct ssl_client *client, char* src, size_t len, bool is_handshake)
 {
+    printf("£££££££££££££££££££££££££££££");
     char buf[DEFAULT_BUF_SIZE];
     enum sslstatus status;
     int n;
 
     while (len > 0) {
+        printf("###################################");
         n = BIO_write(client->rbio, src, len);
 
         if (n<=0)
@@ -257,18 +259,22 @@ int on_read_cb(struct ssl_client *client, char* src, size_t len, bool is_handsha
 
         /* The encrypted data is now in the input bio so now we can perform actual
          * read of unencrypted data. */
-
+        size_t total_bytes_read = strlen(client->response_buf);
         do {
+            printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
             n = SSL_read(client->ssl, buf, sizeof(buf));
+            printf("BYTES READ: %d", n);
             if (n > 0) {
                 client->io_on_read(buf, (size_t)n);
                 if (!is_handshake) {
-                    printf("AAAAAA\n");
-                    strcpy(client->response_buf, buf);
-                    printf("BBBBB\n");
+                    // Append the data read from buf to response_buf
+                    memcpy(client->response_buf + total_bytes_read, buf, n);
+                    total_bytes_read += n; // Update the total bytes read
                 }
             }
         } while (n > 0);
+
+        client->response_buf[total_bytes_read] = '\0';
 
         status = get_sslstatus(client->ssl, n);
 
@@ -337,7 +343,6 @@ int do_sock_read(struct ssl_client *client, bool is_handshake)
 {
     char buf[DEFAULT_BUF_SIZE];
     ssize_t n = read(client->fd, buf, sizeof(buf));
-    printf("N is: %zu\n", n);
 
     if (n>0)
         return on_read_cb(client, buf, (size_t)n, is_handshake);
