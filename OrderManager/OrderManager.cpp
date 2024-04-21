@@ -14,17 +14,16 @@ static const char *const apiSecret = "D2OBzpfW-i6FfgmqGnrhpYqKPrxCvIYnu5KZKsZQW_
 static const char *const  verb = "POST";
 static const char *const  path = "/api/v1/order";
 
-std::string extract_json(const std::string& response) {
-    // Find the position of the start of the JSON string
+json extract_json(const std::string& response) {
     size_t json_start = response.find("{");
 
-    // Check if the start of JSON string is found
     if (json_start != std::string::npos) {
         // Extract the JSON string from the response
-        return response.substr(json_start);
+        std::string json_str = response.substr(json_start);
+
+        return json::parse(json_str);
     } else {
-        // JSON string not found
-        return "";
+        return json();
     }
 }
 
@@ -145,15 +144,16 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
 
         for (int i = 0; i < BATCH_SIZE; ++i) {
             /*std::string orderData_i;
-            while (!strategyToOrderManagerQueue.pop(orderData_i));
-            orderData[i] = orderData_i.substr(0, orderData_i.length() - 39);*/
-            const char * postData = "symbol=XBTUSDT&side=Sell&orderQty=1000&price=1&ordType=Limit";
-            orderData[i] = std::string(postData);
+            while (!strategyToOrderManagerQueue.pop(orderData_i));*/
+            /*orderData[i] = orderData_i.substr(0, orderData_i.length() - 39);*/
             /*const char *postData = tempString.c_str();*/
             /*std::cout << postData << strlen(postData) << std::endl;*/
             /*std::string updateExchangeTimepoint = orderData[i].substr(orderData[i].length() - 39, 13);
             std::string updateReceiveTimepoint = orderData[i].substr(orderData[i].length() - 26, 13);
             std::string strategyTimepoint = orderData[i].substr(orderData[i].length() - 13);*/
+
+            const char * postData = "symbol=XBTUSDT&side=Sell&orderQty=1000&price=1&ordType=Limit";
+            orderData[i] = std::string(postData);
         }
 
         for (int i = 0; i < BATCH_SIZE; ++i) {
@@ -206,6 +206,8 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
         }
 
         std::cout << "IO_URING SUBMISSION TIME: " << getCurrentTime() << std::endl;
+        system_clock::time_point submissionTimestamp = high_resolution_clock::now();
+        std::string submissionTimepoint = std::to_string(duration_cast<milliseconds>(submissionTimestamp.time_since_epoch()).count());
 
         // Wait for completions
         for (int i = 0; i < BATCH_SIZE; ++i) {
@@ -236,24 +238,34 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
         int break_polling = 0;
         while (true) {
             int nready = poll(&fdset[0], BATCH_SIZE, -1);
-            printf("nready: %d %d ", nready, break_polling);
+            /*printf("nready: %d %d ", nready, break_polling);*/
 
             if (nready == 0)
                 continue; /* no fd ready */
 
             for (int i = 0; i < BATCH_SIZE; ++i) {
                 int revents = fdset[i].revents;
+
                 if (revents & POLLIN) {
                     int bytes_read = do_sock_read(&clients[i], false);
                     size_t last_char_index = strlen(clients[i].response_buf) - 1;
-                    printf("exits %d %c\n", bytes_read, clients[i].response_buf[strlen(clients[i].response_buf) - 1]);
-                    if (clients[i].response_buf[last_char_index] == '}') {
-                        break_polling++;
-                        std::cout<< "\nBUM1\n" << extract_json(std::string(clients[i].response_buf)) << "\nBUM2\n" << std::endl;
-                        
-                        memset(clients[i].response_buf, 0, sizeof(clients[i].response_buf));
-                    }
+                    /*printf("exits %d %c\n", bytes_read, clients[i].response_buf[strlen(clients[i].response_buf) - 1]);*/
 
+                    if (clients[i].response_buf[last_char_index] == '}') {
+                        long exchangeExecutionTimestamp = convertTimestampToTimePoint(extract_json(std::string(clients[i].response_buf))["transactTime"]);
+
+                        std::cout
+                        << "\n===========================================================================================\n"
+                        << "NEW ORDER EXECUTED\n"
+                        << exchangeExecutionTimestamp
+                        << "\nSubmission to Execution (ms): "
+                        << getTimeDifferenceInMillis(submissionTimepoint, std::to_string(exchangeExecutionTimestamp)) << "      "
+                        << "\n===========================================================================================\n"
+                        << std::endl;
+
+                        memset(clients[i].response_buf, 0, sizeof(clients[i].response_buf));
+                        break_polling++;
+                    }
                 }
 
                 if (revents & (POLLERR | POLLHUP | POLLNVAL))
