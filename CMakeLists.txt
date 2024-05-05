@@ -2,10 +2,10 @@ cmake_minimum_required(VERSION 3.22)
 
 project(main)
 
+add_definitions(-DLWS_WITH_LIBEV=1)
+
 # Include Directories
 include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/externals/websocketpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/externals/rapidjson/include
     ${CMAKE_CURRENT_SOURCE_DIR}/externals/json/include
 )
 
@@ -31,4 +31,4 @@ target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_11)
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Werror -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter)
 
 # Linked Libraries
-target_link_libraries(${PROJECT_NAME} PRIVATE uring pthread crypto ssl curl)
+target_link_libraries(${PROJECT_NAME} PRIVATE uring pthread crypto ssl curl websockets)
