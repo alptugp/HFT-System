@@ -1,5 +1,5 @@
 #include <libwebsockets.h>
-#include <rapidjson/include/rapidjson/document.h>
+#include <rapidjson/document.h>
 #include <string>
 #include <signal.h>
 #include <chrono>
@@ -57,16 +57,16 @@ static const lws_retry_bo_t retry = {
         .jitter_percent			= 0,
 }; 
 
-static const struct lws_extension extensions[] = {
-        {
-                "permessage-deflate",
-                lws_extension_callback_pm_deflate,
-                      "permessage-deflate"
-                      "; client_no_context_takeover"
-                      "; client_max_window_bits"
-        },
-        { NULL, NULL, NULL /* terminator */ }
-};
+// static const struct lws_extension extensions[] = {
+//         {
+//                 "permessage-deflate",
+//                 lws_extension_callback_pm_deflate,
+//                       "permessage-deflate"
+//                       "; client_no_context_takeover"
+//                       "; client_max_window_bits"
+//         },
+//         { NULL, NULL, NULL /* terminator */ }
+// };
 
 /*
  * Scheduled sul callback that starts the connection attempt
@@ -83,9 +83,9 @@ connect_client(lws_sorted_usec_list_t *sul)
     i.context = context;
     i.port = 443;
 
-    i.address = "ws.bitmex.com";
-    i.path = "/realtime?"
-             "subscribe=orderBookL2_25:XBTUSDT";
+    // i.address = "ws.bitmex.com";
+    i.address = "ws.testnet.bitmex.com";
+    i.path = "/realtime";
     i.host = i.address;
     i.origin = i.address;
     i.ssl_connection = LCCSCF_USE_SSL | LCCSCF_PRIORITIZE_READS;
@@ -161,7 +161,7 @@ callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,
     const char *p;
     size_t alen;
     Document doc;
-    GenericValue<rapidjson::UTF8<> >::MemberIterator data;
+    GenericValue<rapidjson::UTF8<>>::MemberIterator data;
     const char* symbol; 
     uint64_t id;
     const char* action;
@@ -294,6 +294,20 @@ callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,
 
         case LWS_CALLBACK_CLIENT_ESTABLISHED:
             lwsl_user("%s: established\n", __func__);
+
+            // Send subscription message here
+            for (const std::string& currencyPair : currencyPairs) { 
+                std::string subscriptionMessage = "{\"op\":\"subscribe\",\"args\":[\"orderBookL2_25:" + currencyPair + "\"]}";
+                // Allocate buffer with LWS_PRE bytes before the data
+                unsigned char buf[LWS_PRE + subscriptionMessage.size()];
+
+                // Copy subscription message to buffer after LWS_PRE bytes
+                memcpy(&buf[LWS_PRE], subscriptionMessage.c_str(), subscriptionMessage.size());
+                
+                // Send data using lws_write
+                lws_write(wsi, &buf[LWS_PRE], subscriptionMessage.size(), LWS_WRITE_TEXT);
+            }
+            
             lws_sul_schedule(lws_get_context(wsi), 0, &mco->sul_hz,
                              sul_hz_cb, LWS_US_PER_SEC);
             mco->wsi = wsi;
@@ -411,7 +425,7 @@ void bookBuilder(int cpu, SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_) {
     info.port = CONTEXT_PORT_NO_LISTEN; /* we do not run any server */
     info.protocols = protocols;
     info.fd_limit_per_thread = 1 + 1 + 1;
-    info.extensions = extensions;
+    // info.extensions = extensions;
 
     context = lws_create_context(&info);
     if (!context) {
