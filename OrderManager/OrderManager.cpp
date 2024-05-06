@@ -1,5 +1,5 @@
 #include "OrderManager.hpp"
-#include "OrderManagerUtils.h"
+#include "OrderManagerUtils.hpp"
 #include <liburing.h>
 #include <iostream>
 #include <chrono>
@@ -8,44 +8,12 @@
 
 #define TX_DEFAULT_BUF_SIZE 128
 
-using json = nlohmann::json;
 using namespace std::chrono;
 
 static const char *const  apiKey = "63ObNQpYqaCVrjTuBbhgFm2p";
 static const char *const apiSecret = "D2OBzpfW-i6FfgmqGnrhpYqKPrxCvIYnu5KZKsZQW_09XkF-";
 static const char *const  verb = "POST";
 static const char *const  path = "/api/v1/order";
-
-json extract_json(const std::string& response) {
-    size_t json_start = response.find("{");
-
-    if (json_start != std::string::npos) {
-        // Extract the JSON string from the response
-        std::string json_str = response.substr(json_start);
-
-        return json::parse(json_str);
-    } else {
-        return json();
-    }
-}
-
-std::string getCurrentTime() {
-    // Get current time
-    auto now = std::chrono::system_clock::now();
-    auto now_time_t = std::chrono::system_clock::to_time_t(now);
-
-    // Format time
-    std::ostringstream oss;
-    oss << std::put_time(std::gmtime(&now_time_t), "%Y-%m-%dT%H:%M:%S");
-
-    // Get milliseconds
-    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
-
-    // Convert milliseconds to string and append to result
-    oss << "." << std::setfill('0') << std::setw(3) << milliseconds.count() << "Z";
-
-    return oss.str();
-}
 
 void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) {
     pinThread(cpu);
@@ -132,8 +100,6 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
 
     printf("SSL handshake done for all sockets\n");
 
-    char tx_buff[BATCH_SIZE][TX_DEFAULT_BUF_SIZE]; 
-
     struct io_uring ring;
     struct io_uring_params params;
 
@@ -164,10 +130,6 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
     while (true) {
         std::string orderData[BATCH_SIZE];
 
-        for (int i = 0; i < BATCH_SIZE; ++i) { 
-            memset(tx_buff[i], 0, TX_DEFAULT_BUF_SIZE);
-        }
-
         for (int i = 0; i < BATCH_SIZE; ++i) {
             // std::string orderData_i;
             // while (!strategyToOrderManagerQueue.pop(orderData_i)) {};
@@ -178,9 +140,7 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
             std::string strategyTimepoint = orderData[i].substr(orderData[i].length() - 13);*/
 
             const char * postData = "symbol=XBTUSDT&side=Sell&orderQty=1000&price=1&ordType=Limit";
-            strncpy(tx_buff[i], postData, strlen(postData));
-            std::cout << tx_buff[i] << " " << strlen(tx_buff[i]) << std::endl;
-            // orderData[i] = std::string(postData);
+            orderData[i] = std::string(postData);
         }
 
         for (int i = 0; i < BATCH_SIZE; ++i) {
@@ -191,7 +151,7 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
             time_t tenSecondsLater = now + 10;
             strftime(expires, sizeof(expires), "%s", localtime(&tenSecondsLater));
 
-            snprintf(unencrypted_signature, sizeof(unencrypted_signature), "%s%s%s%s", verb, path, expires, tx_buff[i]);
+            snprintf(unencrypted_signature, sizeof(unencrypted_signature), "%s%s%s%s", verb, path, expires, orderData[i].c_str());
             char *signature = api_get_signature(apiSecret, strlen(apiSecret), unencrypted_signature, strlen(unencrypted_signature));
 
             printf("Unix Timestamp (expires): %s\n", expires);
@@ -207,7 +167,7 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
                                          "Content-Type: application/x-www-form-urlencoded\r\n"
                                          "Content-Length: %zu\r\n"
                                          "\r\n"
-                                         "%s", apiKey, expires, signature, strlen(tx_buff[i]), tx_buff[i]);
+                                         "%s", apiKey, expires, signature, orderData[i].length(), orderData[i].c_str());
 
             send_unencrypted_bytes(&clients[i], unencrypted_request, strlen(unencrypted_request));
             do_encrypt(&clients[i]);
@@ -285,7 +245,7 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
                     /*printf("exits %d %c\n", bytes_read, clients[i].response_buf[strlen(clients[i].response_buf) - 1]);*/
 
                     if (clients[i].response_buf[last_char_index] == '}') {
-                        long exchangeExecutionTimestamp = convertTimestampToTimePoint(extract_json(std::string(clients[i].response_buf))["transactTime"]);
+                        long exchangeExecutionTimestamp = convertTimestampToTimePoint(extract_json(std::string(clients[i].response_buf)).FindMember("transactTime")->value.GetString());
 
                         std::cout
                         << "\n===========================================================================================\n"

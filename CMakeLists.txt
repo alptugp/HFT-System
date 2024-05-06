@@ -4,11 +4,6 @@ project(main)
 
 add_definitions(-DLWS_WITH_LIBEV=1)
 
-# Include Directories
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/externals/json/include
-)
-
 include_directories("/homes/aap221/local/include")
 link_directories("/homes/aap221/local/lib")
 
