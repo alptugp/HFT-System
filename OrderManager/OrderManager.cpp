@@ -178,9 +178,9 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
             std::string strategyTimepoint = orderData[i].substr(orderData[i].length() - 13);*/
 
             const char * postData = "symbol=XBTUSDT&side=Sell&orderQty=1000&price=1&ordType=Limit";
-            strncpy(tx_buff[i], postData, strlen(postData));
-            std::cout << tx_buff[i] << " " << strlen(tx_buff[i]) << std::endl;
-            // orderData[i] = std::string(postData);
+            // strncpy(tx_buff[i], postData, strlen(postData));
+            // std::cout << tx_buff[i] << " " << strlen(tx_buff[i]) << std::endl;
+            orderData[i] = std::string(postData);
         }
 
         for (int i = 0; i < BATCH_SIZE; ++i) {
@@ -191,7 +191,7 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
             time_t tenSecondsLater = now + 10;
             strftime(expires, sizeof(expires), "%s", localtime(&tenSecondsLater));
 
-            snprintf(unencrypted_signature, sizeof(unencrypted_signature), "%s%s%s%s", verb, path, expires, tx_buff[i]);
+            snprintf(unencrypted_signature, sizeof(unencrypted_signature), "%s%s%s%s", verb, path, expires, orderData[i].c_str());
             char *signature = api_get_signature(apiSecret, strlen(apiSecret), unencrypted_signature, strlen(unencrypted_signature));
 
             printf("Unix Timestamp (expires): %s\n", expires);
@@ -207,7 +207,7 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
                                          "Content-Type: application/x-www-form-urlencoded\r\n"
                                          "Content-Length: %zu\r\n"
                                          "\r\n"
-                                         "%s", apiKey, expires, signature, strlen(tx_buff[i]), tx_buff[i]);
+                                         "%s", apiKey, expires, signature, strlen(orderData[i].c_str()), orderData[i].c_str());
 
             send_unencrypted_bytes(&clients[i], unencrypted_request, strlen(unencrypted_request));
             do_encrypt(&clients[i]);

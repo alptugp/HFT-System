@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.22)
 
 project(main)
 
+find_package(libwebsockets REQUIRED)
+
 add_definitions(-DLWS_WITH_LIBEV=1)
 
 # Include Directories

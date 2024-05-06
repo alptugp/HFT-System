@@ -172,7 +172,6 @@ callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,
     system_clock::time_point marketUpdateReceiveTimestamp;
     long exchangeUpdateTimestamp;
     
-
     switch (reason) {
         case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
             lwsl_err("CLIENT_CONNECTION_ERROR: %s\n",
