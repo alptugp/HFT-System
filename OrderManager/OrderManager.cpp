@@ -6,6 +6,8 @@
 #include <ctime>
 #include <iomanip>
 
+#define TX_DEFAULT_BUF_SIZE 128
+
 using json = nlohmann::json;
 using namespace std::chrono;
 
@@ -47,6 +49,7 @@ std::string getCurrentTime() {
 
 void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) {
     pinThread(cpu);
+
     int port = 443;
     const char* host_ip = "104.18.32.75";
     const char * host_name = "testnet.bitmex.com";
@@ -55,18 +58,8 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
     const char* host_ip = "127.0.0.1";
     const char * host_name = NULL;
     int ip_family = AF_INET;*/
-
-    struct io_uring_sqe *sqe;
-    struct io_uring_cqe *cqe;
-    struct io_uring ring;
     int sockfds[BATCH_SIZE];
     struct ssl_client clients[BATCH_SIZE];
-
-    // Initialize io_uring
-    if (io_uring_queue_init(32, &ring, 0) < 0) {
-        perror("io_uring_queue_init");
-        return;
-    }
 
     for (int i = 0; i < BATCH_SIZE; ++i) {
         sockfds[i] = socket(ip_family, SOCK_STREAM, 0);
@@ -87,6 +80,7 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
                 die("connect()");
         }
     }
+
     printf("sockets connected\n");
 
     struct pollfd fdset[BATCH_SIZE];
@@ -138,22 +132,55 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
 
     printf("SSL handshake done for all sockets\n");
 
+    char tx_buff[BATCH_SIZE][TX_DEFAULT_BUF_SIZE]; 
+
+    struct io_uring ring;
+    struct io_uring_params params;
+
+    print_sq_poll_kernel_thread_status();
+
+    memset(&params, 0, sizeof(params));
+    params.flags |= IORING_SETUP_SQPOLL;
+    params.sq_thread_idle = 20000;
+
+    // Initialize io_uring
+    if (io_uring_queue_init_params(8, &ring, &params) < 0) {
+        perror("io_uring_queue_init");
+        return;
+    }
+
+    // int ret = io_uring_queue_init(8, &ring, 0);
+    // if (ret) {
+    //     perror("io_uring_queue_init");
+    //     return;
+    // }
+
+    if (io_uring_register_files(&ring, sockfds, BATCH_SIZE) < 0) {
+        perror("io_uring_register_files");
+        return;
+    }
+
     int stop = 0;
     while (true) {
         std::string orderData[BATCH_SIZE];
 
+        for (int i = 0; i < BATCH_SIZE; ++i) { 
+            memset(tx_buff[i], 0, TX_DEFAULT_BUF_SIZE);
+        }
+
         for (int i = 0; i < BATCH_SIZE; ++i) {
-            /*std::string orderData_i;
-            while (!strategyToOrderManagerQueue.pop(orderData_i));*/
-            /*orderData[i] = orderData_i.substr(0, orderData_i.length() - 39);*/
-            /*const char *postData = tempString.c_str();*/
-            /*std::cout << postData << strlen(postData) << std::endl;*/
+            // std::string orderData_i;
+            // while (!strategyToOrderManagerQueue.pop(orderData_i)) {};
+            // orderData[i] = orderData_i.substr(0, orderData_i.length() - 39);
+            // const char *postData = orderData[i].c_str();
             /*std::string updateExchangeTimepoint = orderData[i].substr(orderData[i].length() - 39, 13);
             std::string updateReceiveTimepoint = orderData[i].substr(orderData[i].length() - 26, 13);
             std::string strategyTimepoint = orderData[i].substr(orderData[i].length() - 13);*/
 
             const char * postData = "symbol=XBTUSDT&side=Sell&orderQty=1000&price=1&ordType=Limit";
-            orderData[i] = std::string(postData);
+            strncpy(tx_buff[i], postData, strlen(postData));
+            std::cout << tx_buff[i] << " " << strlen(tx_buff[i]) << std::endl;
+            // orderData[i] = std::string(postData);
         }
 
         for (int i = 0; i < BATCH_SIZE; ++i) {
@@ -164,7 +191,7 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
             time_t tenSecondsLater = now + 10;
             strftime(expires, sizeof(expires), "%s", localtime(&tenSecondsLater));
 
-            snprintf(unencrypted_signature, sizeof(unencrypted_signature), "%s%s%s%s", verb, path, expires, orderData[i].c_str());
+            snprintf(unencrypted_signature, sizeof(unencrypted_signature), "%s%s%s%s", verb, path, expires, tx_buff[i]);
             char *signature = api_get_signature(apiSecret, strlen(apiSecret), unencrypted_signature, strlen(unencrypted_signature));
 
             printf("Unix Timestamp (expires): %s\n", expires);
@@ -180,11 +207,14 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
                                          "Content-Type: application/x-www-form-urlencoded\r\n"
                                          "Content-Length: %zu\r\n"
                                          "\r\n"
-                                         "%s", apiKey, expires, signature, strlen(orderData[i].c_str()), orderData[i].c_str());
+                                         "%s", apiKey, expires, signature, strlen(tx_buff[i]), tx_buff[i]);
 
             send_unencrypted_bytes(&clients[i], unencrypted_request, strlen(unencrypted_request));
             do_encrypt(&clients[i]);
         }
+
+        struct io_uring_sqe *sqe;
+        struct io_uring_cqe *cqe;
 
         for (int i = 0; i < BATCH_SIZE; ++i) {
             sqe = io_uring_get_sqe(&ring);
@@ -196,7 +226,8 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
             }
 
             printf("Sending for sockfd %d\n", sockfds[i]);
-            io_uring_prep_write(sqe, clients[i].fd, clients[i].write_buf, clients[i].write_len, 0);
+            io_uring_prep_write(sqe, 0, clients[i].write_buf, clients[i].write_len, 0);
+            sqe->flags |= IOSQE_FIXED_FILE;
         }
 
         if (io_uring_submit(&ring) < 0) {
@@ -204,7 +235,7 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
             io_uring_queue_exit(&ring);
             return;
         }
-
+        
         std::cout << "IO_URING SUBMISSION TIME: " << getCurrentTime() << std::endl;
         system_clock::time_point submissionTimestamp = high_resolution_clock::now();
         std::string submissionTimepoint = std::to_string(duration_cast<milliseconds>(submissionTimestamp.time_since_epoch()).count());
@@ -213,7 +244,7 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
         for (int i = 0; i < BATCH_SIZE; ++i) {
             int ret = io_uring_wait_cqe(&ring, &cqe);
             if (ret < 0) {
-                perror("io_uring_wait_cqe");
+                perror("Error waiting for completion: %s\n");
                 return;
             }
 
@@ -234,6 +265,8 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
 
             io_uring_cqe_seen(&ring, cqe);
         }
+
+        print_sq_poll_kernel_thread_status();
 
         int break_polling = 0;
         while (true) {

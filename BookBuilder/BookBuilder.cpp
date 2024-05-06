@@ -57,16 +57,16 @@ static const lws_retry_bo_t retry = {
         .jitter_percent			= 0,
 }; 
 
-// static const struct lws_extension extensions[] = {
-//         {
-//                 "permessage-deflate",
-//                 lws_extension_callback_pm_deflate,
-//                       "permessage-deflate"
-//                       "; client_no_context_takeover"
-//                       "; client_max_window_bits"
-//         },
-//         { NULL, NULL, NULL /* terminator */ }
-// };
+static const struct lws_extension extensions[] = {
+        {
+                "permessage-deflate",
+                lws_extension_callback_pm_deflate,
+                      "permessage-deflate"
+                      "; client_no_context_takeover"
+                      "; client_max_window_bits"
+        },
+        { NULL, NULL, NULL /* terminator */ }
+};
 
 /*
  * Scheduled sul callback that starts the connection attempt
@@ -193,17 +193,17 @@ callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,
             /*std::cout << updateExchangeTimestamp << std::endl;*/
             // auto networkLatency = std::chrono::duration_cast<std::chrono::microseconds>(programReceiveTime - exchangeUnixTimestamp);
 
-            printf("\nReceived size: %ld, %d, JSON: %s\n", len, (int)len, (const char *)in);
+            // printf("\nReceived size: %ld, %d, JSON: %s\n", len, (int)len, (const char *)in);
 
             if (((const char *)in)[0] == '{' && ((const char *)in)[len - 1] == '}') {
                 if (((const char *)in)[2] == 'i' || ((const char *)in)[2] == 's') {
                     break;
                 }
 
-                std::cout << "CASE 1 HIT" << std::endl;
+                // std::cout << "CASE 1 HIT" << std::endl;
                 doc.Parse((const char *)in, len);
             } else if (((const char *)in)[0] == '{') {
-                std::cout << "CASE 2 HIT" << std::endl;
+                // std::cout << "CASE 2 HIT" << std::endl;
                 memset(partial_ob_json_buffer, 0, MAX_JSON_SIZE);
                 partial_ob_json_buffer_len = 0;
 
@@ -211,13 +211,13 @@ callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,
                 partial_ob_json_buffer_len += len;
                 break;
             } else if (((const char *)in)[len - 1] == '}') {
-                std::cout << "CASE 3 HIT" << std::endl;
+                // std::cout << "CASE 3 HIT" << std::endl;
                 memcpy(partial_ob_json_buffer + partial_ob_json_buffer_len, in, len);
                 partial_ob_json_buffer_len += len;
 
                 doc.Parse(partial_ob_json_buffer, partial_ob_json_buffer_len);
             } else {
-                std::cout << "CASE 4 HIT" << std::endl;
+                // std::cout << "CASE 4 HIT" << std::endl;
                 memcpy(partial_ob_json_buffer + partial_ob_json_buffer_len, in, len);
                 partial_ob_json_buffer_len += len;
                 break;
@@ -346,61 +346,6 @@ sigint_handler(int sig)
     interrupted = 1;
 }
 
-
-// void onTradeCallBack(std::unordered_map<std::string, OrderBook>& orderBookMap, ThroughputMonitor& updateThroughputMonitor, SPSCQueue<OrderBook>& bookBuilderToStrategyQueue, const char* symbol, 
-//                     const char* action, uint64_t id, const char* side, int size, double price, const char* timestamp, system_clock::time_point marketUpdateReceiveTimestamp) {
-//     // auto programReceiveTime = Clock::now();
-//     updateThroughputMonitor.operationCompleted();
-
-//     long exchangeUpdateTimestamp = convertTimestampToTimePoint(timestamp);
-//     /*std::cout << updateExchangeTimestamp << std::endl;*/
-//     // auto networkLatency = std::chrono::duration_cast<std::chrono::microseconds>(programReceiveTime - exchangeUnixTimestamp);
-    
-//     std::string sideStr(side);
-//     if (sideStr == "Buy") {
-//         switch (action[0]) {
-//             case 'p':
-//             case 'i':
-//                 orderBookMap[symbol].insertBuy(id, price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
-//                 break;
-//             case 'u':
-//                 orderBookMap[symbol].updateBuy(id, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
-//                 break;
-//             case 'd':
-//                 orderBookMap[symbol].removeBuy(id, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
-//                 break;
-//             default:
-//                 break;
-//         }
-//     } else if (sideStr == "Sell") {
-//         switch (action[0]) {
-//             case 'p':
-//             case 'i':
-//                 orderBookMap[symbol].insertSell(id, price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
-//                 break;
-//             case 'u':
-//                 orderBookMap[symbol].updateSell(id, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
-//                 break;
-//             case 'd':
-//                 orderBookMap[symbol].removeSell(id, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
-//                 break;
-//             default:
-//                 break;
-//         }
-//     }
-    
-//     while (!bookBuilderToStrategyQueue.push(orderBookMap[symbol]));
-
-//     // auto bookBuildingEndTime = Clock::now();
-//     // auto bookBuildingDuration = std::chrono::duration_cast<std::chrono::microseconds>(bookBuildingEndTime - programReceiveTime);
-//     // std::cout << "Symbol: " << symbol << " - Action: " << action << " - Size: " << size << " - Price: " << price << " (" << side << ")" << " - id: " << id << " - Timestamp: " << updateExchangeTimestamp << std::endl;
-//     // std::cout << "Time taken to receive market update: " << networkLatency.count() << " microseconds" << std::endl;
-//     // std::cout << "Time taken to process market update: " << bookBuildingDuration.count() << " microseconds" << std::endl;
-//     // std::cout << "Timestamp: " << updateExchangeTimestamp << std::endl;
-//     // orderBook.printOrderBook();
-//     // orderBook.updateOrderBookMemoryUsage();
-// }
-
 void bookBuilder(int cpu, SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_) {
     pinThread(cpu);
 
@@ -425,7 +370,7 @@ void bookBuilder(int cpu, SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_) {
     info.port = CONTEXT_PORT_NO_LISTEN; /* we do not run any server */
     info.protocols = protocols;
     info.fd_limit_per_thread = 1 + 1 + 1;
-    // info.extensions = extensions;
+    info.extensions = extensions;
 
     context = lws_create_context(&info);
     if (!context) {

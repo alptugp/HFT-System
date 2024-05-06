@@ -21,7 +21,7 @@
 /* Global SSL context */
 SSL_CTX *ctx;
 
-#define DEFAULT_BUF_SIZE 8192
+#define RX_DEFAULT_BUF_SIZE 8192
 #define BATCH_SIZE 3
 #define EVP_MAX_MD_SIZE 64
 
@@ -210,7 +210,7 @@ void print_ssl_error()
 
 enum sslstatus do_ssl_handshake(struct ssl_client *client)
 {
-    char buf[DEFAULT_BUF_SIZE];
+    char buf[RX_DEFAULT_BUF_SIZE];
     enum sslstatus status;
 
     print_ssl_state(client);
@@ -236,7 +236,7 @@ enum sslstatus do_ssl_handshake(struct ssl_client *client)
 int on_read_cb(struct ssl_client *client, char* src, size_t len, bool is_handshake)
 {
     printf("£££££££££££££££££££££££££££££");
-    char buf[DEFAULT_BUF_SIZE];
+    char buf[RX_DEFAULT_BUF_SIZE];
     enum sslstatus status;
     int n;
 
@@ -302,7 +302,7 @@ int on_read_cb(struct ssl_client *client, char* src, size_t len, bool is_handsha
  * will be queued for later socket write. */
 int do_encrypt(struct ssl_client *client)
 {
-    char buf[DEFAULT_BUF_SIZE];
+    char buf[RX_DEFAULT_BUF_SIZE];
     enum sslstatus status;
 
     if (!SSL_is_init_finished(client->ssl))
@@ -341,7 +341,7 @@ int do_encrypt(struct ssl_client *client)
 /* Read encrypted bytes from socket. */
 int do_sock_read(struct ssl_client *client, bool is_handshake)
 {
-    char buf[DEFAULT_BUF_SIZE];
+    char buf[RX_DEFAULT_BUF_SIZE];
     ssize_t n = read(client->fd, buf, sizeof(buf));
 
     if (n>0)
@@ -401,6 +401,14 @@ void ssl_init(const char * certfile, const char* keyfile)
 
     /* Recommended to avoid SSLv2 & SSLv3 */
     SSL_CTX_set_options(ctx, SSL_OP_ALL|SSL_OP_NO_SSLv2|SSL_OP_NO_SSLv3);
+}
+
+void print_sq_poll_kernel_thread_status() {
+
+    if (system("ps --ppid 2 | grep io_uring-sq" ) == 0)
+        printf("Kernel thread io_uring-sq found running...\n");
+    else
+        printf("Kernel thread io_uring-sq is not running.\n");
 }
 
 
