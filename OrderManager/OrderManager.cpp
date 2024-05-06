@@ -139,21 +139,21 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
 
     print_sq_poll_kernel_thread_status();
 
-    memset(&params, 0, sizeof(params));
-    params.flags |= IORING_SETUP_SQPOLL;
-    params.sq_thread_idle = 20000;
+    // memset(&params, 0, sizeof(params));
+    // params.flags |= IORING_SETUP_SQPOLL;
+    // params.sq_thread_idle = 20000;
 
     // Initialize io_uring
-    if (io_uring_queue_init_params(8, &ring, &params) < 0) {
-        perror("io_uring_queue_init");
-        return;
-    }
-
-    // int ret = io_uring_queue_init(8, &ring, 0);
-    // if (ret) {
+    // if (io_uring_queue_init_params(8, &ring, &params) < 0) {
     //     perror("io_uring_queue_init");
     //     return;
     // }
+
+    int ret = io_uring_queue_init(8, &ring, 0);
+    if (ret) {
+        perror("io_uring_queue_init");
+        return;
+    }
 
     if (io_uring_register_files(&ring, sockfds, BATCH_SIZE) < 0) {
         perror("io_uring_register_files");
@@ -164,9 +164,9 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
     while (true) {
         std::string orderData[BATCH_SIZE];
 
-        for (int i = 0; i < BATCH_SIZE; ++i) { 
-            memset(tx_buff[i], 0, TX_DEFAULT_BUF_SIZE);
-        }
+        // for (int i = 0; i < BATCH_SIZE; ++i) { 
+        //     memset(tx_buff[i], 0, TX_DEFAULT_BUF_SIZE);
+        // }
 
         for (int i = 0; i < BATCH_SIZE; ++i) {
             // std::string orderData_i;
@@ -227,7 +227,7 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
 
             printf("Sending for sockfd %d\n", sockfds[i]);
             io_uring_prep_write(sqe, 0, clients[i].write_buf, clients[i].write_len, 0);
-            sqe->flags |= IOSQE_FIXED_FILE;
+            // sqe->flags |= IOSQE_FIXED_FILE;
         }
 
         if (io_uring_submit(&ring) < 0) {
