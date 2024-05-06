@@ -155,10 +155,10 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
         return;
     }
 
-    if (io_uring_register_files(&ring, sockfds, BATCH_SIZE) < 0) {
-        perror("io_uring_register_files");
-        return;
-    }
+    // if (io_uring_register_files(&ring, sockfds, BATCH_SIZE) < 0) {
+    //     perror("io_uring_register_files");
+    //     return;
+    // }
 
     int stop = 0;
     while (true) {
@@ -226,7 +226,8 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
             }
 
             printf("Sending for sockfd %d\n", sockfds[i]);
-            io_uring_prep_write(sqe, 0, clients[i].write_buf, clients[i].write_len, 0);
+            io_uring_prep_write(sqe, clients[i].fd, clients[i].write_buf, clients[i].write_len, 0);
+            // io_uring_prep_write(sqe, 0, clients[i].write_buf, clients[i].write_len, 0);
             // sqe->flags |= IOSQE_FIXED_FILE;
         }
 
