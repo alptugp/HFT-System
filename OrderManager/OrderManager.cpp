@@ -186,7 +186,7 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
             }
 
             printf("Sending for sockfd %d\n", sockfds[i]);
-            io_uring_prep_write(sqe, 0, clients[i].write_buf, clients[i].write_len, 0);
+            io_uring_prep_write(sqe, i, clients[i].write_buf, clients[i].write_len, 0);
             sqe->flags |= IOSQE_FIXED_FILE;
         }
 
