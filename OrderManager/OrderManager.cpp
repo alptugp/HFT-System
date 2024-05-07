@@ -7,6 +7,9 @@
 #include <iomanip>
 
 #define TX_DEFAULT_BUF_SIZE 128
+#define CPU_CORE_NUMBER_OFFSET_FOR_ORDER_MANAGER_THREAD 3
+#define HEARTBEAT_SENDER_PERIOD_IN_SECONDS 80 // CAN BE HIGHER?
+// #define CPU_CORE_NUMBER_OFFSET_FOR_HEARTBEAT_THREAD 3
 
 using namespace std::chrono;
 
@@ -15,8 +18,55 @@ static const char *const apiSecret = "D2OBzpfW-i6FfgmqGnrhpYqKPrxCvIYnu5KZKsZQW_
 static const char *const  verb = "POST";
 static const char *const  path = "/api/v1/order";
 
-void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) {
-    pinThread(cpu);
+// Sends a heartbeat message for each connection each 20 seconds 
+void sendPeriodicHeartbeat(struct ssl_client (&clients)[BATCH_SIZE]) {
+    while (true) {
+        for (int i = 0; i < BATCH_SIZE; ++i) { 
+            char expires[BATCH_SIZE][32];
+            char unencrypted_signature[BATCH_SIZE][256];
+            char unencrypted_request[BATCH_SIZE][1024];
+            char *signature;
+
+            time_t now = time(NULL);
+            time_t tenSecondsLater = now + 10;
+            strftime(expires[i], sizeof(expires[i]), "%s", localtime(&tenSecondsLater));
+            snprintf(unencrypted_signature[i], sizeof(unencrypted_signature[i]), "%s%s%s", "GET", "/api/v1/address", expires[i]);
+
+            signature = api_get_signature(apiSecret, strlen(apiSecret), unencrypted_signature[i], strlen(unencrypted_signature[i]));
+            
+            sprintf(unencrypted_request[i], "GET /api/v1/address HTTP/1.1\r\n"
+                                            "Host: testnet.bitmex.com\r\n"
+                                            "api-key: %s\r\n"
+                                            "api-expires: %s\r\n"
+                                            "api-signature: %s\r\n"
+                                            "Connection: keep-alive\r\n"
+                                            "\r\n",
+                                            apiKey, expires[i], signature);
+
+            send_unencrypted_bytes(&clients[i], unencrypted_request[i], strlen(unencrypted_request[i]));
+            do_encrypt(&clients[i]);
+            do_sock_write(&clients[i]);
+            int res = do_sock_read(&clients[i], false);
+            if (res == 0) 
+                std::cout << "Hearbeat message sent for connection " << i << std::endl;
+            else 
+                std::cerr << "Hearbeat message was not able to be sent for connection " << i << std::endl;
+        }
+
+        std::this_thread::sleep_for(std::chrono::seconds(HEARTBEAT_SENDER_PERIOD_IN_SECONDS));
+    }
+}
+
+void orderManager(SPSCQueue<std::string>& strategyToOrderManagerQueue) {
+    int numCores = std::thread::hardware_concurrency();
+    
+    if (numCores == 0) {
+        std::cerr << "Error: Unable to determine the number of CPU cores." << std::endl;
+        return;
+    }
+
+    int cpuCoreNumberForOrderManagerThread = numCores - CPU_CORE_NUMBER_OFFSET_FOR_ORDER_MANAGER_THREAD;
+    setThreadAffinity(pthread_self(), cpuCoreNumberForOrderManagerThread);
 
     int port = 443;
     const char* host_ip = "104.18.32.75";
@@ -103,11 +153,11 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
     struct io_uring ring;
     struct io_uring_params params;
 
-    print_sq_poll_kernel_thread_status();
+    // print_sq_poll_kernel_thread_status();
 
     memset(&params, 0, sizeof(params));
     params.flags |= IORING_SETUP_SQPOLL;
-    params.sq_thread_idle = 20000;
+    params.sq_thread_idle = 2000;
 
     // Initialize io_uring
     if (io_uring_queue_init_params(8, &ring, &params) < 0) {
@@ -126,50 +176,61 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
         return;
     }
 
+    std::thread periodicHeartbeatSender(sendPeriodicHeartbeat, std::ref(clients));
+
     int stop = 0;
     while (true) {
-        std::string orderData[BATCH_SIZE];
+        char orderData[BATCH_SIZE][TX_DEFAULT_BUF_SIZE];
+        std::string updateExchangeTimepoints[BATCH_SIZE];
+        std::string updateReceiveTimepoints[BATCH_SIZE];
+        std::string strategyTimepoints[BATCH_SIZE];
+        char expires[BATCH_SIZE][32];
+        char unencrypted_signature[BATCH_SIZE][256];
+        char unencrypted_request[BATCH_SIZE][1024];
+        char *signature;
 
         for (int i = 0; i < BATCH_SIZE; ++i) {
-            // std::string orderData_i;
-            // while (!strategyToOrderManagerQueue.pop(orderData_i)) {};
-            // orderData[i] = orderData_i.substr(0, orderData_i.length() - 39);
-            // const char *postData = orderData[i].c_str();
-            /*std::string updateExchangeTimepoint = orderData[i].substr(orderData[i].length() - 39, 13);
-            std::string updateReceiveTimepoint = orderData[i].substr(orderData[i].length() - 26, 13);
-            std::string strategyTimepoint = orderData[i].substr(orderData[i].length() - 13);*/
+            std::string orderData_i;
+            size_t sizeOrderData_i;
 
-            const char * postData = "symbol=XBTUSDT&side=Sell&orderQty=1000&price=1&ordType=Limit";
-            orderData[i] = std::string(postData);
-        }
+            while (!strategyToOrderManagerQueue.pop(orderData_i)) {};
 
-        for (int i = 0; i < BATCH_SIZE; ++i) {
-            char expires[20];
-            char unencrypted_signature[256];
+            sizeOrderData_i = orderData_i.length();
+            strcpy(orderData[i], orderData_i.substr(0, sizeOrderData_i - 39).c_str());
+            // std::cout << orderData[i] << std::endl;
+            updateExchangeTimepoints[i] = orderData_i.substr(sizeOrderData_i - 39, 13);
+            updateReceiveTimepoints[i] = orderData_i.substr(sizeOrderData_i - 26, 13);
+            strategyTimepoints[i] = orderData_i.substr(sizeOrderData_i - 13);
+
+            // updateExchangeTimepoints[i] = "1715025821119";
+            // updateReceiveTimepoints[i] = "1715025821119"; 
+            // strategyTimepoints[i] = "1715025821119"; 
+            // const char * postData = "symbol=XBTUSDT&side=Sell&orderQty=1000&price=1&ordType=Limit";
+            // strcpy(orderData[i], postData);
 
             time_t now = time(NULL);
             time_t tenSecondsLater = now + 10;
-            strftime(expires, sizeof(expires), "%s", localtime(&tenSecondsLater));
+            strftime(expires[i], sizeof(expires[i]), "%s", localtime(&tenSecondsLater));
 
-            snprintf(unencrypted_signature, sizeof(unencrypted_signature), "%s%s%s%s", verb, path, expires, orderData[i].c_str());
-            char *signature = api_get_signature(apiSecret, strlen(apiSecret), unencrypted_signature, strlen(unencrypted_signature));
+            snprintf(unencrypted_signature[i], sizeof(unencrypted_signature[i]), "%s%s%s%s", verb, path, expires[i], orderData[i]);
+            signature = api_get_signature(apiSecret, strlen(apiSecret), unencrypted_signature[i], strlen(unencrypted_signature[i]));
 
-            printf("Unix Timestamp (expires): %s\n", expires);
-            printf("Unencrypted signature form: %s\n", unencrypted_signature);
+            printf("Unix Timestamp (expires): %s\n", expires[i]);
+            printf("Unencrypted signature form: %s, strlen: %ld, sizeof: %ld\n", unencrypted_signature[i], strlen(unencrypted_signature[i]), sizeof(unencrypted_signature[i]));
             printf("Encrypted hexadecimal signature: %s\n", signature);
 
-            char unencrypted_request[1024];
-            sprintf(unencrypted_request, "POST /api/v1/order HTTP/1.1\r\n"
+            sprintf(unencrypted_request[i], "POST /api/v1/order HTTP/1.1\r\n"
                                          "Host: testnet.bitmex.com\r\n"
                                          "api-key: %s\r\n"
                                          "api-expires: %s\r\n"
                                          "api-signature: %s\r\n"
                                          "Content-Type: application/x-www-form-urlencoded\r\n"
                                          "Content-Length: %zu\r\n"
+                                         "Connection: keep-alive\r\n"
                                          "\r\n"
-                                         "%s", apiKey, expires, signature, orderData[i].length(), orderData[i].c_str());
+                                         "%s", apiKey, expires[i], signature, strlen(orderData[i]), orderData[i]);
 
-            send_unencrypted_bytes(&clients[i], unencrypted_request, strlen(unencrypted_request));
+            send_unencrypted_bytes(&clients[i], unencrypted_request[i], strlen(unencrypted_request[i]));
             do_encrypt(&clients[i]);
         }
 
@@ -200,6 +261,15 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
         system_clock::time_point submissionTimestamp = high_resolution_clock::now();
         std::string submissionTimepoint = std::to_string(duration_cast<milliseconds>(submissionTimestamp.time_since_epoch()).count());
 
+        // for (int i = 0; i < BATCH_SIZE; ++i) {
+        //     // Check if session was resumed
+        //     if (SSL_session_reused(clients[i].ssl)) {
+        //         printf("SSL session was resumed\n");
+        //     } else {
+        //         printf("New SSL session was established\n");
+        //     }
+        // }
+
         // Wait for completions
         for (int i = 0; i < BATCH_SIZE; ++i) {
             int ret = io_uring_wait_cqe(&ring, &cqe);
@@ -226,7 +296,7 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
             io_uring_cqe_seen(&ring, cqe);
         }
 
-        print_sq_poll_kernel_thread_status();
+        // print_sq_poll_kernel_thread_status();
 
         int break_polling = 0;
         while (true) {
@@ -238,7 +308,6 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
 
             for (int i = 0; i < BATCH_SIZE; ++i) {
                 int revents = fdset[i].revents;
-
                 if (revents & POLLIN) {
                     int bytes_read = do_sock_read(&clients[i], false);
                     size_t last_char_index = strlen(clients[i].response_buf) - 1;
@@ -250,9 +319,15 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
                         std::cout
                         << "\n===========================================================================================\n"
                         << "NEW ORDER EXECUTED\n"
-                        << exchangeExecutionTimestamp
                         << "\nSubmission to Execution (ms): "
                         << getTimeDifferenceInMillis(submissionTimepoint, std::to_string(exchangeExecutionTimestamp)) << "      "
+                        << "\nExchange to Receival (ms): "
+                        << getTimeDifferenceInMillis(updateExchangeTimepoints[i], updateReceiveTimepoints[i]) << "      "
+                        << "\nReceival to Detection (ms): "
+                        << getTimeDifferenceInMillis(updateReceiveTimepoints[i], strategyTimepoints[i]) << "      "
+                        << "\nDetection to Submission (ms): "
+                        << getTimeDifferenceInMillis(strategyTimepoints[i], submissionTimepoint) << "      "
+                        << "\nTotal Latency: " << getTimeDifferenceInMillis(updateExchangeTimepoints[i], std::to_string(exchangeExecutionTimestamp))
                         << "\n===========================================================================================\n"
                         << std::endl;
 
@@ -275,6 +350,8 @@ void orderManager(int cpu, SPSCQueue<std::string>& strategyToOrderManagerQueue) 
         if (stop == 2)
             break;
     }
+
+    periodicHeartbeatSender.join();
 
 
     for (int i = 0; i < BATCH_SIZE; ++i) {

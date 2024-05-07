@@ -210,12 +210,13 @@ void print_ssl_error()
 
 enum sslstatus do_ssl_handshake(struct ssl_client *client)
 {
+    printf("DOING SSL HANDSHAKE\n");
     char buf[RX_DEFAULT_BUF_SIZE];
     enum sslstatus status;
 
     print_ssl_state(client);
     int n = SSL_do_handshake(client->ssl);
-    print_ssl_state(client);
+    print_ssl_state(client);    
     status = get_sslstatus(client->ssl, n);
 
     /* Did SSL request to write bytes? */
@@ -235,13 +236,13 @@ enum sslstatus do_ssl_handshake(struct ssl_client *client)
    SSL object to be unencrypted.  On success, returns 0, on SSL error -1. */
 int on_read_cb(struct ssl_client *client, char* src, size_t len, bool is_handshake)
 {
-    printf("£££££££££££££££££££££££££££££");
+    // printf("£££££££££££££££££££££££££££££");
     char buf[RX_DEFAULT_BUF_SIZE];
     enum sslstatus status;
     int n;
 
     while (len > 0) {
-        printf("###################################");
+        // printf("###################################");
         n = BIO_write(client->rbio, src, len);
 
         if (n<=0)
@@ -261,11 +262,11 @@ int on_read_cb(struct ssl_client *client, char* src, size_t len, bool is_handsha
          * read of unencrypted data. */
         size_t total_bytes_read = strlen(client->response_buf);
         do {
-            printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+            // printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
             n = SSL_read(client->ssl, buf, sizeof(buf));
-            printf("BYTES READ: %d", n);
+            // printf("BYTES READ: %d", n);
             if (n > 0) {
-                client->io_on_read(buf, (size_t)n);
+                // client->io_on_read(buf, (size_t)n);
                 if (!is_handshake) {
                     // Append the data read from buf to response_buf
                     memcpy(client->response_buf + total_bytes_read, buf, n);
@@ -398,9 +399,11 @@ void ssl_init(const char * certfile, const char* keyfile)
             printf("certificate and private key loaded and verified\n");
     }
 
-
     /* Recommended to avoid SSLv2 & SSLv3 */
     SSL_CTX_set_options(ctx, SSL_OP_ALL|SSL_OP_NO_SSLv2|SSL_OP_NO_SSLv3);
+
+    // Enable session caching
+    SSL_CTX_set_session_cache_mode(ctx, SSL_SESS_CACHE_CLIENT | SSL_SESS_CACHE_NO_INTERNAL);
 }
 
 void print_sq_poll_kernel_thread_status() {

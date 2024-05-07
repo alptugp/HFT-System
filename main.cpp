@@ -20,7 +20,7 @@ void bench(int cpu1, int cpu2) {
 
   T q(queueSize);
   auto t1 = std::thread([&] {
-    pinThread(cpu1);
+    setThreadAffinity(pthread_self(), cpu1);
     for (int i = 0; i < iters; ++i) {
       OrderBook orderBook;
       while (!q.pop(orderBook));
@@ -33,7 +33,7 @@ void bench(int cpu1, int cpu2) {
   auto start = std::chrono::steady_clock::now();  
 
   auto t2 = std::thread([&] {
-    pinThread(cpu2);
+    setThreadAffinity(pthread_self(), cpu2);
     
     for (int i = 0; i < iters; ++i) {
       OrderBook orderBook(std::to_string(i));
@@ -50,21 +50,21 @@ void bench(int cpu1, int cpu2) {
   t2.join();
 }
 
-void runAlgo(int cpu1, int cpu2, int cpu3)  {   
+void runAlgo()  {   
     const size_t queueSize = 10000;
     SPSCQueue<OrderBook> builderToStrategyQueue(queueSize);
     SPSCQueue<std::string> strategyToOrderManagerQueue(queueSize);
 
-    auto t1 = std::thread([&cpu1, &builderToStrategyQueue, &strategyToOrderManagerQueue] {
-      strategy(cpu1, builderToStrategyQueue, strategyToOrderManagerQueue);
+    auto t1 = std::thread([&builderToStrategyQueue, &strategyToOrderManagerQueue] {
+      strategy(builderToStrategyQueue, strategyToOrderManagerQueue);
     });
 
-    auto t2 = std::thread([&cpu2, &builderToStrategyQueue] {
-      bookBuilder(cpu2, builderToStrategyQueue);
+    auto t2 = std::thread([&builderToStrategyQueue] {
+      bookBuilder(builderToStrategyQueue);
     });
 
-    auto t3 = std::thread([&cpu3, &strategyToOrderManagerQueue] {
-      orderManager(cpu3, strategyToOrderManagerQueue);
+    auto t3 = std::thread([&strategyToOrderManagerQueue] {
+      orderManager(strategyToOrderManagerQueue);
     });
 
     t2.join();
@@ -73,18 +73,10 @@ void runAlgo(int cpu1, int cpu2, int cpu3)  {
 }
 
 int main(int argc, char *argv[]) {
-  int cpu1 = -1;
-  int cpu2 = -1;
-  int cpu3 = -1;
-  
-  if (argc == 4) {
-    cpu1 = std::stoi(argv[1]);
-    cpu2 = std::stoi(argv[2]);
-    cpu3 = std::stoi(argv[3]);
-  }
-
+  // int cpu1 = 1;
+  // int cpu2 = 2;
   // bench<SPSCQueue<OrderBook>>(cpu1, cpu2);
-  runAlgo(cpu1, cpu2, cpu3);
+  runAlgo();
 
   return 0;
 }

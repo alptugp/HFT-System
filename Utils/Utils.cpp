@@ -49,16 +49,20 @@ long long getTimeDifferenceInMillis(const std::string& strTime1, const std::stri
     return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
 }
 
-void pinThread(int cpu) {
-  if (cpu < 0) {
+
+// Function to set CPU affinity of a thread
+void setThreadAffinity(pthread_t thread, int cpuCore) {
+  if (cpuCore < 0) {
     return;
   }
+
   cpu_set_t cpuset;
   CPU_ZERO(&cpuset);
-  CPU_SET(cpu, &cpuset);
-  if (pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset) == -1) {
+  CPU_SET(cpuCore, &cpuset);
+  
+  if (pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset) == -1) {
     perror("pthread_setaffinity_no");
     exit(1);
-  }
+  };
 }
 

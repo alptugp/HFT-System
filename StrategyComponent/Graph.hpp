@@ -25,6 +25,6 @@ public:
     double getExchangeRateBetween(int u, int v);
 };
 
-void strategy(int cpu, SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::string>& strategyToOrderManagerQueue);
+void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::string>& strategyToOrderManagerQueue);
 
 #endif // GRAPH_HPP

@@ -9,6 +9,7 @@
 #include "../Utils/Utils.hpp"
 
 #define MAX_JSON_SIZE 8192
+#define CPU_CORE_NUMBER_OFFSET_FOR_BOOK_BUILDER_THREAD 2
 
 using namespace rapidjson;
 using namespace std::chrono;
@@ -172,7 +173,6 @@ callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,
     system_clock::time_point marketUpdateReceiveTimestamp;
     long exchangeUpdateTimestamp;
     
-
     switch (reason) {
         case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
             lwsl_err("CLIENT_CONNECTION_ERROR: %s\n",
@@ -346,8 +346,16 @@ sigint_handler(int sig)
     interrupted = 1;
 }
 
-void bookBuilder(int cpu, SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_) {
-    pinThread(cpu);
+void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_) {
+    int numCores = std::thread::hardware_concurrency();
+    
+    if (numCores == 0) {
+        std::cerr << "Error: Unable to determine the number of CPU cores." << std::endl;
+        return;
+    }
+
+    int cpuCoreNumberForBookBuilderThread = numCores - CPU_CORE_NUMBER_OFFSET_FOR_BOOK_BUILDER_THREAD;
+    setThreadAffinity(pthread_self(), cpuCoreNumberForBookBuilderThread);
 
     for (std::string currencyPair : currencyPairs) { 
         orderBookMap[currencyPair] = OrderBook(currencyPair);

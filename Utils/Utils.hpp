@@ -10,6 +10,6 @@
 
 long convertTimestampToTimePoint(const std::string& timestamp);
 long long getTimeDifferenceInMillis(const std::string& strTime1, const std::string& strTime2);
-void pinThread(int cpu);
+void setThreadAffinity(pthread_t thread, int cpuCore);
 
 #endif // UTILS_H

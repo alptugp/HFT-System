@@ -1,5 +1,7 @@
 #include "Graph.hpp"
 
+#define CPU_CORE_NUMBER_OFFSET_FOR_STRATEGY_THREAD 1
+
 using namespace std::chrono;
 
 Graph::Graph(int vertices) : V(vertices) {
@@ -40,8 +42,17 @@ double Graph::getExchangeRateBetween(int u, int v) {
     return adjList[u][v];
 }
 
-void strategy(int cpu, SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::string>& strategyToOrderManagerQueue) {
-    pinThread(cpu);
+void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::string>& strategyToOrderManagerQueue) {
+    int numCores = std::thread::hardware_concurrency();
+    
+    if (numCores == 0) {
+        std::cerr << "Error: Unable to determine the number of CPU cores." << std::endl;
+        return;
+    }
+
+    int cpuCoreNumberForStrategyThread = numCores - CPU_CORE_NUMBER_OFFSET_FOR_STRATEGY_THREAD;
+    setThreadAffinity(pthread_self(), cpuCoreNumberForStrategyThread);
+
     Graph graph(3);
 
     std::unordered_map<std::string, int> symbolToGraphIndex;   
@@ -80,9 +91,9 @@ void strategy(int cpu, SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<s
                 << "Exchange-Receival (ms): " << duration_cast<milliseconds>(updateReceiveTimepoint - updateExchangeTimepoint).count() << "      "
                 << "Receival-Detection (ms): " << duration_cast<milliseconds>(strategyTimestamp - updateReceiveTimepoint).count() << "      "
 
-                << "Exch. Ts.: " << updateExchangeTimestamp << "      "
-                << "Rec. Ts.: " << std::to_string(duration_cast<milliseconds>(updateReceiveTimepoint.time_since_epoch()).count()) << "      "
-                << "Strat. Ts.: " << strategyTimepoint
+                // << "Exch. Ts.: " << updateExchangeTimestamp << "      "
+                // << "Rec. Ts.: " << std::to_string(duration_cast<milliseconds>(updateReceiveTimepoint.time_since_epoch()).count()) << "      "
+                // << "Strat. Ts.: " << strategyTimepoint
                 << std::endl;
       if (startingTimestamp == time_point<std::chrono::system_clock>::min()) {
             startingTimestamp = updateExchangeTimepoint;
