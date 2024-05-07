@@ -357,6 +357,11 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_) {
     int cpuCoreNumberForBookBuilderThread = numCores - CPU_CORE_NUMBER_OFFSET_FOR_BOOK_BUILDER_THREAD;
     setThreadAffinity(pthread_self(), cpuCoreNumberForBookBuilderThread);
 
+    // Set the current thread's real-time priority to highest value
+    struct sched_param schedParams;
+    schedParams.sched_priority = sched_get_priority_max(SCHED_FIFO);
+    pthread_setschedparam(pthread_self(), SCHED_FIFO, &schedParams);
+
     for (std::string currencyPair : currencyPairs) { 
         orderBookMap[currencyPair] = OrderBook(currencyPair);
     }

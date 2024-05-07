@@ -9,6 +9,7 @@
 #define TX_DEFAULT_BUF_SIZE 128
 #define CPU_CORE_NUMBER_OFFSET_FOR_ORDER_MANAGER_THREAD 3
 #define HEARTBEAT_SENDER_PERIOD_IN_SECONDS 80 // CAN BE HIGHER?
+#define NUMBER_OF_IO_URING_SQ_ENTRIES 8
 // #define CPU_CORE_NUMBER_OFFSET_FOR_HEARTBEAT_THREAD 3
 
 using namespace std::chrono;
@@ -67,6 +68,11 @@ void orderManager(SPSCQueue<std::string>& strategyToOrderManagerQueue) {
 
     int cpuCoreNumberForOrderManagerThread = numCores - CPU_CORE_NUMBER_OFFSET_FOR_ORDER_MANAGER_THREAD;
     setThreadAffinity(pthread_self(), cpuCoreNumberForOrderManagerThread);
+
+    // Set the current thread's real-time priority to highest value
+    struct sched_param schedParams;
+    schedParams.sched_priority = sched_get_priority_max(SCHED_FIFO);
+    pthread_setschedparam(pthread_self(), SCHED_FIFO, &schedParams);
 
     int port = 443;
     const char* host_ip = "104.18.32.75";
@@ -153,23 +159,28 @@ void orderManager(SPSCQueue<std::string>& strategyToOrderManagerQueue) {
     struct io_uring ring;
     struct io_uring_params params;
 
-    // print_sq_poll_kernel_thread_status();
-
-    memset(&params, 0, sizeof(params));
-    params.flags |= IORING_SETUP_SQPOLL;
-    params.sq_thread_idle = 2000;
+    print_sq_poll_kernel_thread_status();
 
     // Initialize io_uring
-    if (io_uring_queue_init_params(8, &ring, &params) < 0) {
-        perror("io_uring_queue_init");
-        return;
+    // Use submission queue polling if user has root privileges
+    if (geteuid()) {
+        printf("You need root privileges to run the Order Manager with submission queue polling\n");
+        int ret = io_uring_queue_init(NUMBER_OF_IO_URING_SQ_ENTRIES, &ring, 0);
+        if (ret) {
+            perror("io_uring_queue_init");
+            return;
+        }
+    } else {
+        printf("Running the Order Manager with submission queue polling\n");
+        memset(&params, 0, sizeof(params));
+        params.flags |= IORING_SETUP_SQPOLL;
+        params.sq_thread_idle = 2000;
+        int ret = io_uring_queue_init_params(NUMBER_OF_IO_URING_SQ_ENTRIES, &ring, &params);
+        if (ret) {
+            perror("io_uring_queue_init");
+            return;
+        }
     }
-
-    // int ret = io_uring_queue_init(8, &ring, 0);
-    // if (ret) {
-    //     perror("io_uring_queue_init");
-    //     return;
-    // }
 
     if (io_uring_register_files(&ring, sockfds, BATCH_SIZE) < 0) {
         perror("io_uring_register_files");

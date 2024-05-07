@@ -53,6 +53,11 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
     int cpuCoreNumberForStrategyThread = numCores - CPU_CORE_NUMBER_OFFSET_FOR_STRATEGY_THREAD;
     setThreadAffinity(pthread_self(), cpuCoreNumberForStrategyThread);
 
+    // Set the current thread's real-time priority to highest value
+    struct sched_param schedParams;
+    schedParams.sched_priority = sched_get_priority_max(SCHED_FIFO);
+    pthread_setschedparam(pthread_self(), SCHED_FIFO, &schedParams);
+
     Graph graph(3);
 
     std::unordered_map<std::string, int> symbolToGraphIndex;   
