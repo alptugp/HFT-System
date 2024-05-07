@@ -437,9 +437,7 @@ Document extract_json(const std::string& response) {
     }
 }
 
-std::string getCurrentTime() {
-    // Get current time
-    auto now = std::chrono::system_clock::now();
+std::string getCurrentTime(std::chrono::system_clock::time_point now) {
     auto now_time_t = std::chrono::system_clock::to_time_t(now);
 
     // Format time

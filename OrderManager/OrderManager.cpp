@@ -48,9 +48,9 @@ void sendPeriodicHeartbeat(struct ssl_client (&clients)[BATCH_SIZE]) {
             do_sock_write(&clients[i]);
             int res = do_sock_read(&clients[i], false);
             if (res == 0) 
-                std::cout << "Hearbeat message sent for connection " << i << std::endl;
+                std::cout << "HEARTBEAT MESSAGE SENT FOR CONNECTION " << i << std::endl;
             else 
-                std::cerr << "Hearbeat message was not able to be sent for connection " << i << std::endl;
+                std::cerr << "HEARTBEAT MESSAGE WAS NOT ABLE TO BE SENT FOR CONNECTION " << i << std::endl;
         }
 
         std::this_thread::sleep_for(std::chrono::seconds(HEARTBEAT_SENDER_PERIOD_IN_SECONDS));
@@ -179,11 +179,14 @@ void orderManager(SPSCQueue<std::string>& strategyToOrderManagerQueue) {
     std::thread periodicHeartbeatSender(sendPeriodicHeartbeat, std::ref(clients));
 
     int stop = 0;
+    struct io_uring_sqe *sqe;
+    struct io_uring_cqe *cqe;
     while (true) {
         char orderData[BATCH_SIZE][TX_DEFAULT_BUF_SIZE];
-        std::string updateExchangeTimepoints[BATCH_SIZE];
-        std::string updateReceiveTimepoints[BATCH_SIZE];
-        std::string strategyTimepoints[BATCH_SIZE];
+        std::string exchangeUpdateTxTimepoints[BATCH_SIZE];
+        std::string bookBuilderUpdateRxTimepoints[BATCH_SIZE];
+        std::string strategyComponentArbitrageDetectionTimepoints[BATCH_SIZE];
+        std::string orderManagerOrderDetectionTimepoints[BATCH_SIZE];
         char expires[BATCH_SIZE][32];
         char unencrypted_signature[BATCH_SIZE][256];
         char unencrypted_request[BATCH_SIZE][1024];
@@ -194,17 +197,19 @@ void orderManager(SPSCQueue<std::string>& strategyToOrderManagerQueue) {
             size_t sizeOrderData_i;
 
             while (!strategyToOrderManagerQueue.pop(orderData_i)) {};
-
+            system_clock::time_point orderDetectionTimepoint = high_resolution_clock::now();
+            orderManagerOrderDetectionTimepoints[i] = std::to_string(duration_cast<milliseconds>(orderDetectionTimepoint.time_since_epoch()).count());
+            
             sizeOrderData_i = orderData_i.length();
             strcpy(orderData[i], orderData_i.substr(0, sizeOrderData_i - 39).c_str());
             // std::cout << orderData[i] << std::endl;
-            updateExchangeTimepoints[i] = orderData_i.substr(sizeOrderData_i - 39, 13);
-            updateReceiveTimepoints[i] = orderData_i.substr(sizeOrderData_i - 26, 13);
-            strategyTimepoints[i] = orderData_i.substr(sizeOrderData_i - 13);
+            exchangeUpdateTxTimepoints[i] = orderData_i.substr(sizeOrderData_i - 39, 13);
+            bookBuilderUpdateRxTimepoints[i] = orderData_i.substr(sizeOrderData_i - 26, 13);
+            strategyComponentArbitrageDetectionTimepoints[i] = orderData_i.substr(sizeOrderData_i - 13);
 
-            // updateExchangeTimepoints[i] = "1715025821119";
-            // updateReceiveTimepoints[i] = "1715025821119"; 
-            // strategyTimepoints[i] = "1715025821119"; 
+            // exchangeUpdateTxTimepoints[i] = "1715025821119";
+            // bookBuilderUpdateRxTimepoints[i] = "1715025821119"; 
+            // strategyComponentArbitrageDetectionTimepoints[i] = "1715025821119"; 
             // const char * postData = "symbol=XBTUSDT&side=Sell&orderQty=1000&price=1&ordType=Limit";
             // strcpy(orderData[i], postData);
 
@@ -234,9 +239,6 @@ void orderManager(SPSCQueue<std::string>& strategyToOrderManagerQueue) {
             do_encrypt(&clients[i]);
         }
 
-        struct io_uring_sqe *sqe;
-        struct io_uring_cqe *cqe;
-
         for (int i = 0; i < BATCH_SIZE; ++i) {
             sqe = io_uring_get_sqe(&ring);
 
@@ -257,9 +259,9 @@ void orderManager(SPSCQueue<std::string>& strategyToOrderManagerQueue) {
             return;
         }
         
-        std::cout << "IO_URING SUBMISSION TIME: " << getCurrentTime() << std::endl;
         system_clock::time_point submissionTimestamp = high_resolution_clock::now();
         std::string submissionTimepoint = std::to_string(duration_cast<milliseconds>(submissionTimestamp.time_since_epoch()).count());
+        std::cout << "IO_URING SUBMISSION TIME: " << getCurrentTime(submissionTimestamp) << std::endl;
 
         // for (int i = 0; i < BATCH_SIZE; ++i) {
         //     // Check if session was resumed
@@ -319,15 +321,19 @@ void orderManager(SPSCQueue<std::string>& strategyToOrderManagerQueue) {
                         std::cout
                         << "\n===========================================================================================\n"
                         << "NEW ORDER EXECUTED\n"
-                        << "\nSubmission to Execution (ms): "
-                        << getTimeDifferenceInMillis(submissionTimepoint, std::to_string(exchangeExecutionTimestamp)) << "      "
-                        << "\nExchange to Receival (ms): "
-                        << getTimeDifferenceInMillis(updateExchangeTimepoints[i], updateReceiveTimepoints[i]) << "      "
-                        << "\nReceival to Detection (ms): "
-                        << getTimeDifferenceInMillis(updateReceiveTimepoints[i], strategyTimepoints[i]) << "      "
-                        << "\nDetection to Submission (ms): "
-                        << getTimeDifferenceInMillis(strategyTimepoints[i], submissionTimepoint) << "      "
-                        << "\nTotal Latency: " << getTimeDifferenceInMillis(updateExchangeTimepoints[i], std::to_string(exchangeExecutionTimestamp))
+                        << "\nExchange Update Occurence to Update Receival (Book Builder) (ms): "
+                        << getTimeDifferenceInMillis(exchangeUpdateTxTimepoints[i], bookBuilderUpdateRxTimepoints[i]) << "      "
+                        << "\nUpdate Receival (Book Builder) to Arbitrage Detection (Strategy Component) (ms): "
+                        << getTimeDifferenceInMillis(bookBuilderUpdateRxTimepoints[i], strategyComponentArbitrageDetectionTimepoints[i]) << "      "
+                        << "\nArbitrage Detection (Strategy Component) to io_uring Submission (Order Manager) (ms): "
+                        << getTimeDifferenceInMillis(strategyComponentArbitrageDetectionTimepoints[i], submissionTimepoint) << "      "
+                        << "\nio_uring Submission (Order Manager) to Exchange Order Execution (ms): "
+                        << getTimeDifferenceInMillis(submissionTimepoint, std::to_string(exchangeExecutionTimestamp)) << "     \n "
+
+                        << "\nOrder Manager Latency (ms): "
+                        << getTimeDifferenceInMillis(orderManagerOrderDetectionTimepoints[i], submissionTimepoint) << "      "
+                        
+                        << "\nTotal Latency: " << getTimeDifferenceInMillis(exchangeUpdateTxTimepoints[i], std::to_string(exchangeExecutionTimestamp))
                         << "\n===========================================================================================\n"
                         << std::endl;
 
@@ -345,10 +351,10 @@ void orderManager(SPSCQueue<std::string>& strategyToOrderManagerQueue) {
                 break;
         }
 
-        stop++;
+        // stop++;
 
-        if (stop == 2)
-            break;
+        // if (stop == 2)
+        //     break;
     }
 
     periodicHeartbeatSender.join();
