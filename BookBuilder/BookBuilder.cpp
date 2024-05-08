@@ -3,6 +3,7 @@
 #include <string>
 #include <signal.h>
 #include <chrono>
+#include <ev.h>
 #include "./OrderBook/OrderBook.hpp"
 #include "./ThroughputMonitor/ThroughputMonitor.hpp"
 #include "../SPSCQueue/SPSCQueue.hpp"
@@ -23,8 +24,12 @@ const std::vector<std::string> currencyPairs = {"XBTETH", "XBTUSDT", "ETHUSDT"};
 // const std::vector<std::string> currencyPairs = {"XBTUSD", "ETHUSD", "XBTETH", "XBTUSDT", "SOLUSD", "XRPUSD", "LINKUSD", "SOLUSD", "XRPUSD"};
 // const std::vector<std::string> currencyPairs = {"XBTUSD", "ETHUSD", "SOLUSD", "XBTUSDT", "DOGEUSD", "XBTH24", "LINKUSD", "XRPUSD", "SOLUSDT", "BCHUSD"};
 
+static int interrupted, rx_seen, test;
 static struct lws *client_wsi;
-static int interrupted, test;
+
+static struct ev_loop *loop_ev; 
+ev_io socket_watcher;
+ev_timer timeout_watcher;
 
 static char partial_ob_json_buffer[MAX_JSON_SIZE];
 static size_t partial_ob_json_buffer_len = 0;
@@ -182,15 +187,15 @@ book_builder_lws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
 
             // Send subscription message here
             for (const std::string& currencyPair : currencyPairs) { 
-                std::string subscriptionMessage = "{\"op\":\"subscribe\",\"args\":[\"orderBookL2_25:" + currencyPair + "\"]}";
-                // Allocate buffer with LWS_PRE bytes before the data
-                unsigned char buf[LWS_PRE + subscriptionMessage.size()];
+                    std::string subscriptionMessage = "{\"op\":\"subscribe\",\"args\":[\"orderBookL2_25:" + currencyPair + "\"]}";
+                    // Allocate buffer with LWS_PRE bytes before the data
+                    unsigned char buf[LWS_PRE + subscriptionMessage.size()];
 
-                // Copy subscription message to buffer after LWS_PRE bytes
-                memcpy(&buf[LWS_PRE], subscriptionMessage.c_str(), subscriptionMessage.size());
-                
-                // Send data using lws_write
-                lws_write(wsi, &buf[LWS_PRE], subscriptionMessage.size(), LWS_WRITE_TEXT);
+                    // Copy subscription message to buffer after LWS_PRE bytes
+                    memcpy(&buf[LWS_PRE], subscriptionMessage.c_str(), subscriptionMessage.size());
+                    
+                    // Send data using lws_write
+                    lws_write(wsi, &buf[LWS_PRE], subscriptionMessage.size(), LWS_WRITE_TEXT);
             }
             break;
 
@@ -214,6 +219,19 @@ static void
 sigint_handler(int sig)
 {
     interrupted = 1;
+}
+
+static void socket_cb (EV_P_ ev_io *w, int revents) {
+  puts ("SOCKET ready");
+}
+
+// another callback, this time for a time-out
+static void
+timeout_cb (EV_P_ ev_timer *w, int revents)
+{
+  puts ("timeout");
+  // this causes the innermost ev_run to stop iterating
+  ev_break (EV_A_ EVBREAK_ONE);
 }
 
 void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_) {
@@ -260,14 +278,18 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_) {
 	// test = !!lws_cmdline_option(argc, argv, "-t");
 
 	lws_set_log_level(logs, NULL);
-	lwsl_user("LWS minimal ws client rx [-d <logs>] [--h2] [-t (test)]\n");
-    
-    // ev_loop = ev_default_loop(0);
+	lwsl_user("LWS Book Builder ws client rx [-d <logs>] [--h2] [-t (test)]\n");
 
 	memset(&info, 0, sizeof info);
 	info.options = LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT | LWS_WITH_LIBEV;;
 	info.port = CONTEXT_PORT_NO_LISTEN; 
 	info.protocols = protocols;
+
+    loop_ev = EV_DEFAULT;
+    void *foreign_loops[1];
+    foreign_loops[0] = loop_ev;
+    info.foreign_loops = foreign_loops;
+
 
 	info.fd_limit_per_thread = 1 + 1 + 1;
 
@@ -292,6 +314,17 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_) {
 
 	while (n >= 0 && client_wsi && !interrupted)
 		n = lws_service(context, 0);
+
+    // // lws_service(context, 0);
+    // ev_io_init (&socket_watcher, socket_cb, lws_get_socket_fd(client_wsi), EV_READ);
+    // ev_io_start (loop_ev, &socket_watcher);
+    
+    // // initialise a timer watcher, then start it
+    // // simple non-repeating 5.5 second timeout
+    // ev_timer_init (&timeout_watcher, timeout_cb, 5.5, 0.);
+    // ev_timer_start (loop_ev, &timeout_watcher);
+
+    // ev_run (loop_ev, 0);
 
 	lws_context_destroy(context);    
 }

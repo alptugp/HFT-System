@@ -28,4 +28,4 @@ target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_11)
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Werror -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter)
 
 # Linked Libraries
-target_link_libraries(${PROJECT_NAME} PRIVATE uring pthread crypto ssl curl websockets)
+target_link_libraries(${PROJECT_NAME} PRIVATE uring pthread crypto ssl curl websockets ev)
