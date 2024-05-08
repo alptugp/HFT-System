@@ -23,140 +23,25 @@ const std::vector<std::string> currencyPairs = {"XBTETH", "XBTUSDT", "ETHUSDT"};
 // const std::vector<std::string> currencyPairs = {"XBTUSD", "ETHUSD", "XBTETH", "XBTUSDT", "SOLUSD", "XRPUSD", "LINKUSD", "SOLUSD", "XRPUSD"};
 // const std::vector<std::string> currencyPairs = {"XBTUSD", "ETHUSD", "SOLUSD", "XBTUSDT", "DOGEUSD", "XBTH24", "LINKUSD", "XRPUSD", "SOLUSDT", "BCHUSD"};
 
-typedef struct range {
-    uint64_t		sum;
-    uint64_t		lowest;
-    uint64_t		highest;
-
-    unsigned int		samples;
-} range_t;
-
-static struct my_conn {
-    lws_sorted_usec_list_t	sul;	     /* schedule connection retry */
-    lws_sorted_usec_list_t	sul_hz;	     /* 1hz summary */
-
-    range_t			e_lat_range;
-    range_t			price_range;
-
-    struct lws		*wsi;	     /* related wsi if any */
-    uint16_t		retry_count; /* count of consequetive retries */
-} mco;
-
-static struct lws_context *context;
-static int interrupted;
-
-static const uint32_t backoff_ms[] = { 1000, 2000, 3000, 4000, 5000 };
-
-static const lws_retry_bo_t retry = {
-        .retry_ms_table			= backoff_ms,
-        .retry_ms_table_count		= LWS_ARRAY_SIZE(backoff_ms),
-        .conceal_count			= LWS_ARRAY_SIZE(backoff_ms),
-
-        .secs_since_valid_ping		= 400,  /* force PINGs after secs idle */
-        .secs_since_valid_hangup	= 400, /* hangup after secs idle */
-
-        .jitter_percent			= 0,
-}; 
-
-static const struct lws_extension extensions[] = {
-        {
-                "permessage-deflate",
-                lws_extension_callback_pm_deflate,
-                      "permessage-deflate"
-                      "; client_no_context_takeover"
-                      "; client_max_window_bits"
-        },
-        { NULL, NULL, NULL /* terminator */ }
-};
-
-/*
- * Scheduled sul callback that starts the connection attempt
- */
-
-static void
-connect_client(lws_sorted_usec_list_t *sul)
-{
-    struct my_conn *mco = lws_container_of(sul, struct my_conn, sul);
-    struct lws_client_connect_info i;
-
-    memset(&i, 0, sizeof(i));
-
-    i.context = context;
-    i.port = 443;
-
-    // i.address = "ws.bitmex.com";
-    i.address = "ws.testnet.bitmex.com";
-    i.path = "/realtime";
-    i.host = i.address;
-    i.origin = i.address;
-    i.ssl_connection = LCCSCF_USE_SSL | LCCSCF_PRIORITIZE_READS;
-    i.protocol = NULL;
-    i.local_protocol_name = "lws-minimal-client";
-    i.pwsi = &mco->wsi;
-    i.retry_and_idle_policy = &retry;
-    i.userdata = mco;
-
-    if (!lws_client_connect_via_info(&i))
-        /*
-         * Failed... schedule a retry... we can't use the _retry_wsi()
-         * convenience wrapper api here because no valid wsi at this
-         * point.
-         */
-        if (lws_retry_sul_schedule(context, 0, sul, &retry,
-                                   connect_client, &mco->retry_count)) {
-            lwsl_err("%s: connection attempts exhausted\n", __func__);
-            interrupted = 1;
-        }
-}
+static struct lws *client_wsi;
+static int interrupted, test;
 
 static char partial_ob_json_buffer[MAX_JSON_SIZE];
 static size_t partial_ob_json_buffer_len = 0;
 
-static void
-range_reset(range_t *r)
-{
-    r->sum = r->highest = 0;
-    r->lowest = 999999999999ull;
-    r->samples = 0;
-}
-
-static void
-sul_hz_cb(lws_sorted_usec_list_t *sul)
-{
-    struct my_conn *mco = lws_container_of(sul, struct my_conn, sul_hz);
-
-    /*
-     * We are called once a second to dump statistics on the connection
-     */
-
-    lws_sul_schedule(lws_get_context(mco->wsi), 0, &mco->sul_hz,
-                     sul_hz_cb, LWS_US_PER_SEC);
-
-    if (mco->price_range.samples)
-        lwsl_notice("%s: price: min: %llu¢, max: %llu¢, avg: %llu¢, "
-                    "(%d prices/s)\n",
-                    __func__,
-                    (unsigned long long)mco->price_range.lowest,
-                    (unsigned long long)mco->price_range.highest,
-                    (unsigned long long)(mco->price_range.sum / mco->price_range.samples),
-                    mco->price_range.samples);
-    if (mco->e_lat_range.samples)
-        lwsl_notice("%s: elatency: min: %llums, max: %llums, "
-                    "avg: %llums, (%d msg/s)\n", __func__,
-                    (unsigned long long)mco->e_lat_range.lowest / 1000,
-                    (unsigned long long)mco->e_lat_range.highest / 1000,
-                    (unsigned long long)(mco->e_lat_range.sum /
-                                         mco->e_lat_range.samples) / 1000,
-                    mco->e_lat_range.samples);
-
-    range_reset(&mco->e_lat_range);
-    range_reset(&mco->price_range);
-}
+// static const struct lws_extension extensions[] = {
+//         {
+//                 "permessage-deflate",
+//                 lws_extension_callback_pm_deflate,
+//                       "permessage-deflate"
+//                       "; client_no_context_takeover"
+//                       "; client_max_window_bits"
+//         },
+//         { NULL, NULL, NULL /* terminator */ }
+// };
 
 static int
-callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,
-                 void *user, void *in, size_t len)
-{
+book_builder_lws_callback(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len) {
     struct my_conn *mco = (struct my_conn *)user;
     uint64_t latency_us, now_us;
     const char *p;
@@ -176,8 +61,8 @@ callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,
     switch (reason) {
         case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
             lwsl_err("CLIENT_CONNECTION_ERROR: %s\n",
-                     in ? (char *)in : "(null)");
-            goto do_retry;
+                in ? (char *)in : "(null)");
+            client_wsi = NULL;
             break;
 
         case LWS_CALLBACK_CLIENT_RECEIVE:
@@ -307,36 +192,21 @@ callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,
                 // Send data using lws_write
                 lws_write(wsi, &buf[LWS_PRE], subscriptionMessage.size(), LWS_WRITE_TEXT);
             }
-            
-            lws_sul_schedule(lws_get_context(wsi), 0, &mco->sul_hz,
-                             sul_hz_cb, LWS_US_PER_SEC);
-            mco->wsi = wsi;
-            range_reset(&mco->e_lat_range);
-            range_reset(&mco->price_range);
             break;
 
         case LWS_CALLBACK_CLIENT_CLOSED:
-            lws_sul_cancel(&mco->sul_hz);
-            goto do_retry;
+            client_wsi = NULL;
+            break;
 
         default:
             break;
     }
 
     return lws_callback_http_dummy(wsi, reason, user, in, len);
-
-    do_retry:
-    if (lws_retry_sul_schedule_retry_wsi(wsi, &mco->sul, connect_client,
-                                         &mco->retry_count)) {
-        lwsl_err("%s: connection attempts exhausted\n", __func__);
-        interrupted = 1;
-    }
-
-    return 0;
 }
 
 static const struct lws_protocols protocols[] = {
-        { "lws-minimal-client", callback_minimal, 0, 0, 0, NULL, 0 },
+        { "book-builder-lws-client", book_builder_lws_callback, 0, 0, 0, NULL, 0 },
         LWS_PROTOCOL_LIST_TERM
 };
 
@@ -372,31 +242,56 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_) {
     updateThroughputMonitor = &updateThroughputMonitorBookBuilder;
 
     struct lws_context_creation_info info;
-    int n = 0;
+	struct lws_client_connect_info i;
+	struct lws_context *context;
+	const char *p;
+	int n = 0, logs = LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE
+		/* for LLL_ verbosity above NOTICE to be built into lws, lws
+		 * must have been configured with -DCMAKE_BUILD_TYPE=DEBUG
+		 * instead of =RELEASE */
+		/* | LLL_INFO */ /* | LLL_PARSER */ /* | LLL_HEADER */
+		/* | LLL_EXT */ /* | LLL_CLIENT */ /* | LLL_LATENCY */
+		/* | LLL_DEBUG */;
 
-    signal(SIGINT, sigint_handler);
-    memset(&info, 0, sizeof info);
+	signal(SIGINT, sigint_handler);
+	// if ((p = lws_cmdline_option(argc, argv, "-d")))
+	// 	logs = atoi(p);
 
-    lwsl_user("LWS bitmex client\n");
+	// test = !!lws_cmdline_option(argc, argv, "-t");
 
-    info.options = LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT | LWS_WITH_LIBEV;
-    info.port = CONTEXT_PORT_NO_LISTEN; /* we do not run any server */
-    info.protocols = protocols;
-    info.fd_limit_per_thread = 1 + 1 + 1;
-    info.extensions = extensions;
+	lws_set_log_level(logs, NULL);
+	lwsl_user("LWS minimal ws client rx [-d <logs>] [--h2] [-t (test)]\n");
+    
+    // ev_loop = ev_default_loop(0);
 
-    context = lws_create_context(&info);
-    if (!context) {
-        lwsl_err("lws init failed\n");
-        return;
-    }
+	memset(&info, 0, sizeof info);
+	info.options = LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT | LWS_WITH_LIBEV;;
+	info.port = CONTEXT_PORT_NO_LISTEN; 
+	info.protocols = protocols;
 
-    /* schedule the first client connection attempt to happen immediately */
-    lws_sul_schedule(context, 0, &mco.sul, connect_client, 1);
+	info.fd_limit_per_thread = 1 + 1 + 1;
 
-    while (n >= 0 && !interrupted)
-        n = lws_service(context, 0);
+	context = lws_create_context(&info);
+	if (!context) {
+		lwsl_err("lws init failed\n");
+		return;
+	}
 
-    lws_context_destroy(context);
-    lwsl_user("Completed\n");    
+	memset(&i, 0, sizeof i);
+	i.context = context;
+	i.port = 443;
+	i.address = "ws.testnet.bitmex.com";
+	i.path = "/realtime";
+	i.host = i.address;
+	i.origin = i.address;
+	i.ssl_connection = LCCSCF_USE_SSL | LCCSCF_PRIORITIZE_READS;
+	i.protocol = NULL; 
+	i.pwsi = &client_wsi;
+
+	lws_client_connect_via_info(&i);
+
+	while (n >= 0 && client_wsi && !interrupted)
+		n = lws_service(context, 0);
+
+	lws_context_destroy(context);    
 }
