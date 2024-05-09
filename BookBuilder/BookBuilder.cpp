@@ -11,6 +11,7 @@
 
 #define MAX_JSON_SIZE 8192
 #define CPU_CORE_NUMBER_OFFSET_FOR_BOOK_BUILDER_THREAD 2
+#define WEBSOCKET_CLIENT_RX_BUF_SIZE 1024
 
 using namespace rapidjson;
 using namespace std::chrono;
@@ -30,6 +31,8 @@ static struct lws *client_wsi;
 static struct ev_loop *loop_ev; 
 ev_io socket_watcher;
 ev_timer timeout_watcher;
+
+SSL *ssl;
 
 static char partial_ob_json_buffer[MAX_JSON_SIZE];
 static size_t partial_ob_json_buffer_len = 0;
@@ -222,7 +225,14 @@ sigint_handler(int sig)
 }
 
 static void socket_cb (EV_P_ ev_io *w, int revents) {
-  puts ("SOCKET ready");
+    
+    if (revents & EV_READ) { 
+        puts ("SOCKET ready for reading\n");
+
+		char buffer[WEBSOCKET_CLIENT_RX_BUF_SIZE];
+		int bytes_read = SSL_read(ssl, buffer, WEBSOCKET_CLIENT_RX_BUF_SIZE);
+		printf("buffer: %s, bytes read: %d\n\n", buffer, bytes_read);
+    }
 }
 
 // another callback, this time for a time-out
@@ -315,16 +325,17 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_) {
 	while (n >= 0 && client_wsi && !interrupted)
 		n = lws_service(context, 0);
 
-    // // lws_service(context, 0);
-    // ev_io_init (&socket_watcher, socket_cb, lws_get_socket_fd(client_wsi), EV_READ);
-    // ev_io_start (loop_ev, &socket_watcher);
-    
-    // // initialise a timer watcher, then start it
-    // // simple non-repeating 5.5 second timeout
-    // ev_timer_init (&timeout_watcher, timeout_cb, 5.5, 0.);
-    // ev_timer_start (loop_ev, &timeout_watcher);
+    ssl = lws_get_ssl(client_wsi);
 
-    // ev_run (loop_ev, 0);
+    ev_io_init (&socket_watcher, socket_cb, lws_get_socket_fd(client_wsi), EV_READ);
+    ev_io_start (loop_ev, &socket_watcher);
+    
+    // initialise a timer watcher, then start it
+    // simple non-repeating 5.5 second timeout
+    ev_timer_init (&timeout_watcher, timeout_cb, 5.5, 0.);
+    ev_timer_start (loop_ev, &timeout_watcher);
+
+    ev_run (loop_ev, 0);
 
 	lws_context_destroy(context);    
 }
