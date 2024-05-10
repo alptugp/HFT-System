@@ -4,6 +4,7 @@
 #include <signal.h>
 #include <chrono>
 #include <ev.h>
+#include <liburing.h>
 #include "./OrderBook/OrderBook.hpp"
 #include "./ThroughputMonitor/ThroughputMonitor.hpp"
 #include "../SPSCQueue/SPSCQueue.hpp"
@@ -12,6 +13,7 @@
 #define MAX_JSON_SIZE 8192
 #define CPU_CORE_NUMBER_OFFSET_FOR_BOOK_BUILDER_THREAD 2
 #define WEBSOCKET_CLIENT_RX_BUF_SIZE 1024
+#define NUMBER_OF_IO_URING_SQ_ENTRIES 8
 
 using namespace rapidjson;
 using namespace std::chrono;
@@ -35,6 +37,10 @@ ev_timer timeout_watcher;
 SSL *ssl;
 BIO *rbio;
 int sockfd;
+
+struct io_uring ring;
+struct io_uring_sqe *sqe;
+struct io_uring_cqe *cqe;
 
 static char partial_ob_json_buffer[MAX_JSON_SIZE];
 static size_t partial_ob_json_buffer_len = 0;
@@ -231,15 +237,49 @@ static void socket_cb (EV_P_ ev_io *w, int revents) {
         puts ("SOCKET ready for reading\n");
 		// int n;	
 		int k;
-		char buffer[16384 + LWS_PRE];	
-		char *px = buffer + LWS_PRE;
-		int lenx = sizeof(buffer) - LWS_PRE;
 
 		do {
+            char buffer[16384 + LWS_PRE];	
+			char *px = buffer + LWS_PRE;
+			int lenx = sizeof(buffer) - LWS_PRE;
             printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
             // n = SSL_read(ssl, &px, lenx);
 			
-			int bytes_read = read(sockfd, px, lenx);
+			sqe = io_uring_get_sqe(&ring);
+
+            if (!sqe) {
+                perror("io_uring_get_sqe");
+                io_uring_queue_exit(&ring);
+                return;
+            }
+			
+			printf("Reading for sockfd %d\n", sockfd);
+			io_uring_prep_read(sqe, sockfd, px, lenx, 0);  // use offset on same buffer later?
+
+			if (io_uring_submit(&ring) < 0) {
+				perror("io_uring_submit");
+				io_uring_queue_exit(&ring);
+				return;
+			}
+
+			int ret = io_uring_wait_cqe(&ring, &cqe);
+            if (ret < 0) {
+                perror("Error waiting for completion: %s\n");
+                return;
+            }
+
+            // Read response
+            if (cqe->res <= 0) {
+                perror("io_uring completion error");
+                return;
+            } 
+
+			int bytes_read = cqe->res;
+				
+
+            io_uring_cqe_seen(&ring, cqe);
+
+			// int bytes_read = read(sockfd, px, lenx);
 			// printf("buffer: %s, bytes read: %d\n\n", buffer, bytes_read);
 
 			int n = BIO_write(rbio, px, bytes_read);
@@ -291,6 +331,12 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_) {
 
     ThroughputMonitor updateThroughputMonitorBookBuilder("Book Builder Throughput Monitor", std::chrono::high_resolution_clock::now());
     updateThroughputMonitor = &updateThroughputMonitorBookBuilder;
+
+    int ret = io_uring_queue_init(NUMBER_OF_IO_URING_SQ_ENTRIES, &ring, 0);
+    if (ret) {
+        perror("io_uring_queue_init");
+        return;
+    }
 
     struct lws_context_creation_info info;
 	struct lws_client_connect_info i;
