@@ -33,6 +33,8 @@ ev_io socket_watcher;
 ev_timer timeout_watcher;
 
 SSL *ssl;
+BIO *rbio;
+int sockfd;
 
 static char partial_ob_json_buffer[MAX_JSON_SIZE];
 static size_t partial_ob_json_buffer_len = 0;
@@ -188,18 +190,18 @@ book_builder_lws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
         case LWS_CALLBACK_CLIENT_ESTABLISHED:
             lwsl_user("%s: established\n", __func__);
 
-            // // Send subscription message here
-            // for (const std::string& currencyPair : currencyPairs) { 
-            //         std::string subscriptionMessage = "{\"op\":\"subscribe\",\"args\":[\"orderBookL2_25:" + currencyPair + "\"]}";
-            //         // Allocate buffer with LWS_PRE bytes before the data
-            //         unsigned char buf[LWS_PRE + subscriptionMessage.size()];
+            // Send subscription message here
+            for (const std::string& currencyPair : currencyPairs) { 
+                    std::string subscriptionMessage = "{\"op\":\"subscribe\",\"args\":[\"orderBookL2_25:" + currencyPair + "\"]}";
+                    // Allocate buffer with LWS_PRE bytes before the data
+                    unsigned char buf[LWS_PRE + subscriptionMessage.size()];
 
-            //         // Copy subscription message to buffer after LWS_PRE bytes
-            //         memcpy(&buf[LWS_PRE], subscriptionMessage.c_str(), subscriptionMessage.size());
+                    // Copy subscription message to buffer after LWS_PRE bytes
+                    memcpy(&buf[LWS_PRE], subscriptionMessage.c_str(), subscriptionMessage.size());
                     
-            //         // Send data using lws_write
-            //         lws_write(wsi, &buf[LWS_PRE], subscriptionMessage.size(), LWS_WRITE_TEXT);
-            // }
+                    // Send data using lws_write
+                    lws_write(wsi, &buf[LWS_PRE], subscriptionMessage.size(), LWS_WRITE_TEXT);
+            }
             break;
 
         case LWS_CALLBACK_CLIENT_CLOSED:
@@ -225,34 +227,34 @@ sigint_handler(int sig)
 }
 
 static void socket_cb (EV_P_ ev_io *w, int revents) {
-    
     if (revents & EV_READ) { 
         puts ("SOCKET ready for reading\n");
-		int n;
+		// int n;	
+		int k;
+		char buffer[16384 + LWS_PRE];	
+		char *px = buffer + LWS_PRE;
+		int lenx = sizeof(buffer) - LWS_PRE;
 
-		char buffer2[1024 + LWS_PRE];	
-		char *px = buffer2 + LWS_PRE;
-        int lenx = sizeof(buffer2) - LWS_PRE;
-
-		// char buffer[1024];
-		// int bytes_read = SSL_read(ssl, buffer, 1024);
-		// printf("buffer: %s, bytes read: %d\n\n", buffer, bytes_read);
-		
-		// int bytes_read = read(sockfd, buffer, RX_BUFFER_SIZE);
-		// // printf("buffer: %s, bytes read: %d\n\n", buffer, bytes_read);
-
-		// int n = BIO_write(rbio, buffer, bytes_read);
-		// printf("ZZZ bytes BIO written: %d\n", k);
-	
 		do {
             printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-            n = SSL_read(ssl, &px, lenx);
-            printf("BYTES READ: %d\n", n);
-            if (n > 0) {
-                printf("%s\n", buffer2);
+            // n = SSL_read(ssl, &px, lenx);
+			
+			int bytes_read = read(sockfd, px, lenx);
+			// printf("buffer: %s, bytes read: %d\n\n", buffer, bytes_read);
+
+			int n = BIO_write(rbio, px, bytes_read);
+			// // printf("ZZZ bytes BIO written: %d\n", k);
+
+			memset(buffer, 0, sizeof(buffer));
+
+			k = SSL_read(ssl, &px, lenx);
+			// printf("KKK buffer: %s, bytes read: %d\n\n", buffer, bytes_read);
+
+			printf("BYTES READ: %d\n", k);
+            if (k > 0) {
+                printf("%s\n", buffer);
             }
-			memset(buffer2, 0, lenx);
-        } while (n > 0);
+        } while (k > 0);
     }
 }
 
@@ -321,7 +323,6 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_) {
     foreign_loops[0] = loop_ev;
     info.foreign_loops = foreign_loops;
 
-
 	info.fd_limit_per_thread = 1 + 1 + 1;
 
 	context = lws_create_context(&info);
@@ -334,7 +335,8 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_) {
 	i.context = context;
 	i.port = 443;
 	i.address = "ws.testnet.bitmex.com";
-	i.path = "/realtime?subscribe=orderBookL2_25:XBTUSDT";
+	// i.path = "/realtime?subscribe=orderBookL2_25:XBTUSDT";
+    i.path = "/realtime";
 	i.host = i.address;
 	i.origin = i.address;
 	i.ssl_connection = LCCSCF_USE_SSL | LCCSCF_PRIORITIZE_READS;
@@ -346,7 +348,10 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_) {
 	while (n >= 0 && client_wsi && !interrupted)
 		n = lws_service(context, 0);
 
-    ssl = lws_get_ssl(client_wsi);
+    sockfd = lws_get_socket_fd(client_wsi);
+	ssl = lws_get_ssl(client_wsi);
+	rbio = BIO_new(BIO_s_mem());
+	SSL_set_bio(ssl, rbio, NULL);
 
     ev_io_init (&socket_watcher, socket_cb, lws_get_socket_fd(client_wsi), EV_READ);
     ev_io_start (loop_ev, &socket_watcher);
