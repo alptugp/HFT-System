@@ -318,7 +318,7 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_) {
 	info.port = CONTEXT_PORT_NO_LISTEN; 
 	info.protocols = protocols;
 
-    loop_ev = EV_DEFAULT;
+    loop_ev = ev_default_loop(EVBACKEND_EPOLL);
     void *foreign_loops[1];
     foreign_loops[0] = loop_ev;
     info.foreign_loops = foreign_loops;
