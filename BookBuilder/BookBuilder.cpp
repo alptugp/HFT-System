@@ -14,6 +14,8 @@
 #define CPU_CORE_NUMBER_OFFSET_FOR_BOOK_BUILDER_THREAD 2
 #define WEBSOCKET_CLIENT_RX_BUF_SIZE 1024
 #define NUMBER_OF_IO_URING_SQ_ENTRIES 8
+#define RX_BUFFER_SIZE 16384
+#define PREFIX_TO_ADD "\"{ta"
 
 using namespace rapidjson;
 using namespace std::chrono;
@@ -235,16 +237,15 @@ sigint_handler(int sig)
 static void socket_cb (EV_P_ ev_io *w, int revents) {
     if (revents & EV_READ) { 
         puts ("SOCKET ready for reading\n");
-		// int n;	
-		int k;
-
+		int decryptedBytesRead;
+	
 		do {
-            char buffer[16384 + LWS_PRE];	
-			char *px = buffer + LWS_PRE;
-			int lenx = sizeof(buffer) - LWS_PRE;
+			char buffer[RX_BUFFER_SIZE];	
+			char *px = buffer;
+			int bufferSize = sizeof(buffer);
             printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
             // n = SSL_read(ssl, &px, lenx);
-			
+
 			sqe = io_uring_get_sqe(&ring);
 
             if (!sqe) {
@@ -254,7 +255,7 @@ static void socket_cb (EV_P_ ev_io *w, int revents) {
             }
 			
 			printf("Reading for sockfd %d\n", sockfd);
-			io_uring_prep_read(sqe, sockfd, px, lenx, 0);  // use offset on same buffer later?
+			io_uring_prep_read(sqe, sockfd, px, bufferSize, 0);  // use offset on same buffer later?
 
 			if (io_uring_submit(&ring) < 0) {
 				perror("io_uring_submit");
@@ -268,33 +269,31 @@ static void socket_cb (EV_P_ ev_io *w, int revents) {
                 return;
             }
 
-            // Read response
             if (cqe->res <= 0) {
                 perror("io_uring completion error");
                 return;
             } 
 
-			int bytes_read = cqe->res;
+			int encryptedBytesRead = cqe->res;
 				
-
             io_uring_cqe_seen(&ring, cqe);
 
-			// int bytes_read = read(sockfd, px, lenx);
-			// printf("buffer: %s, bytes read: %d\n\n", buffer, bytes_read);
-
-			int n = BIO_write(rbio, px, bytes_read);
-			// // printf("ZZZ bytes BIO written: %d\n", k);
+			int bytesBioWritten = BIO_write(rbio, px, encryptedBytesRead);
 
 			memset(buffer, 0, sizeof(buffer));
+			
+			decryptedBytesRead = SSL_read(ssl, &px, bufferSize);
+			
+			int prefix_length = strlen(PREFIX_TO_ADD);
 
-			k = SSL_read(ssl, &px, lenx);
-			// printf("KKK buffer: %s, bytes read: %d\n\n", buffer, bytes_read);
+			memmove(buffer + prefix_length, buffer, decryptedBytesRead);
+    		memcpy(buffer, PREFIX_TO_ADD, prefix_length);
 
-			printf("BYTES READ: %d\n", k);
-            if (k > 0) {
+			printf("BYTES READ: %d\n", decryptedBytesRead);
+            if (decryptedBytesRead > 0) {
                 printf("%s\n", buffer);
             }
-        } while (k > 0);
+        } while (decryptedBytesRead > 0);
     }
 }
 
