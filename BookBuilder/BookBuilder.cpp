@@ -234,17 +234,24 @@ sigint_handler(int sig)
     interrupted = 1;
 }
 
+Document document;
+const char* currentPos;
+const char* startPos;
+const char* endPos;
+size_t jsonLen;
+char jsonStr[RX_BUFFER_SIZE];
+Value::ConstMemberIterator itr;
+
 static void socket_cb (EV_P_ ev_io *w, int revents) {
-    if (revents & EV_READ) { 
+  	if (revents & EV_READ) { 
         puts ("SOCKET ready for reading\n");
 		int decryptedBytesRead;
-	
+		
 		do {
 			char buffer[RX_BUFFER_SIZE];	
 			char *px = buffer;
 			int bufferSize = sizeof(buffer);
             printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-            // n = SSL_read(ssl, &px, lenx);
 
 			sqe = io_uring_get_sqe(&ring);
 
@@ -291,8 +298,46 @@ static void socket_cb (EV_P_ ev_io *w, int revents) {
 
 			printf("BYTES READ: %d\n", decryptedBytesRead);
             if (decryptedBytesRead > 0) {
-                printf("%s\n", buffer);
-            }
+                printf("BUFFER: %s\n", buffer);
+
+				currentPos = buffer;
+                while (currentPos < buffer + strlen(buffer)) {
+                    startPos = strstr(currentPos, "{\"table\"");
+                    if (!startPos)
+                        break;
+					
+                    endPos = strstr(startPos, "}]}");
+                    if (!endPos)
+                        break;
+
+                    // Extract the substring containing the JSON object
+                    jsonLen = endPos - startPos + 3;
+                    if (jsonLen >= RX_BUFFER_SIZE) {
+                        std::cerr << "JSON string too long\n";
+                        break;
+                    }
+
+                    strncpy(jsonStr, startPos, jsonLen);
+                    jsonStr[jsonLen] = '\0';
+					
+                    document.Parse(jsonStr);
+
+                    if (document.HasParseError()) {
+                        std::cerr << "JSON parsing error\n";
+                        break;
+                    }
+
+                    if (document.HasMember("table")) {
+						std::cout << "Pushed: " << document["action"].GetString() << std::endl;
+						memset(jsonStr, 0, sizeof(jsonStr));
+                    }
+
+                    // Move to the next JSON object
+                    currentPos = endPos + 1;
+                }
+			}	
+
+			memset(buffer, 0, sizeof(buffer));
         } while (decryptedBytesRead > 0);
     }
 }
