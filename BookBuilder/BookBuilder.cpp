@@ -10,12 +10,11 @@
 #include "../SPSCQueue/SPSCQueue.hpp"
 #include "../Utils/Utils.hpp"
 
-#define MAX_JSON_SIZE 8192
 #define CPU_CORE_NUMBER_OFFSET_FOR_BOOK_BUILDER_THREAD 2
-#define WEBSOCKET_CLIENT_RX_BUF_SIZE 1024
 #define NUMBER_OF_IO_URING_SQ_ENTRIES 8
-#define RX_BUFFER_SIZE 16384
-#define PREFIX_TO_ADD "{\"ta"
+#define WEBSOCKET_CLIENT_RX_BUFFER_SIZE 16384
+#define JSON_START_PATTERN "{\"table\""
+#define JSON_END_PATTERN "}]}"
 
 using namespace rapidjson;
 using namespace std::chrono;
@@ -24,10 +23,8 @@ using Clock = std::chrono::high_resolution_clock;
 std::unordered_map<std::string, OrderBook> orderBookMap;
 SPSCQueue<OrderBook>* bookBuilderToStrategyQueue = nullptr;
 ThroughputMonitor* updateThroughputMonitor = nullptr; 
-/*const std::vector<std::string> currencyPairs = {"BTCUSD", "ETHBTC", "ETHUSD"};*/
+
 const std::vector<std::string> currencyPairs = {"XBTETH", "XBTUSDT", "ETHUSDT"};
-// const std::vector<std::string> currencyPairs = {"XBTUSD", "ETHUSD", "XBTETH", "XBTUSDT", "SOLUSD", "XRPUSD", "LINKUSD", "SOLUSD", "XRPUSD"};
-// const std::vector<std::string> currencyPairs = {"XBTUSD", "ETHUSD", "SOLUSD", "XBTUSDT", "DOGEUSD", "XBTH24", "LINKUSD", "XRPUSD", "SOLUSDT", "BCHUSD"};
 
 static int interrupted, rx_seen, test;
 static struct lws *client_wsi;
@@ -43,9 +40,6 @@ int sockfd;
 struct io_uring ring;
 struct io_uring_sqe *sqe;
 struct io_uring_cqe *cqe;
-
-static char partial_ob_json_buffer[MAX_JSON_SIZE];
-static size_t partial_ob_json_buffer_len = 0;
 
 // static const struct lws_extension extensions[] = {
 //         {
@@ -110,33 +104,15 @@ sigint_handler(int sig)
     interrupted = 1;
 }
 
-Document document;
-const char* currentPos;
-const char* startPos;
-const char* endPos;
-size_t jsonLen;
-char jsonStr[RX_BUFFER_SIZE];
-Value::ConstMemberIterator itr;
-const char* symbol; 
-uint64_t id;
-const char* action;
-const char* side;
-double size;
-double price;
-const char* timestamp;
-system_clock::time_point marketUpdateReceiveTimestamp;
-long exchangeUpdateTimestamp;
-std::string sideStr;
-
 void socket_cb (EV_P_ ev_io *w, int revents) {
   	if (revents & EV_READ) { 
         puts ("SOCKET ready for reading\n");
-		static int decryptedBytesRead;
+		int decryptedBytesRead;
 		
 		do {
-			char buffer[RX_BUFFER_SIZE];	
-			char *px = buffer;
+            char buffer[WEBSOCKET_CLIENT_RX_BUFFER_SIZE];	
 			int bufferSize = sizeof(buffer);
+
             printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 
 			sqe = io_uring_get_sqe(&ring);
@@ -148,7 +124,7 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
             }
 			
 			printf("Reading for sockfd %d\n", sockfd);
-			io_uring_prep_read(sqe, sockfd, px, bufferSize, 0);  // use offset on same buffer later?
+			io_uring_prep_read(sqe, sockfd, buffer, bufferSize, 0);  // use offset on same buffer later?
 
 			if (io_uring_submit(&ring) < 0) {
 				perror("io_uring_submit");
@@ -165,109 +141,109 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
             if (cqe->res <= 0) {
                 perror("io_uring completion error");
                 return;
-            }
+            } 
 
 			int encryptedBytesRead = cqe->res;
-
+				
             io_uring_cqe_seen(&ring, cqe);
 
-			int bytesBioWritten = BIO_write(rbio, px, encryptedBytesRead);
+			int bytesBioWritten = BIO_write(rbio, buffer, encryptedBytesRead);
 
 			memset(buffer, 0, sizeof(buffer));
+    
+            decryptedBytesRead = SSL_read(ssl, buffer, sizeof(buffer));
+            if (buffer[2] == '\0')
+                buffer[2] = ' ';
 
-			decryptedBytesRead = SSL_read(ssl, &px, bufferSize);
-			
-			if (decryptedBytesRead < 0)
-                break;
-
-            int prefix_length = strlen(PREFIX_TO_ADD);
-            memmove(buffer + prefix_length, buffer, decryptedBytesRead);
-            memcpy(buffer, PREFIX_TO_ADD, prefix_length);
-
-			printf("BYTES READ: %d\n", decryptedBytesRead);
+            printf("BYTES READ: %d\n", decryptedBytesRead);
             if (decryptedBytesRead > 0) {
-                printf("BUFFER: %s\n", buffer);
+                std::cout << "BUFFER: " << buffer << std::endl;
 
-				currentPos = buffer;
+				const char* currentPos = buffer;
                 while (currentPos < buffer + strlen(buffer)) {
-                    startPos = strstr(currentPos, "{\"table\"");
+                    const char* startPos = strstr(currentPos, JSON_START_PATTERN);
                     if (!startPos)
                         break;
-					
-                    endPos = strstr(startPos, "}]}");
+
+                    const char* endPos = strstr(startPos, JSON_END_PATTERN);
                     if (!endPos)
                         break;
 
                     // Extract the substring containing the JSON object
-                    jsonLen = endPos - startPos + 3;
-                    if (jsonLen >= RX_BUFFER_SIZE) {
+                    size_t jsonLen = endPos - startPos + strlen(JSON_END_PATTERN);
+                    if (jsonLen >= WEBSOCKET_CLIENT_RX_BUFFER_SIZE) {
                         std::cerr << "JSON string too long\n";
                         break;
                     }
 
+                    char jsonStr[WEBSOCKET_CLIENT_RX_BUFFER_SIZE];
                     strncpy(jsonStr, startPos, jsonLen);
                     jsonStr[jsonLen] = '\0';
 					
-                    document.Parse(jsonStr);
+                    Document doc;
+                    doc.Parse(jsonStr);
 
-                    if (document.HasParseError()) {
+                    if (doc.HasParseError()) {
                         std::cerr << "JSON parsing error\n";
                         break;
                     }
 
-                    if (document.HasMember("table")) {
-						std::cout << "Pushed: " << document["action"].GetString() << std::endl;
-                        
-                        action = document["action"].GetString();
+                    if (doc.HasMember("table")) {
+                        GenericValue<rapidjson::UTF8<>>::MemberIterator data = doc.FindMember("data");
+                        const char* action = doc["action"].GetString();
+                        std::cout << "Pushed: " << action << std::endl;
 
-                        for (SizeType i = 0; i < document["data"].Size(); i++) {
-                            symbol = document["data"][i]["symbol"].GetString();
-                            id = document["data"][i]["id"].GetInt64();
-                            side = document["data"][i]["side"].GetString();
+                        for (SizeType i = 0; i < doc["data"].Size(); i++) {
+                            const Value& data_i = data->value[i];
+                            const char* symbol = data_i["symbol"].GetString();
+                            uint64_t id = data_i["id"].GetInt64();
+                            const char* side = data_i["side"].GetString();
 
-                            if (document["data"][i].HasMember("size")) 
-                                size = document["data"][i]["size"].GetInt64();
+                            double size;
+                            if (data->value[i].HasMember("size")) 
+                                size = data_i["size"].GetInt64();
                             
-                            price = document["data"][i]["price"].GetDouble();
-                            timestamp = document["data"][i]["timestamp"].GetString();
-                            // exchangeUpdateTimestamp = convertTimestampToTimePoint(timestamp);
-                            exchangeUpdateTimestamp = 0;
+                            double price = data_i["price"].GetDouble();
+                            const char* timestamp = data_i["timestamp"].GetString();
+                            long exchangeUpdateTimestamp = convertTimestampToTimePoint(timestamp);
 
-                            sideStr = side;
+                            system_clock::time_point marketUpdateReceiveTimestamp = high_resolution_clock::now();
+                            std::cout << "exchangeUpdateTimestamp: " << exchangeUpdateTimestamp 
+                            << ", marketUpdateReceiveTimestamp: " << std::to_string(duration_cast<milliseconds>(marketUpdateReceiveTimestamp.time_since_epoch()).count()) << std::endl;
 
-                            // if (sideStr == "Buy") {
-                            //     switch (action[0]) {
-                            //         case 'p':
-                            //         case 'i':
-                            //             orderBookMap[symbol].insertBuy(id, price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
-                            //             break;
-                            //         case 'u':
-                            //             orderBookMap[symbol].updateBuy(id, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
-                            //             break;
-                            //         case 'd':
-                            //             orderBookMap[symbol].removeBuy(id, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
-                            //             break;
-                            //         default:
-                            //             break;
-                            //     }
-                            // } else if (sideStr == "Sell") {
-                            //     switch (action[0]) {
-                            //         case 'p':
-                            //         case 'i':
-                            //             orderBookMap[symbol].insertSell(id, price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
-                            //             break;
-                            //         case 'u':
-                            //             orderBookMap[symbol].updateSell(id, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
-                            //             break;
-                            //         case 'd':
-                            //             orderBookMap[symbol].removeSell(id, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
-                            //             break;
-                            //         default:
-                            //             break;
-                            //     }
-                            // }
+                            if (strcmp(side, "Buy") == 0) {
+                                switch (action[0]) {
+                                    case 'p':
+                                    case 'i':
+                                        orderBookMap[symbol].insertBuy(id, price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                        break;
+                                    case 'u':
+                                        orderBookMap[symbol].updateBuy(id, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                        break;
+                                    case 'd':
+                                        orderBookMap[symbol].removeBuy(id, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            } else if (strcmp(side, "Sell") == 0) {
+                                switch (action[0]) {
+                                    case 'p':
+                                    case 'i':
+                                        orderBookMap[symbol].insertSell(id, price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                        break;
+                                    case 'u':
+                                        orderBookMap[symbol].updateSell(id, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                        break;
+                                    case 'd':
+                                        orderBookMap[symbol].removeSell(id, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
                         
-                            // while (!bookBuilderToStrategyQueue->push(orderBookMap[symbol]));   
+                            while (!bookBuilderToStrategyQueue->push(orderBookMap[symbol]));   
                         }
 
 						memset(jsonStr, 0, sizeof(jsonStr));
