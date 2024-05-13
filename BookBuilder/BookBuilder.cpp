@@ -104,6 +104,14 @@ sigint_handler(int sig)
     interrupted = 1;
 }
 
+void removeIncorrectNullCharacters(char* buffer, size_t size) {
+    for (size_t i = 0; i < size; ++i) {
+        if (buffer[i] == '\0') {
+            buffer[i] = ' ';
+        }
+    }
+}
+
 void socket_cb (EV_P_ ev_io *w, int revents) {
   	if (revents & EV_READ) { 
         puts ("SOCKET ready for reading\n");
@@ -113,7 +121,7 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
             char buffer[WEBSOCKET_CLIENT_RX_BUFFER_SIZE];	
 			int bufferSize = sizeof(buffer);
 
-            printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+            // printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 
 			sqe = io_uring_get_sqe(&ring);
 
@@ -123,7 +131,7 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
                 return;
             }
 			
-			printf("Reading for sockfd %d\n", sockfd);
+			// printf("Reading for sockfd %d\n", sockfd);
 			io_uring_prep_read(sqe, sockfd, buffer, bufferSize, 0);  // use offset on same buffer later?
 
 			if (io_uring_submit(&ring) < 0) {
@@ -133,6 +141,7 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
 			}
 
 			int ret = io_uring_wait_cqe(&ring, &cqe);
+            system_clock::time_point marketUpdateReceiveTimestamp = high_resolution_clock::now();
             if (ret < 0) {
                 perror("Error waiting for completion: %s\n");
                 return;
@@ -152,13 +161,13 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
 			memset(buffer, 0, sizeof(buffer));
     
             decryptedBytesRead = SSL_read(ssl, buffer, sizeof(buffer));
-            if (buffer[2] == '\0')
-                buffer[2] = ' ';
-
-            printf("BYTES READ: %d\n", decryptedBytesRead);
+            
+            // printf("BYTES READ: %d\n", decryptedBytesRead);
             if (decryptedBytesRead > 0) {
-                std::cout << "BUFFER: " << buffer << std::endl;
+                removeIncorrectNullCharacters(buffer, decryptedBytesRead);
 
+                // std::cout << "BUFFER: " << buffer << std::endl;
+                
 				const char* currentPos = buffer;
                 while (currentPos < buffer + strlen(buffer)) {
                     const char* startPos = strstr(currentPos, JSON_START_PATTERN);
@@ -198,18 +207,16 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
                             const char* symbol = data_i["symbol"].GetString();
                             uint64_t id = data_i["id"].GetInt64();
                             const char* side = data_i["side"].GetString();
-
                             double size;
                             if (data->value[i].HasMember("size")) 
                                 size = data_i["size"].GetInt64();
                             
                             double price = data_i["price"].GetDouble();
+
                             const char* timestamp = data_i["timestamp"].GetString();
                             long exchangeUpdateTimestamp = convertTimestampToTimePoint(timestamp);
 
-                            system_clock::time_point marketUpdateReceiveTimestamp = high_resolution_clock::now();
-                            std::cout << "exchangeUpdateTimestamp: " << exchangeUpdateTimestamp 
-                            << ", marketUpdateReceiveTimestamp: " << std::to_string(duration_cast<milliseconds>(marketUpdateReceiveTimestamp.time_since_epoch()).count()) << std::endl;
+                            std::cout << "exchangeUpdateTimestamp: " << exchangeUpdateTimestamp << ", marketUpdateReceiveTimestamp: " << std::to_string(duration_cast<milliseconds>(marketUpdateReceiveTimestamp.time_since_epoch()).count()) << std::endl;
 
                             if (strcmp(side, "Buy") == 0) {
                                 switch (action[0]) {
@@ -242,11 +249,9 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
                                         break;
                                 }
                             }
-                        
-                            while (!bookBuilderToStrategyQueue->push(orderBookMap[symbol]));   
-                        }
 
-						memset(jsonStr, 0, sizeof(jsonStr));
+                            while (!bookBuilderToStrategyQueue->push(orderBookMap[symbol]));  
+                        }
                     }
 
                     // Move to the next JSON object

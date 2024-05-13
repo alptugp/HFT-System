@@ -142,10 +142,12 @@ AVLNode* OrderBook::deleteNode(AVLNode* root, double price) {
     if (root == nullptr)
         return root;
 
-    if (price < root->price)
+    if (price < root->price) {
         root->left = deleteNode(root->left, price);
-    else if (price > root->price)
+    }  
+    else if (price > root->price) {
         root->right = deleteNode(root->right, price);
+    }
     else {
         if (root->left == nullptr || root->right == nullptr) {
             AVLNode* temp = root->left ? root->left : root->right;
