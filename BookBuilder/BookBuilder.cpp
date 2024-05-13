@@ -177,10 +177,12 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
 
 			decryptedBytesRead = SSL_read(ssl, &px, bufferSize);
 			
-			int prefix_length = strlen(PREFIX_TO_ADD);
+			if (decryptedBytesRead < 0)
+                break;
 
-			memmove(buffer + prefix_length, buffer, decryptedBytesRead);
-    		memcpy(buffer, PREFIX_TO_ADD, prefix_length);
+            int prefix_length = strlen(PREFIX_TO_ADD);
+            memmove(buffer + prefix_length, buffer, decryptedBytesRead);
+            memcpy(buffer, PREFIX_TO_ADD, prefix_length);
 
 			printf("BYTES READ: %d\n", decryptedBytesRead);
             if (decryptedBytesRead > 0) {
