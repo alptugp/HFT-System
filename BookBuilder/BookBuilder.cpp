@@ -15,7 +15,7 @@
 #define WEBSOCKET_CLIENT_RX_BUF_SIZE 1024
 #define NUMBER_OF_IO_URING_SQ_ENTRIES 8
 #define RX_BUFFER_SIZE 16384
-#define PREFIX_TO_ADD "\"{ta"
+#define PREFIX_TO_ADD "{\"ta"
 
 using namespace rapidjson;
 using namespace std::chrono;
@@ -59,145 +59,20 @@ static size_t partial_ob_json_buffer_len = 0;
 // };
 
 static int
-book_builder_lws_callback(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len) {
-    struct my_conn *mco = (struct my_conn *)user;
-    uint64_t latency_us, now_us;
-    const char *p;
-    size_t alen;
-    Document doc;
-    GenericValue<rapidjson::UTF8<>>::MemberIterator data;
-    const char* symbol; 
-    uint64_t id;
-    const char* action;
-    const char* side;
-    double size;
-    double price;
-    const char* timestamp;
-    system_clock::time_point marketUpdateReceiveTimestamp;
-    long exchangeUpdateTimestamp;
-    
-    switch (reason) {
+book_builder_lws_callback(struct lws *wsi, enum lws_callback_reasons reason,
+	      void *user, void *in, size_t len)
+{	
+	lwsl_user("protocol called\n");
+	switch (reason) {
+        /* because we are protocols[0] ... */
         case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
             lwsl_err("CLIENT_CONNECTION_ERROR: %s\n",
                 in ? (char *)in : "(null)");
             client_wsi = NULL;
             break;
 
-        case LWS_CALLBACK_CLIENT_RECEIVE:
-            /*
-             * The messages are a few 100 bytes of JSON each
-             */
-
-            // lwsl_hexdump_notice(in, len);
-
-            updateThroughputMonitor->operationCompleted();
-
-            marketUpdateReceiveTimestamp = high_resolution_clock::now();
-            /*std::cout << updateExchangeTimestamp << std::endl;*/
-            // auto networkLatency = std::chrono::duration_cast<std::chrono::microseconds>(programReceiveTime - exchangeUnixTimestamp);
-
-            // printf("\nReceived size: %ld, %d, JSON: %s\n", len, (int)len, (const char *)in);
-
-            if (((const char *)in)[0] == '{' && ((const char *)in)[len - 1] == '}') {
-                if (((const char *)in)[2] == 'i' || ((const char *)in)[2] == 's') {
-                    break;
-                }
-
-                // std::cout << "CASE 1 HIT" << std::endl;
-                doc.Parse((const char *)in, len);
-            } else if (((const char *)in)[0] == '{') {
-                // std::cout << "CASE 2 HIT" << std::endl;
-                memset(partial_ob_json_buffer, 0, MAX_JSON_SIZE);
-                partial_ob_json_buffer_len = 0;
-
-                memcpy(partial_ob_json_buffer + partial_ob_json_buffer_len, in, len);
-                partial_ob_json_buffer_len += len;
-                break;
-            } else if (((const char *)in)[len - 1] == '}') {
-                // std::cout << "CASE 3 HIT" << std::endl;
-                memcpy(partial_ob_json_buffer + partial_ob_json_buffer_len, in, len);
-                partial_ob_json_buffer_len += len;
-
-                doc.Parse(partial_ob_json_buffer, partial_ob_json_buffer_len);
-            } else {
-                // std::cout << "CASE 4 HIT" << std::endl;
-                memcpy(partial_ob_json_buffer + partial_ob_json_buffer_len, in, len);
-                partial_ob_json_buffer_len += len;
-                break;
-            }
-
-            if (doc.HasParseError()) {
-                lwsl_err("%s: no E JSON\n", __func__);
-                std::cerr << "Error parsing JSON: " << doc.GetParseError() << std::endl;
-                break;
-            }
-
-            data = doc.FindMember("data");
-            action = doc.FindMember("action")->value.GetString();
-
-            for (SizeType i = 0; i < data->value.Size(); i++) {
-                symbol = data->value[i].FindMember("symbol")->value.GetString();
-                id = data->value[i].FindMember("id")->value.GetInt64();
-                side = data->value[i].FindMember("side")->value.GetString();
-
-                if (data->value[i].HasMember("size")) 
-                    size = data->value[i].FindMember("size")->value.GetInt64();
-                
-                price = data->value[i].FindMember("price")->value.GetDouble();
-                timestamp = data->value[i].FindMember("timestamp")->value.GetString();
-                exchangeUpdateTimestamp = convertTimestampToTimePoint(timestamp);
-
-                std::string sideStr(side);
-
-                if (sideStr == "Buy") {
-                    switch (action[0]) {
-                        case 'p':
-                        case 'i':
-                            orderBookMap[symbol].insertBuy(id, price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
-                            break;
-                        case 'u':
-                            orderBookMap[symbol].updateBuy(id, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
-                            break;
-                        case 'd':
-                            orderBookMap[symbol].removeBuy(id, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
-                            break;
-                        default:
-                            break;
-                    }
-                } else if (sideStr == "Sell") {
-                    switch (action[0]) {
-                        case 'p':
-                        case 'i':
-                            orderBookMap[symbol].insertSell(id, price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
-                            break;
-                        case 'u':
-                            orderBookMap[symbol].updateSell(id, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
-                            break;
-                        case 'd':
-                            orderBookMap[symbol].removeSell(id, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                
-                while (!bookBuilderToStrategyQueue->push(orderBookMap[symbol]));
-
-                // auto bookBuildingEndTime = Clock::now();
-                // auto bookBuildingDuration = std::chrono::duration_cast<std::chrono::microseconds>(bookBuildingEndTime - programReceiveTime);
-                // std::cout << "Symbol: " << symbol << " - Action: " << action << " - Size: " << size << " - Price: " << price << " (" << side << ")" << " - id: " << id << " - Timestamp: " << updateExchangeTimestamp << std::endl;
-                // std::cout << "Time taken to receive market update: " << networkLatency.count() << " microseconds" << std::endl;
-                // std::cout << "Time taken to process market update: " << bookBuildingDuration.count() << " microseconds" << std::endl;
-                // std::cout << "Timestamp: " << updateExchangeTimestamp << std::endl;
-                // orderBook.printOrderBook();
-                // orderBook.updateOrderBookMemoryUsage();
-            }
-
-            break;
-
         case LWS_CALLBACK_CLIENT_ESTABLISHED:
             lwsl_user("%s: established\n", __func__);
-
             // Send subscription message here
             for (const std::string& currencyPair : currencyPairs) { 
                     std::string subscriptionMessage = "{\"op\":\"subscribe\",\"args\":[\"orderBookL2_25:" + currencyPair + "\"]}";
@@ -210,6 +85,7 @@ book_builder_lws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
                     // Send data using lws_write
                     lws_write(wsi, &buf[LWS_PRE], subscriptionMessage.size(), LWS_WRITE_TEXT);
             }
+			interrupted = 1;
             break;
 
         case LWS_CALLBACK_CLIENT_CLOSED:
@@ -218,9 +94,9 @@ book_builder_lws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
 
         default:
             break;
-    }
+	}
 
-    return lws_callback_http_dummy(wsi, reason, user, in, len);
+	return lws_callback_http_dummy(wsi, reason, user, in, len);
 }
 
 static const struct lws_protocols protocols[] = {
@@ -241,11 +117,21 @@ const char* endPos;
 size_t jsonLen;
 char jsonStr[RX_BUFFER_SIZE];
 Value::ConstMemberIterator itr;
+const char* symbol; 
+uint64_t id;
+const char* action;
+const char* side;
+double size;
+double price;
+const char* timestamp;
+system_clock::time_point marketUpdateReceiveTimestamp;
+long exchangeUpdateTimestamp;
+std::string sideStr;
 
-static void socket_cb (EV_P_ ev_io *w, int revents) {
+void socket_cb (EV_P_ ev_io *w, int revents) {
   	if (revents & EV_READ) { 
         puts ("SOCKET ready for reading\n");
-		int decryptedBytesRead;
+		static int decryptedBytesRead;
 		
 		do {
 			char buffer[RX_BUFFER_SIZE];	
@@ -279,16 +165,16 @@ static void socket_cb (EV_P_ ev_io *w, int revents) {
             if (cqe->res <= 0) {
                 perror("io_uring completion error");
                 return;
-            } 
+            }
 
 			int encryptedBytesRead = cqe->res;
-				
+
             io_uring_cqe_seen(&ring, cqe);
 
 			int bytesBioWritten = BIO_write(rbio, px, encryptedBytesRead);
 
 			memset(buffer, 0, sizeof(buffer));
-			
+
 			decryptedBytesRead = SSL_read(ssl, &px, bufferSize);
 			
 			int prefix_length = strlen(PREFIX_TO_ADD);
@@ -329,6 +215,59 @@ static void socket_cb (EV_P_ ev_io *w, int revents) {
 
                     if (document.HasMember("table")) {
 						std::cout << "Pushed: " << document["action"].GetString() << std::endl;
+                        
+                        action = document["action"].GetString();
+
+                        for (SizeType i = 0; i < document["data"].Size(); i++) {
+                            symbol = document["data"][i]["symbol"].GetString();
+                            id = document["data"][i]["id"].GetInt64();
+                            side = document["data"][i]["side"].GetString();
+
+                            if (document["data"][i].HasMember("size")) 
+                                size = document["data"][i]["size"].GetInt64();
+                            
+                            price = document["data"][i]["price"].GetDouble();
+                            timestamp = document["data"][i]["timestamp"].GetString();
+                            // exchangeUpdateTimestamp = convertTimestampToTimePoint(timestamp);
+                            exchangeUpdateTimestamp = 0;
+
+                            sideStr = side;
+
+                            // if (sideStr == "Buy") {
+                            //     switch (action[0]) {
+                            //         case 'p':
+                            //         case 'i':
+                            //             orderBookMap[symbol].insertBuy(id, price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                            //             break;
+                            //         case 'u':
+                            //             orderBookMap[symbol].updateBuy(id, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                            //             break;
+                            //         case 'd':
+                            //             orderBookMap[symbol].removeBuy(id, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                            //             break;
+                            //         default:
+                            //             break;
+                            //     }
+                            // } else if (sideStr == "Sell") {
+                            //     switch (action[0]) {
+                            //         case 'p':
+                            //         case 'i':
+                            //             orderBookMap[symbol].insertSell(id, price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                            //             break;
+                            //         case 'u':
+                            //             orderBookMap[symbol].updateSell(id, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                            //             break;
+                            //         case 'd':
+                            //             orderBookMap[symbol].removeSell(id, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                            //             break;
+                            //         default:
+                            //             break;
+                            //     }
+                            // }
+                        
+                            // while (!bookBuilderToStrategyQueue->push(orderBookMap[symbol]));   
+                        }
+
 						memset(jsonStr, 0, sizeof(jsonStr));
                     }
 
@@ -435,21 +374,25 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_) {
 
 	lws_client_connect_via_info(&i);
 
-	while (n >= 0 && client_wsi && !interrupted)
-		n = lws_service(context, 0);
+    std::cout << "SOCKET FD:" << lws_get_socket_fd(client_wsi) << std::endl;
+
+	while (n >= 0 && client_wsi && !interrupted) {
+        n = lws_service(context, 0);
+        std::cout << "LWS SERVICE EXECUTING" << std::endl;
+    }
 
     sockfd = lws_get_socket_fd(client_wsi);
 	ssl = lws_get_ssl(client_wsi);
 	rbio = BIO_new(BIO_s_mem());
 	SSL_set_bio(ssl, rbio, NULL);
 
-    ev_io_init (&socket_watcher, socket_cb, lws_get_socket_fd(client_wsi), EV_READ);
+    ev_io_init (&socket_watcher, socket_cb, sockfd, EV_READ);
     ev_io_start (loop_ev, &socket_watcher);
     
     // initialise a timer watcher, then start it
     // simple non-repeating 5.5 second timeout
-    ev_timer_init (&timeout_watcher, timeout_cb, 5.5, 0.);
-    ev_timer_start (loop_ev, &timeout_watcher);
+    ev_timer_init (&timeout_watcher, timeout_cb, 600, 0.);
+    ev_timer_start (loop_ev, &timeout_watcher); 
 
     ev_run (loop_ev, 0);
 
