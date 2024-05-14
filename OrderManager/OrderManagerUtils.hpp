@@ -408,7 +408,7 @@ void ssl_init(const char * certfile, const char* keyfile)
 
 void print_sq_poll_kernel_thread_status() {
 
-    if (system("ps --ppid 2 | grep iou-sqp" ) == 0)
+    if (system("ps --ppid 2 | grep io_uring-sq" ) == 0)
         printf("Kernel thread io_uring-sq found running...\n");
     else
         printf("Kernel thread io_uring-sq is not running.\n");
