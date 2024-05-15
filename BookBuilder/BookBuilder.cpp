@@ -216,7 +216,7 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
                             const char* timestamp = data_i["timestamp"].GetString();
                             long exchangeUpdateTimestamp = convertTimestampToTimePoint(timestamp);
 
-                            std::cout << "exchangeUpdateTimestamp: " << exchangeUpdateTimestamp << ", marketUpdateReceiveTimestamp: " << std::to_string(duration_cast<milliseconds>(marketUpdateReceiveTimestamp.time_since_epoch()).count()) << std::endl;
+                           // std::cout << "exchangeUpdateTimestamp: " << exchangeUpdateTimestamp << ", marketUpdateReceiveTimestamp: " << std::to_string(duration_cast<milliseconds>(marketUpdateReceiveTimestamp.time_since_epoch()).count()) << std::endl;
 
                             if (strcmp(side, "Buy") == 0) {
                                 switch (action[0]) {
