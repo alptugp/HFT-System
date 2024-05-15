@@ -317,6 +317,7 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_) {
         params.flags |= IORING_SETUP_SQPOLL;
         params.sq_thread_idle = 2000000;
         int ret = io_uring_queue_init_params(NUMBER_OF_IO_URING_SQ_ENTRIES, &ring, &params);
+        printf("WEB SOCKET CLIENT RING WQ_FD: %d\n", ring.ring_fd);
         if (ret) {
             perror("io_uring_queue_init");
             return;

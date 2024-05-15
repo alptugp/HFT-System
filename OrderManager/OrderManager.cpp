@@ -175,8 +175,11 @@ void orderManager(SPSCQueue<std::string>& strategyToOrderManagerQueue) {
         printf("Running the Order Manager with submission queue polling\n");
         memset(&params, 0, sizeof(params));
         params.flags |= IORING_SETUP_SQPOLL;
+        params.wq_fd = 4;
+        params.flags |= IORING_SETUP_ATTACH_WQ;
         params.sq_thread_idle = 2000000;
         int ret = io_uring_queue_init_params(NUMBER_OF_IO_URING_SQ_ENTRIES, &ring, &params);
+        printf("ORDER MANAGER RING WQ_FD: %d\n", ring.ring_fd);
         if (ret) {
             perror("io_uring_queue_init");
             return;
