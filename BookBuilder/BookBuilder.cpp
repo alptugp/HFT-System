@@ -11,10 +11,11 @@
 #include "../Utils/Utils.hpp"
 
 #define CPU_CORE_NUMBER_OFFSET_FOR_BOOK_BUILDER_THREAD 2
-#define NUMBER_OF_IO_URING_SQ_ENTRIES 8
+#define NUMBER_OF_IO_URING_SQ_ENTRIES 64
 #define WEBSOCKET_CLIENT_RX_BUFFER_SIZE 16384
 #define JSON_START_PATTERN "{\"table\""
 #define JSON_END_PATTERN "}]}"
+#define NUMBER_OF_CONNECTIONS 1
 
 using namespace rapidjson;
 using namespace std::chrono;
@@ -35,7 +36,7 @@ ev_timer timeout_watcher;
 
 SSL *ssl;
 BIO *rbio;
-int sockfd;
+int sockfds[NUMBER_OF_CONNECTIONS];
 
 struct io_uring ring;
 struct io_uring_sqe *sqe;
@@ -132,7 +133,8 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
             }
 			
 			// printf("Reading for sockfd %d\n", sockfd);
-			io_uring_prep_read(sqe, sockfd, buffer, bufferSize, 0);  // use offset on same buffer later?
+			io_uring_prep_read(sqe, 0, buffer, bufferSize, 0);  // use offset on same buffer later?
+            sqe->flags |= IOSQE_FIXED_FILE;
 
 			if (io_uring_submit(&ring) < 0) {
 				perror("io_uring_submit");
@@ -147,8 +149,8 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
                 return;
             }
 
-            if (cqe->res <= 0) {
-                perror("io_uring completion error");
+            if (cqe->res < 0) {
+                perror("Async operation error");
                 return;
             } 
 
@@ -282,12 +284,12 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_) {
     }
 
     int cpuCoreNumberForBookBuilderThread = numCores - CPU_CORE_NUMBER_OFFSET_FOR_BOOK_BUILDER_THREAD;
-    setThreadAffinity(pthread_self(), cpuCoreNumberForBookBuilderThread);
+    // setThreadAffinity(pthread_self(), cpuCoreNumberForBookBuilderThread);
 
-    // Set the current thread's real-time priority to highest value
-    struct sched_param schedParams;
-    schedParams.sched_priority = sched_get_priority_max(SCHED_FIFO);
-    pthread_setschedparam(pthread_self(), SCHED_FIFO, &schedParams);
+    // // Set the current thread's real-time priority to highest value
+    // struct sched_param schedParams;
+    // schedParams.sched_priority = sched_get_priority_max(SCHED_FIFO);
+    // pthread_setschedparam(pthread_self(), SCHED_FIFO, &schedParams);
 
     for (std::string currencyPair : currencyPairs) { 
         orderBookMap[currencyPair] = OrderBook(currencyPair);
@@ -298,10 +300,27 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_) {
     ThroughputMonitor updateThroughputMonitorBookBuilder("Book Builder Throughput Monitor", std::chrono::high_resolution_clock::now());
     updateThroughputMonitor = &updateThroughputMonitorBookBuilder;
 
-    int ret = io_uring_queue_init(NUMBER_OF_IO_URING_SQ_ENTRIES, &ring, 0);
-    if (ret) {
-        perror("io_uring_queue_init");
-        return;
+    struct io_uring_params params;
+
+    // Initialize io_uring
+    // Use submission queue polling if user has root privileges
+    if (geteuid()) {
+        printf("You need root privileges to run the Order Manager with submission queue polling\n");
+        int ret = io_uring_queue_init(NUMBER_OF_IO_URING_SQ_ENTRIES, &ring, 0);
+        if (ret) {
+            perror("io_uring_queue_init");
+            return;
+        }
+    } else {
+        printf("Running the Order Manager with submission queue polling\n");
+        memset(&params, 0, sizeof(params));
+        params.flags |= IORING_SETUP_SQPOLL;
+        params.sq_thread_idle = 2000000;
+        int ret = io_uring_queue_init_params(NUMBER_OF_IO_URING_SQ_ENTRIES, &ring, &params);
+        if (ret) {
+            perror("io_uring_queue_init");
+            return;
+        }
     }
 
     struct lws_context_creation_info info;
@@ -326,7 +345,7 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_) {
 	lwsl_user("LWS Book Builder ws client rx [-d <logs>] [--h2] [-t (test)]\n");
 
 	memset(&info, 0, sizeof info);
-	info.options = LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT | LWS_WITH_LIBEV;;
+	info.options = LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT | LWS_WITH_LIBEV;
 	info.port = CONTEXT_PORT_NO_LISTEN; 
 	info.protocols = protocols;
 
@@ -364,12 +383,18 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_) {
         std::cout << "LWS SERVICE EXECUTING" << std::endl;
     }
 
-    sockfd = lws_get_socket_fd(client_wsi);
+    sockfds[0] = lws_get_socket_fd(client_wsi);
 	ssl = lws_get_ssl(client_wsi);
 	rbio = BIO_new(BIO_s_mem());
 	SSL_set_bio(ssl, rbio, NULL);
 
-    ev_io_init (&socket_watcher, socket_cb, sockfd, EV_READ);
+
+    if (io_uring_register_files(&ring, sockfds, NUMBER_OF_CONNECTIONS) < 0) {
+        perror("io_uring_register_files");
+        return;
+    }
+
+    ev_io_init (&socket_watcher, socket_cb, sockfds[0], EV_READ);
     ev_io_start (loop_ev, &socket_watcher);
     
     // initialise a timer watcher, then start it
