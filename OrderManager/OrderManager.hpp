@@ -13,6 +13,4 @@
 #include "../Utils/Utils.hpp"
 #include "./ThreadPool.hpp"
 
-void orderManager(SPSCQueue<std::string>& strategyToOrderManagerQueue);
-// void sendOrderAsync(const std::string& data, CURL*& easyHandle, bool isInvalidOrder = false);
-// void testRoundTripTime(const std::string& requestVerb, const std::string& requestPath, CURL*& easyHandle);
+void orderManager(SPSCQueue<std::string>& strategyToOrderManagerQueue, int bookBuilderPipeEnd);

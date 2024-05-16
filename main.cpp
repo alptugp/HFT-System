@@ -54,17 +54,27 @@ void runAlgo()  {
     const size_t queueSize = 10000;
     SPSCQueue<OrderBook> builderToStrategyQueue(queueSize);
     SPSCQueue<std::string> strategyToOrderManagerQueue(queueSize);
+    
+    int pipefd[2]; 
+    // Create a pipe for communication between Book Builder and Order Manager
+    if (pipe(pipefd) == -1) {
+        perror("pipe");
+        return;
+    }
+
+    int bookBuilderPipeEnd = pipefd[0];
+    int orderManagerPipeEnd = pipefd[1];
 
     auto t1 = std::thread([&builderToStrategyQueue, &strategyToOrderManagerQueue] {
       strategy(builderToStrategyQueue, strategyToOrderManagerQueue);
     });
 
-    auto t2 = std::thread([&builderToStrategyQueue] {
-      bookBuilder(builderToStrategyQueue);
+    auto t2 = std::thread([&builderToStrategyQueue, orderManagerPipeEnd] {
+      bookBuilder(builderToStrategyQueue, orderManagerPipeEnd);
     });
 
-    auto t3 = std::thread([&strategyToOrderManagerQueue] {
-      orderManager(strategyToOrderManagerQueue);
+    auto t3 = std::thread([&strategyToOrderManagerQueue, bookBuilderPipeEnd] {
+      orderManager(strategyToOrderManagerQueue, bookBuilderPipeEnd);
     });
 
     t2.join();

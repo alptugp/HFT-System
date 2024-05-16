@@ -275,7 +275,7 @@ timeout_cb (EV_P_ ev_timer *w, int revents)
   ev_break (EV_A_ EVBREAK_ONE);
 }
 
-void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_) {
+void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_, int orderManagerPipeEnd) {
     int numCores = std::thread::hardware_concurrency();
     
     if (numCores == 0) {
@@ -315,13 +315,21 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_) {
         printf("Running the Order Manager with submission queue polling\n");
         memset(&params, 0, sizeof(params));
         params.flags |= IORING_SETUP_SQPOLL;
-        params.sq_thread_idle = 2000000;
+        params.sq_thread_idle = 20000;
         int ret = io_uring_queue_init_params(NUMBER_OF_IO_URING_SQ_ENTRIES, &ring, &params);
-        printf("WEB SOCKET CLIENT RING WQ_FD: %d\n", ring.ring_fd);
+        
         if (ret) {
             perror("io_uring_queue_init");
             return;
         }
+    
+        int bookBuilderRingFd = ring.ring_fd;
+        if (write(orderManagerPipeEnd, &bookBuilderRingFd, sizeof(bookBuilderRingFd)) != sizeof(bookBuilderRingFd)) {
+            perror("Pipe write error in Book Builder");
+            return;
+        }
+
+        printf("WEB SOCKET CLIENT RING FD: %d\n", bookBuilderRingFd);
     }
 
     struct lws_context_creation_info info;
