@@ -7,7 +7,7 @@
 #include <iomanip>
 
 #define TX_DEFAULT_BUF_SIZE 128
-#define CPU_CORE_NUMBER_OFFSET_FOR_ORDER_MANAGER_THREAD 3
+#define CPU_CORE_INDEX_FOR_ORDER_MANAGER_THREAD 3
 #define HEARTBEAT_SENDER_PERIOD_IN_SECONDS 80 // CAN BE HIGHER?
 #define NUMBER_OF_IO_URING_SQ_ENTRIES 8
 // #define CPU_CORE_NUMBER_OFFSET_FOR_HEARTBEAT_THREAD 3
@@ -59,16 +59,20 @@ void sendPeriodicHeartbeat(struct ssl_client (&clients)[BATCH_SIZE]) {
     }
 }
 
-void orderManager(SPSCQueue<std::string>& strategyToOrderManagerQueue) {
+void orderManager(SPSCQueue<std::string>& strategyToOrderManagerQueue, int bookBuilderPipeEnd) {
     int numCores = std::thread::hardware_concurrency();
     
     if (numCores == 0) {
         std::cerr << "Error: Unable to determine the number of CPU cores." << std::endl;
         return;
+    } else if (numCores < CPU_CORE_INDEX_FOR_ORDER_MANAGER_THREAD) {
+        std::cerr << "Error: Not enough cores to run the system." << std::endl;
+        return;
     }
 
-    int cpuCoreNumberForOrderManagerThread = numCores - CPU_CORE_NUMBER_OFFSET_FOR_ORDER_MANAGER_THREAD;
-    // setThreadAffinity(pthread_self(), cpuCoreNumberForOrderManagerThread);
+    int cpuCoreNumberForOrderManagerThread = CPU_CORE_INDEX_FOR_ORDER_MANAGER_THREAD;
+
+    setThreadAffinity(pthread_self(), cpuCoreNumberForOrderManagerThread);
 
     // Set the current thread's real-time priority to highest value
     // struct sched_param schedParams;
@@ -175,9 +179,17 @@ void orderManager(SPSCQueue<std::string>& strategyToOrderManagerQueue) {
         printf("Running the Order Manager with submission queue polling\n");
         memset(&params, 0, sizeof(params));
         params.flags |= IORING_SETUP_SQPOLL;
-        params.wq_fd = 4;
+
+        int bookBuilderRingFd;
+        if (read(bookBuilderPipeEnd, &bookBuilderRingFd, sizeof(bookBuilderRingFd)) != sizeof(bookBuilderRingFd)) {
+            perror("Pipe read error in Order Manager");
+            return;
+        }
+        printf("Book Builder ring fd seen by Order Manager: %d\n", bookBuilderRingFd);
+        params.wq_fd = bookBuilderRingFd;
+
         params.flags |= IORING_SETUP_ATTACH_WQ;
-        params.sq_thread_idle = 2000000;
+        params.sq_thread_idle = 20000;
         int ret = io_uring_queue_init_params(NUMBER_OF_IO_URING_SQ_ENTRIES, &ring, &params);
         printf("ORDER MANAGER RING WQ_FD: %d\n", ring.ring_fd);
         if (ret) {

@@ -1,6 +1,6 @@
 #include "Graph.hpp"
 
-#define CPU_CORE_NUMBER_OFFSET_FOR_STRATEGY_THREAD 1
+#define CPU_CORE_INDEX_FOR_STRATEGY_THREAD 2
 
 using namespace std::chrono;
 
@@ -48,15 +48,18 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
     if (numCores == 0) {
         std::cerr << "Error: Unable to determine the number of CPU cores." << std::endl;
         return;
+    } else if (numCores < CPU_CORE_INDEX_FOR_STRATEGY_THREAD) {
+        std::cerr << "Error: Not enough cores to run the system." << std::endl;
+        return;
     }
 
-    int cpuCoreNumberForStrategyThread = numCores - CPU_CORE_NUMBER_OFFSET_FOR_STRATEGY_THREAD;
+    int cpuCoreNumberForStrategyThread = CPU_CORE_INDEX_FOR_STRATEGY_THREAD;
     setThreadAffinity(pthread_self(), cpuCoreNumberForStrategyThread);
 
     // Set the current thread's real-time priority to highest value
-    struct sched_param schedParams;
-    schedParams.sched_priority = sched_get_priority_max(SCHED_FIFO);
-    pthread_setschedparam(pthread_self(), SCHED_FIFO, &schedParams);
+    // struct sched_param schedParams;
+    // schedParams.sched_priority = sched_get_priority_max(SCHED_FIFO);
+    // pthread_setschedparam(pthread_self(), SCHED_FIFO, &schedParams);
 
     Graph graph(3);
 

@@ -10,7 +10,8 @@
 #include "../SPSCQueue/SPSCQueue.hpp"
 #include "../Utils/Utils.hpp"
 
-#define CPU_CORE_NUMBER_OFFSET_FOR_BOOK_BUILDER_THREAD 2
+#define CPU_CORE_INDEX_FOR_BOOK_BUILDER_THREAD 1
+#define CPU_CORE_INDEX_FOR_SQ_POLL_THREAD 0
 #define NUMBER_OF_IO_URING_SQ_ENTRIES 64
 #define WEBSOCKET_CLIENT_RX_BUFFER_SIZE 16384
 #define JSON_START_PATTERN "{\"table\""
@@ -202,7 +203,6 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
                     if (doc.HasMember("table")) {
                         GenericValue<rapidjson::UTF8<>>::MemberIterator data = doc.FindMember("data");
                         const char* action = doc["action"].GetString();
-                        std::cout << "Pushed: " << action << std::endl;
 
                         for (SizeType i = 0; i < doc["data"].Size(); i++) {
                             const Value& data_i = data->value[i];
@@ -281,12 +281,15 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_, int orderMan
     if (numCores == 0) {
         std::cerr << "Error: Unable to determine the number of CPU cores." << std::endl;
         return;
+    } else if (numCores < CPU_CORE_INDEX_FOR_BOOK_BUILDER_THREAD) {
+        std::cerr << "Error: Not enough cores to run the system." << std::endl;
+        return;
     }
 
-    int cpuCoreNumberForBookBuilderThread = numCores - CPU_CORE_NUMBER_OFFSET_FOR_BOOK_BUILDER_THREAD;
-    // setThreadAffinity(pthread_self(), cpuCoreNumberForBookBuilderThread);
+    int cpuCoreNumberForBookBuilderThread = CPU_CORE_INDEX_FOR_BOOK_BUILDER_THREAD;
+    setThreadAffinity(pthread_self(), cpuCoreNumberForBookBuilderThread);
 
-    // // Set the current thread's real-time priority to highest value
+    // Set the current thread's real-time priority to highest value
     // struct sched_param schedParams;
     // schedParams.sched_priority = sched_get_priority_max(SCHED_FIFO);
     // pthread_setschedparam(pthread_self(), SCHED_FIFO, &schedParams);
@@ -315,7 +318,9 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_, int orderMan
         printf("Running the Order Manager with submission queue polling\n");
         memset(&params, 0, sizeof(params));
         params.flags |= IORING_SETUP_SQPOLL;
+        params.flags |= IORING_SETUP_SQ_AFF;
         params.sq_thread_idle = 20000;
+        params.sq_thread_cpu = CPU_CORE_INDEX_FOR_SQ_POLL_THREAD;
         int ret = io_uring_queue_init_params(NUMBER_OF_IO_URING_SQ_ENTRIES, &ring, &params);
         
         if (ret) {
