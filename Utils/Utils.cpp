@@ -49,6 +49,17 @@ long long getTimeDifferenceInMillis(const std::string& strTime1, const std::stri
     return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
 }
 
+std::string getCurrentTimestamp() {
+    auto now = std::chrono::system_clock::now();
+    auto in_time_t = std::chrono::system_clock::to_time_t(now);
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+
+    std::stringstream ss;
+    ss << std::put_time(std::gmtime(&in_time_t), "%Y-%m-%dT%H:%M:%S");
+    ss << '.' << std::setw(3) << std::setfill('0') << ms.count();
+    ss << 'Z';
+    return ss.str();
+}
 
 // Function to set CPU affinity of a thread
 void setThreadAffinity(pthread_t thread, int cpuCore) {

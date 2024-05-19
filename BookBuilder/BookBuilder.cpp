@@ -5,6 +5,7 @@
 #include <chrono>
 #include <ev.h>
 #include <liburing.h>
+#include <fstream>
 #include "./OrderBook/OrderBook.hpp"
 #include "./ThroughputMonitor/ThroughputMonitor.hpp"
 #include "../SPSCQueue/SPSCQueue.hpp"
@@ -13,7 +14,7 @@
 #define CPU_CORE_INDEX_FOR_BOOK_BUILDER_THREAD 1
 #define CPU_CORE_INDEX_FOR_SQ_POLL_THREAD 0
 #define NUMBER_OF_IO_URING_SQ_ENTRIES 64
-#define WEBSOCKET_CLIENT_RX_BUFFER_SIZE 16384
+#define WEBSOCKET_CLIENT_RX_BUFFER_SIZE 16378
 #define JSON_START_PATTERN "{\"table\""
 #define JSON_END_PATTERN "}]}"
 #define NUMBER_OF_CONNECTIONS 1
@@ -43,6 +44,8 @@ struct io_uring ring;
 struct io_uring_sqe *sqe;
 struct io_uring_cqe *cqe;
 
+std::ofstream outFile;
+
 // static const struct lws_extension extensions[] = {
 //         {
 //                 "permessage-deflate",
@@ -60,7 +63,7 @@ book_builder_lws_callback(struct lws *wsi, enum lws_callback_reasons reason,
 {	
 	lwsl_user("protocol called\n");
 	switch (reason) {
-        /* because we are protocols[0] ... */
+
         case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
             lwsl_err("CLIENT_CONNECTION_ERROR: %s\n",
                 in ? (char *)in : "(null)");
@@ -68,7 +71,9 @@ book_builder_lws_callback(struct lws *wsi, enum lws_callback_reasons reason,
             break;
 
         case LWS_CALLBACK_CLIENT_ESTABLISHED:
+            printf("LWS_CALLBACK_CLIENT_ESTABLISHED\n");
             lwsl_user("%s: established\n", __func__);
+#ifndef USE_MOCK_EXCHANGE
             // Send subscription message here
             for (const std::string& currencyPair : currencyPairs) { 
                     std::string subscriptionMessage = "{\"op\":\"subscribe\",\"args\":[\"orderBookL2_25:" + currencyPair + "\"]}";
@@ -81,6 +86,7 @@ book_builder_lws_callback(struct lws *wsi, enum lws_callback_reasons reason,
                     // Send data using lws_write
                     lws_write(wsi, &buf[LWS_PRE], subscriptionMessage.size(), LWS_WRITE_TEXT);
             }
+#endif
 			interrupted = 1;
             break;
 
@@ -121,9 +127,8 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
 		
 		do {
             char buffer[WEBSOCKET_CLIENT_RX_BUFFER_SIZE];	
-			int bufferSize = sizeof(buffer);
-
-            // printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+            int bufferSize = sizeof(buffer);
+            printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 
 			sqe = io_uring_get_sqe(&ring);
 
@@ -169,17 +174,19 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
             if (decryptedBytesRead > 0) {
                 removeIncorrectNullCharacters(buffer, decryptedBytesRead);
 
-                // std::cout << "BUFFER: " << buffer << std::endl;
-                
+                std::cout << "BUFFER: " << buffer << std::endl;
 				const char* currentPos = buffer;
+                int isAllDataRead = false;
                 while (currentPos < buffer + strlen(buffer)) {
                     const char* startPos = strstr(currentPos, JSON_START_PATTERN);
-                    if (!startPos)
+                    if (!startPos) 
                         break;
 
                     const char* endPos = strstr(startPos, JSON_END_PATTERN);
-                    if (!endPos)
-                        break;
+                    if (!endPos) 
+                        break;    
+
+                    isAllDataRead = true;
 
                     // Extract the substring containing the JSON object
                     size_t jsonLen = endPos - startPos + strlen(JSON_END_PATTERN);
@@ -192,6 +199,12 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
                     strncpy(jsonStr, startPos, jsonLen);
                     jsonStr[jsonLen] = '\0';
 					
+                    // if (outFile.is_open()) {
+                    //     outFile << jsonStr << std::endl;
+                    // } else {
+                    //     std::cerr << "Unable to open file: " << "bitmex_data.txt" << std::endl;
+                    // }
+
                     Document doc;
                     doc.Parse(jsonStr);
 
@@ -254,11 +267,14 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
 
                             while (!bookBuilderToStrategyQueue->push(orderBookMap[symbol]));  
                         }
-                    }
+                }
 
-                    // Move to the next JSON object
+                // Move to the next JSON object
                     currentPos = endPos + 1;
                 }
+
+                if (isAllDataRead) 
+                    break;   
 			}	
 
 			memset(buffer, 0, sizeof(buffer));
@@ -319,7 +335,7 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_, int orderMan
         memset(&params, 0, sizeof(params));
         params.flags |= IORING_SETUP_SQPOLL;
         params.flags |= IORING_SETUP_SQ_AFF;
-        params.sq_thread_idle = 20000;
+        params.sq_thread_idle = 200000;
         params.sq_thread_cpu = CPU_CORE_INDEX_FOR_SQ_POLL_THREAD;
         int ret = io_uring_queue_init_params(NUMBER_OF_IO_URING_SQ_ENTRIES, &ring, &params);
         
@@ -378,19 +394,26 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_, int orderMan
 
 	memset(&i, 0, sizeof i);
 	i.context = context;
-	i.port = 443;
-	i.address = "ws.testnet.bitmex.com";
-	// i.path = "/realtime?subscribe=orderBookL2_25:XBTUSDT";
+#ifdef USE_MOCK_EXCHANGE
+    i.port = 7681;
+    i.address = "146.169.41.107";
+    i.ssl_connection = LCCSCF_USE_SSL | LCCSCF_PRIORITIZE_READS | LCCSCF_ALLOW_SELFSIGNED | LCCSCF_SKIP_SERVER_CERT_HOSTNAME_CHECK | LCCSCF_ALLOW_INSECURE |  LWS_SERVER_OPTION_IGNORE_MISSING_CERT | LWS_SERVER_OPTION_PEER_CERT_NOT_REQUIRED;
+#else
+    i.port = 443;
+	i.address = "ws.bitmex.com";
     i.path = "/realtime";
+    i.ssl_connection = LCCSCF_USE_SSL | LCCSCF_PRIORITIZE_READS;
+#endif
 	i.host = i.address;
 	i.origin = i.address;
-	i.ssl_connection = LCCSCF_USE_SSL | LCCSCF_PRIORITIZE_READS;
 	i.protocol = NULL; 
 	i.pwsi = &client_wsi;
 
 	lws_client_connect_via_info(&i);
 
     std::cout << "SOCKET FD:" << lws_get_socket_fd(client_wsi) << std::endl;
+
+    outFile.open("bitmex_data.txt", std::ios_base::out); 
 
 	while (n >= 0 && client_wsi && !interrupted) {
         n = lws_service(context, 0);
@@ -418,5 +441,6 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_, int orderMan
 
     ev_run (loop_ev, 0);
 
-	lws_context_destroy(context);    
+	lws_context_destroy(context);
+    close(orderManagerPipeEnd);    
 }
