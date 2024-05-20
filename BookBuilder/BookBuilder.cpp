@@ -22,7 +22,7 @@
     #define JSON_START_PATTERN "{\"channel\":\"book\""
 #endif
 
-#define JSON_END_PATTERN "\"update\"}"
+#define JSON_END_PATTERN "}]}"
 
 #define NUMBER_OF_CONNECTIONS 1
 
@@ -37,9 +37,8 @@ ThroughputMonitor* updateThroughputMonitor = nullptr;
 #ifdef USE_BITMEX_EXCHANGE  
 const std::vector<std::string> currencyPairs = {"XBTETH", "XBTUSDT", "ETHUSDT"};
 #elif defined(USE_KRAKEN_EXCHANGE) 
-const std::vector<std::string> currencyPairs = {"XBT/ETH", "XBT/USD", "ETH/USD"};
+const std::vector<std::string> currencyPairs = {"ETH/BTC", "BTC/USD", "ETH/USD"};
 #endif
-
 
 static int interrupted, rx_seen, test;
 static struct lws *client_wsi;
@@ -279,8 +278,7 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
                                 case 'i':
                                     orderBookMap[symbol].insertBuy(id, price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
                                     break;
-                                case 'u':double price = ask_i["price"].GetDouble();
-                                double size = ask_i["qty"].GetDouble();
+                                case 'u':
                                     orderBookMap[symbol].updateBuy(id, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
                                     break;
                                 case 'd':
@@ -363,8 +361,9 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
                                     orderBookMap[symbol].insertBuy(price, price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
                             }
                         }
+
+                        while (!bookBuilderToStrategyQueue->push(orderBookMap[symbol]));  
                     }
-                    
 
 #endif
 

@@ -18,11 +18,18 @@ long convertTimestampToTimePoint(const std::string& timestamp) {
     long milliseconds = 0;
     if (ss.peek() == '.') {
         ss.ignore(); // Ignore the dot
-        ss >> milliseconds;
+        std::string fractional;
+        ss >> fractional;
         if (ss.fail()) {
-            // Failed to parse milliseconds
+            // Failed to parse fractional seconds
             return -1; // Indicate failure
         }
+        // For now, only consider the first three digits for milliseconds (TO CHANGE FOR KRAKEN)
+        if (fractional.length() > 3) {
+            fractional = fractional.substr(0, 3);
+        }
+        
+        milliseconds = std::stol(fractional);
     }
 
     // Convert std::tm to std::chrono::system_clock::time_point

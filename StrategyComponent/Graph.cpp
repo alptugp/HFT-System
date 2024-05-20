@@ -4,6 +4,12 @@
 
 using namespace std::chrono;
 
+#ifdef USE_BITMEX_EXCHANGE  
+const std::vector<std::string> currencies = {"XBT", "USDT", "ETH"};
+#elif defined(USE_KRAKEN_EXCHANGE) 
+const std::vector<std::string> currencies = {"BTC", "USD", "ETH"};
+#endif
+
 Graph::Graph(int vertices) : V(vertices) {
     adjList.resize(V, std::vector<double>(V, 1.0));
 }
@@ -61,12 +67,11 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
     // schedParams.sched_priority = sched_get_priority_max(SCHED_FIFO);
     // pthread_setschedparam(pthread_self(), SCHED_FIFO, &schedParams);
 
-    Graph graph(3);
+    Graph graph(currencies.size());
 
     std::unordered_map<std::string, int> symbolToGraphIndex;   
-    symbolToGraphIndex["XBT"] = 0;
-    symbolToGraphIndex["USDT"] = 1;
-    symbolToGraphIndex["ETH"] = 2;
+    for (int graphIndex = 0; graphIndex < currencies.size(); graphIndex++)
+        symbolToGraphIndex[currencies[graphIndex]] = graphIndex;
 
     system_clock::time_point startingTimestamp = time_point<std::chrono::system_clock>::min();
 
@@ -78,10 +83,18 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
       double bestBuyPrice = bestBuyAndSellPrice.first;
       double bestSellPrice = bestBuyAndSellPrice.second;
       std::string symbol = orderBook.getSymbol();
-      int firstCurrencyGraphIndex = symbolToGraphIndex[symbol.substr(0, 3)];
-      int secondCurrencyGraphIndex = symbolToGraphIndex[symbol.substr(3, 6)];
-      graph.addEdge(firstCurrencyGraphIndex, secondCurrencyGraphIndex, bestBuyPrice);
-      graph.addEdge(secondCurrencyGraphIndex, firstCurrencyGraphIndex, 1.0 / bestSellPrice);
+
+#ifdef USE_KRAKEN_EXCHANGE
+      std::size_t baseCurrencyEndPos = symbol.find('/');
+      int baseCurrencyGraphIndex = symbolToGraphIndex[symbol.substr(0, baseCurrencyEndPos)];
+      int quoteCurrencyGraphIndex = symbolToGraphIndex[symbol.substr(baseCurrencyEndPos + 1, symbol.size())];
+#elif defined(USE_BITMEX_EXCHANGE)
+      const std::size_t baseCurrencyEndPos = 3;  
+      int baseCurrencyGraphIndex = symbolToGraphIndex[symbol.substr(0, baseCurrencyEndPos)];
+      int quoteCurrencyGraphIndex = symbolToGraphIndex[symbol.substr(baseCurrencyEndPos, symbol.size())];  
+#endif
+      graph.addEdge(baseCurrencyGraphIndex, quoteCurrencyGraphIndex, bestBuyPrice);
+      graph.addEdge(quoteCurrencyGraphIndex, baseCurrencyGraphIndex, 1.0 / bestSellPrice);
       std::pair<double, double> returns = graph.findTriangularArbitrage();
       double firstDirectionReturnsAfterFees = returns.first * std::pow(0.99925, 3);
       double secondDirectionReturnsAfterFees = returns.second * std::pow(0.99925, 3);
