@@ -25,7 +25,7 @@ int OrderBook::balanceFactor(AVLNode* node) {
     return height(node->left) - height(node->right);
 }
 
-AVLNode* OrderBook::insertHelper(AVLNode* node, uint64_t id, double price, int size) {
+AVLNode* OrderBook::insertHelper(AVLNode* node, double id, double price, int size) {
     // std::cout << "insertHelper" << std::endl;
     if (node == nullptr) {
         AVLNode* newNode = new AVLNode(id, price, size);
@@ -179,46 +179,54 @@ AVLNode* OrderBook::deleteNode(AVLNode* root, double price) {
     return root;
 }
 
-void OrderBook::insertBuy(uint64_t id, double price, int size, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
+void OrderBook::insertBuy(double id, double price, int size, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
     buyRoot = insertHelper(buyRoot, id, price, size);
     this->updateExchangeTimestamp_ = updateExchangeTimestamp;
     this->updateReceiveTimestamp_ = updateReceiveTimestamp;
     buyIdMap[id] = new AVLNode(id, price, size);
 }
 
-void OrderBook::updateBuy(uint64_t id, int size, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
+void OrderBook::updateBuy(double id, int size, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
     updateHelper(buyRoot, this->buyIdMap[id]->price, size);
     this->updateExchangeTimestamp_ = updateExchangeTimestamp;
     this->updateReceiveTimestamp_ = updateReceiveTimestamp;
     this->buyIdMap[id]->size = size;
 }
 
-void OrderBook::removeBuy(uint64_t id, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
+void OrderBook::removeBuy(double id, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
     deleteNode(buyRoot, this->buyIdMap[id]->price);
     this->updateExchangeTimestamp_ = updateExchangeTimestamp;
     this->updateReceiveTimestamp_ = updateReceiveTimestamp;
     this->buyIdMap.erase(id);
 }
 
-void OrderBook::insertSell(uint64_t id, double price, int size, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
+void OrderBook::insertSell(double id, double price, int size, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
     sellRoot = insertHelper(sellRoot, id, price, size);
     this->updateExchangeTimestamp_ = updateExchangeTimestamp;
     this->updateReceiveTimestamp_ = updateReceiveTimestamp;
     sellIdMap[id] = new AVLNode(id, price, size);
 }
 
-void OrderBook::updateSell(uint64_t id, int size, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
+void OrderBook::updateSell(double id, int size, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
     updateHelper(sellRoot, this->sellIdMap[id]->price, size);
     this->updateExchangeTimestamp_ = updateExchangeTimestamp;
     this->updateReceiveTimestamp_ = updateReceiveTimestamp;
     this->sellIdMap[id]->size = size;
 }
 
-void OrderBook::removeSell(uint64_t id, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
+void OrderBook::removeSell(double id, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
     deleteNode(sellRoot, this->sellIdMap[id]->price);
     this->updateExchangeTimestamp_ = updateExchangeTimestamp;
     this->updateReceiveTimestamp_ = updateReceiveTimestamp;
     this->sellIdMap.erase(id);
+}
+
+bool OrderBook::checkBuyPriceLevel(double price) {
+    return this->buyIdMap.count(price) != 0;
+}
+
+bool OrderBook::checkSellPriceLevel(double price) {
+    return this->sellIdMap.count(price) != 0;
 }
 
 void OrderBook::postorderTraversal(AVLNode* root) {
@@ -274,7 +282,7 @@ size_t OrderBook::calculateTreeMemoryUsage(AVLNode* root) const {
     return nodeSize + leftSize + rightSize;
 }
 
-size_t OrderBook::calculateMapMemoryUsage(const std::unordered_map<uint64_t, AVLNode*>& idMap) const {
+size_t OrderBook::calculateMapMemoryUsage(const std::unordered_map<double, AVLNode*>& idMap) const {
     size_t mapSize = sizeof(idMap); // Size of the map object
 
     // Iterate over the map and add the size of its elements

@@ -12,22 +12,22 @@
 using namespace std::chrono;
 
 struct AVLNode {
-    uint64_t id;
+    double id;
     double price;
     int size;
     AVLNode* left;
     AVLNode* right;
     int height;
 
-    AVLNode(uint64_t id, double price, int size) : id(id), price(price), size(size), left(nullptr), right(nullptr), height(1) {}
+    AVLNode(double id, double price, int size) : id(id), price(price), size(size), left(nullptr), right(nullptr), height(1) {}
 };
 
 class OrderBook {
 private:
     AVLNode* buyRoot;
     AVLNode* sellRoot;
-    std::unordered_map<uint64_t, AVLNode*> buyIdMap;
-    std::unordered_map<uint64_t, AVLNode*> sellIdMap;
+    std::unordered_map<double, AVLNode*> buyIdMap;
+    std::unordered_map<double, AVLNode*> sellIdMap;
     std::string symbol;
     long updateExchangeTimestamp_;
     system_clock::time_point updateReceiveTimestamp_;
@@ -40,7 +40,7 @@ private:
     AVLNode* rotateLeft(AVLNode* x);
     AVLNode* balance(AVLNode* node);
     
-    AVLNode* insertHelper(AVLNode* node, uint64_t id, double price, int size);
+    AVLNode* insertHelper(AVLNode* node, double id, double price, int size);
     void updateHelper(AVLNode* node, double price, int size);
     AVLNode* deleteNode(AVLNode* root, double price);
     AVLNode* minValueNode(AVLNode* node);
@@ -50,7 +50,7 @@ private:
     size_t calculateMemoryUsage() const;
     size_t calculateTreeMemoryUsage(AVLNode* root) const;
     double calculateAverageMemoryUsage() const;
-    size_t calculateMapMemoryUsage(const std::unordered_map<uint64_t, AVLNode*>& idMap) const; 
+    size_t calculateMapMemoryUsage(const std::unordered_map<double, AVLNode*>& idMap) const; 
 
 public:
     OrderBook(std::string symbol) : buyRoot(nullptr), sellRoot(nullptr), symbol(symbol) {}
@@ -70,15 +70,18 @@ public:
     std::pair<double, double> getBestBuyAndSellPrice();
 
     // Buy side functions
-    void insertBuy(uint64_t id, double price, int size, long timestamp, system_clock::time_point updateReceiveTimestamp);
-    void updateBuy(uint64_t id, int size, long timestamp, system_clock::time_point updateReceiveTimestamp);
-    void removeBuy(uint64_t id, long timestamp, system_clock::time_point updateReceiveTimestamp);
+    void insertBuy(double id, double price, int size, long timestamp, system_clock::time_point updateReceiveTimestamp);
+    void updateBuy(double id, int size, long timestamp, system_clock::time_point updateReceiveTimestamp);
+    void removeBuy(double id, long timestamp, system_clock::time_point updateReceiveTimestamp);
 
     // Sell side functions
-    void insertSell(uint64_t id, double price, int size, long timestamp, system_clock::time_point updateReceiveTimestamp);
-    void updateSell(uint64_t id, int size, long timestamp, system_clock::time_point updateReceiveTimestamp);
-    void removeSell(uint64_t id, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp);
+    void insertSell(double id, double price, int size, long timestamp, system_clock::time_point updateReceiveTimestamp);
+    void updateSell(double id, int size, long timestamp, system_clock::time_point updateReceiveTimestamp);
+    void removeSell(double id, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp);
 
+    bool checkBuyPriceLevel(double price);
+    bool checkSellPriceLevel(double price);
+   
     void updateOrderBookMemoryUsage();
 };
 

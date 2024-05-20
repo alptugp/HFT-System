@@ -15,8 +15,15 @@
 #define CPU_CORE_INDEX_FOR_SQ_POLL_THREAD 0
 #define NUMBER_OF_IO_URING_SQ_ENTRIES 64
 #define WEBSOCKET_CLIENT_RX_BUFFER_SIZE 16378
-#define JSON_START_PATTERN "{\"table\""
-#define JSON_END_PATTERN "}]}"
+
+#ifdef USE_BITMEX_EXCHANGE
+    #define JSON_START_PATTERN "{\"table\""
+#elif defined(USE_KRAKEN_EXCHANGE)
+    #define JSON_START_PATTERN "{\"channel\":\"book\""
+#endif
+
+#define JSON_END_PATTERN "\"update\"}"
+
 #define NUMBER_OF_CONNECTIONS 1
 
 using namespace rapidjson;
@@ -27,7 +34,12 @@ std::unordered_map<std::string, OrderBook> orderBookMap;
 SPSCQueue<OrderBook>* bookBuilderToStrategyQueue = nullptr;
 ThroughputMonitor* updateThroughputMonitor = nullptr; 
 
+#ifdef USE_BITMEX_EXCHANGE  
 const std::vector<std::string> currencyPairs = {"XBTETH", "XBTUSDT", "ETHUSDT"};
+#elif defined(USE_KRAKEN_EXCHANGE) 
+const std::vector<std::string> currencyPairs = {"XBT/ETH", "XBT/USD", "ETH/USD"};
+#endif
+
 
 static int interrupted, rx_seen, test;
 static struct lws *client_wsi;
@@ -63,18 +75,18 @@ book_builder_lws_callback(struct lws *wsi, enum lws_callback_reasons reason,
 {	
 	lwsl_user("protocol called\n");
 	switch (reason) {
-
         case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
             lwsl_err("CLIENT_CONNECTION_ERROR: %s\n",
                 in ? (char *)in : "(null)");
             client_wsi = NULL;
             break;
 
-        case LWS_CALLBACK_CLIENT_ESTABLISHED:
+        case LWS_CALLBACK_CLIENT_ESTABLISHED: {
             printf("LWS_CALLBACK_CLIENT_ESTABLISHED\n");
             lwsl_user("%s: established\n", __func__);
 #ifndef USE_MOCK_EXCHANGE
-            // Send subscription message here
+            // Send subscription message 
+    #ifdef USE_BITMEX_EXCHANGE   
             for (const std::string& currencyPair : currencyPairs) { 
                     std::string subscriptionMessage = "{\"op\":\"subscribe\",\"args\":[\"orderBookL2_25:" + currencyPair + "\"]}";
                     // Allocate buffer with LWS_PRE bytes before the data
@@ -86,9 +98,40 @@ book_builder_lws_callback(struct lws *wsi, enum lws_callback_reasons reason,
                     // Send data using lws_write
                     lws_write(wsi, &buf[LWS_PRE], subscriptionMessage.size(), LWS_WRITE_TEXT);
             }
+    #elif defined(USE_KRAKEN_EXCHANGE)
+            std::string subscriptionMessage = R"({
+                                                "method": "subscribe",
+                                                "params": {
+                                                    "channel": "book",
+                                                    "depth": 10,
+                                                    "snapshot": true,
+                                                    "symbol": [)";
+
+            for (size_t i = 0; i < currencyPairs.size(); ++i) {
+                subscriptionMessage += "\"" + currencyPairs[i] + "\"";
+                if (i < currencyPairs.size() - 1) {
+                    subscriptionMessage += ",";
+                }
+            }
+
+            subscriptionMessage += R"(]
+                                        },
+                                        "req_id": 1234567890
+                                        }
+                                    )";
+
+            unsigned char buf[LWS_PRE + subscriptionMessage.size()];
+
+            // Copy subscription message to buffer after LWS_PRE bytes
+            memcpy(&buf[LWS_PRE], subscriptionMessage.c_str(), subscriptionMessage.size());
+                    
+            // Send data using lws_write
+            lws_write(wsi, &buf[LWS_PRE], subscriptionMessage.size(), LWS_WRITE_TEXT);
+    #endif
 #endif
 			interrupted = 1;
             break;
+        }
 
         case LWS_CALLBACK_CLIENT_CLOSED:
             client_wsi = NULL;
@@ -184,12 +227,13 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
 
                     const char* endPos = strstr(startPos, JSON_END_PATTERN);
                     if (!endPos) 
-                        break;    
-
-                    isAllDataRead = true;
-
+                        break;
+                    
                     // Extract the substring containing the JSON object
                     size_t jsonLen = endPos - startPos + strlen(JSON_END_PATTERN);
+                    
+                    isAllDataRead = true;
+
                     if (jsonLen >= WEBSOCKET_CLIENT_RX_BUFFER_SIZE) {
                         std::cerr << "JSON string too long\n";
                         break;
@@ -213,61 +257,116 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
                         break;
                     }
 
-                    if (doc.HasMember("table")) {
-                        GenericValue<rapidjson::UTF8<>>::MemberIterator data = doc.FindMember("data");
-                        const char* action = doc["action"].GetString();
-
-                        for (SizeType i = 0; i < doc["data"].Size(); i++) {
-                            const Value& data_i = data->value[i];
-                            const char* symbol = data_i["symbol"].GetString();
-                            uint64_t id = data_i["id"].GetInt64();
-                            const char* side = data_i["side"].GetString();
-                            double size;
-                            if (data->value[i].HasMember("size")) 
-                                size = data_i["size"].GetInt64();
-                            
-                            double price = data_i["price"].GetDouble();
-
-                            const char* timestamp = data_i["timestamp"].GetString();
-                            long exchangeUpdateTimestamp = convertTimestampToTimePoint(timestamp);
-
-                           // std::cout << "exchangeUpdateTimestamp: " << exchangeUpdateTimestamp << ", marketUpdateReceiveTimestamp: " << std::to_string(duration_cast<milliseconds>(marketUpdateReceiveTimestamp.time_since_epoch()).count()) << std::endl;
-
-                            if (strcmp(side, "Buy") == 0) {
-                                switch (action[0]) {
-                                    case 'p':
-                                    case 'i':
-                                        orderBookMap[symbol].insertBuy(id, price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
-                                        break;
-                                    case 'u':
-                                        orderBookMap[symbol].updateBuy(id, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
-                                        break;
-                                    case 'd':
-                                        orderBookMap[symbol].removeBuy(id, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
-                                        break;
-                                    default:
-                                        break;
-                                }
-                            } else if (strcmp(side, "Sell") == 0) {
-                                switch (action[0]) {
-                                    case 'p':
-                                    case 'i':
-                                        orderBookMap[symbol].insertSell(id, price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
-                                        break;
-                                    case 'u':
-                                        orderBookMap[symbol].updateSell(id, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
-                                        break;
-                                    case 'd':
-                                        orderBookMap[symbol].removeSell(id, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
-                                        break;
-                                    default:
-                                        break;
-                                }
+#ifdef USE_BITMEX_EXCHANGE
+                    GenericValue<rapidjson::UTF8<>>::MemberIterator data = doc.FindMember("data");
+                    const char* action = doc["action"].GetString();
+                    for (SizeType i = 0; i < doc["data"].Size(); i++) {
+                        const Value& data_i = data->value[i];
+                        const char* symbol = data_i["symbol"].GetString();
+                        uint64_t id = data_i["id"].GetInt64();
+                        const char* side = data_i["side"].GetString();
+                        double size;
+                        if (data->value[i].HasMember("size")) 
+                            size = data_i["size"].GetInt64();
+                        
+                        double price = data_i["price"].GetDouble();
+                        const char* timestamp = data_i["timestamp"].GetString();
+                        long exchangeUpdateTimestamp = convertTimestampToTimePoint(timestamp);
+                       // std::cout << "exchangeUpdateTimestamp: " << exchangeUpdateTimestamp << ", marketUpdateReceiveTimestamp: " << std::to_string(duration_cast<milliseconds>(marketUpdateReceiveTimestamp.time_since_epoch()).count()) << std::endl;
+                        if (strcmp(side, "Buy") == 0) {
+                            switch (action[0]) {
+                                case 'p':
+                                case 'i':
+                                    orderBookMap[symbol].insertBuy(id, price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                    break;
+                                case 'u':double price = ask_i["price"].GetDouble();
+                                double size = ask_i["qty"].GetDouble();
+                                    orderBookMap[symbol].updateBuy(id, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                    break;
+                                case 'd':
+                                    orderBookMap[symbol].removeBuy(id, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                    break;
+                                default:
+                                    break;
+                            }
+                        } else if (strcmp(side, "Sell") == 0) {
+                            switch (action[0]) {
+                                case 'p':
+                                case 'i':
+                                    orderBookMap[symbol].insertSell(id, price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                    break;
+                                case 'u':
+                                    orderBookMap[symbol].updateSell(id, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                    break;
+                                case 'd':
+                                    orderBookMap[symbol].removeSell(id, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                        while (!bookBuilderToStrategyQueue->push(orderBookMap[symbol]));  
+                    }
+#elif defined(USE_KRAKEN_EXCHANGE)
+                    GenericValue<rapidjson::UTF8<>>::MemberIterator data = doc.FindMember("data");
+                    const char* type = doc["type"].GetString();
+                    for (SizeType i = 0; i < doc["data"].Size(); i++) {
+                        const Value& data_i = data->value[i];
+                        GenericValue<rapidjson::UTF8<>>::ConstMemberIterator asks = data_i.FindMember("asks");
+                        GenericValue<rapidjson::UTF8<>>::ConstMemberIterator bids = data_i.FindMember("bids");
+                        const char* symbol = data_i["symbol"].GetString();    
+                        uint64_t checksum = data_i["checksum"].GetInt64();
+                        if (type[0] == 's') {
+                            for (SizeType i = 0; i < data_i["asks"].Size(); i++) {
+                                const Value& ask_i = asks->value[i];
+                                double price = ask_i["price"].GetDouble();
+                                double size = ask_i["qty"].GetDouble();
+                                orderBookMap[symbol].insertSell(price, price, size, 0, marketUpdateReceiveTimestamp);
                             }
 
-                            while (!bookBuilderToStrategyQueue->push(orderBookMap[symbol]));  
+                            for (SizeType i = 0; i < data_i["bids"].Size(); i++) {
+                                const Value& bid_i = bids->value[i];
+                                double price = bid_i["price"].GetDouble();
+                                double size = bid_i["qty"].GetDouble();
+                                orderBookMap[symbol].insertBuy(price, price, size, 0, marketUpdateReceiveTimestamp);
+                            }
+
+                        } else if (type[0] == 'u') {
+                            const char* timestamp = data_i["timestamp"].GetString();
+                            long exchangeUpdateTimestamp = convertTimestampToTimePoint(timestamp);
+                            GenericValue<rapidjson::UTF8<>>::ConstMemberIterator asks = data_i.FindMember("asks");
+                            GenericValue<rapidjson::UTF8<>>::ConstMemberIterator bids = data_i.FindMember("bids");
+                            const char* symbol = data_i["symbol"].GetString();    
+                            uint64_t checksum = data_i["checksum"].GetInt64();
+
+                            for (SizeType i = 0; i < data_i["asks"].Size(); i++) {
+                                const Value& ask_i = asks->value[i]; 
+                                double price = ask_i["price"].GetDouble();
+                                double size = ask_i["qty"].GetDouble();
+                                if (size == 0)
+                                    orderBookMap[symbol].removeSell(price, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                else if (orderBookMap[symbol].checkSellPriceLevel(price))
+                                    orderBookMap[symbol].updateSell(price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                else 
+                                    orderBookMap[symbol].insertSell(price, price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                            }
+                            
+                            for (SizeType i = 0; i < data_i["bids"].Size(); i++) {
+                                const Value& bid_i = bids->value[i]; 
+                                double price = bid_i["price"].GetDouble();
+                                double size = bid_i["qty"].GetDouble();
+                                if (size == 0)
+                                    orderBookMap[symbol].removeBuy(price, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                else if (orderBookMap[symbol].checkBuyPriceLevel(price))
+                                    orderBookMap[symbol].updateBuy(price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                else 
+                                    orderBookMap[symbol].insertBuy(price, price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                            }
                         }
-                }
+                    }
+                    
+
+#endif
 
                 // Move to the next JSON object
                     currentPos = endPos + 1;
@@ -398,7 +497,12 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_, int orderMan
     i.port = 7681;
     i.address = "146.169.41.107";
     i.ssl_connection = LCCSCF_USE_SSL | LCCSCF_PRIORITIZE_READS | LCCSCF_ALLOW_SELFSIGNED | LCCSCF_SKIP_SERVER_CERT_HOSTNAME_CHECK | LCCSCF_ALLOW_INSECURE |  LWS_SERVER_OPTION_IGNORE_MISSING_CERT | LWS_SERVER_OPTION_PEER_CERT_NOT_REQUIRED;
-#else
+#elif defined(USE_KRAKEN_EXCHANGE)
+    i.port = 443;
+	i.address = "ws.kraken.com";
+    i.path = "/v2";
+    i.ssl_connection = LCCSCF_USE_SSL | LCCSCF_PRIORITIZE_READS;
+#elif defined(USE_BITMEX_EXCHANGE)
     i.port = 443;
 	i.address = "ws.bitmex.com";
     i.path = "/realtime";

@@ -5,6 +5,9 @@ project(main)
 find_package(libwebsockets REQUIRED)
 
 add_definitions(-DLWS_WITH_LIBEV=1)
+# add_definitions(-DUSE_MOCK_EXCHANGE=1)
+# add_definitions(-DUSE_BITMEX_EXCHANGE=1)
+add_definitions(-DUSE_KRAKEN_EXCHANGE=1)
 
 include_directories("/homes/aap221/local/include")
 link_directories("/homes/aap221/local/lib")
