@@ -1,8 +1,15 @@
 cmake_minimum_required(VERSION 3.22)
-
 project(main)
 
+# set(CMAKE_CXX_STANDARD 17)
+
 find_package(libwebsockets REQUIRED)
+
+find_package(Eigen3 REQUIRED)
+include_directories(${EIGEN3_INCLUDE_DIR})
+
+find_package(Boost REQUIRED COMPONENTS graph)
+include_directories(${Boost_INCLUDE_DIRS})
 
 add_definitions(-DLWS_WITH_LIBEV=1)
 # add_definitions(-DUSE_MOCK_EXCHANGE=1)
@@ -19,7 +26,7 @@ set(SOURCES
     ./OrderManager/OrderManager.cpp
     ./BookBuilder/ThroughputMonitor/ThroughputMonitor.cpp
     ./Utils/Utils.cpp
-    ./StrategyComponent/Graph.cpp
+    ./StrategyComponent/Strategy.cpp
     ./OrderManager/ThreadPool.cpp
 )
 
@@ -31,4 +38,4 @@ target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_11)
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wno-unused-function -Wno-unused-parameter)
 
 # Linked Libraries
-target_link_libraries(${PROJECT_NAME} PRIVATE uring pthread crypto ssl curl websockets ev)
+target_link_libraries(${PROJECT_NAME} PRIVATE uring pthread crypto ssl curl websockets ev Eigen3::Eigen ${Boost_LIBRARIES})
