@@ -16,9 +16,9 @@
 #define NUMBER_OF_IO_URING_SQ_ENTRIES 64
 #define WEBSOCKET_CLIENT_RX_BUFFER_SIZE 16378
 
-#ifdef USE_BITMEX_EXCHANGE
+#if defined(USE_BITMEX_EXCHANGE) || defined(USE_BITMEX_MOCK_EXCHANGE)
     #define JSON_START_PATTERN "{\"table\""
-#elif defined(USE_KRAKEN_EXCHANGE)
+#elif defined(USE_KRAKEN_EXCHANGE) || defined(USE_KRAKEN_MOCK_EXCHANGE)
     #define JSON_START_PATTERN "{\"channel\":\"book\""
 #endif
 
@@ -34,9 +34,9 @@ std::unordered_map<std::string, OrderBook> orderBookMap;
 SPSCQueue<OrderBook>* bookBuilderToStrategyQueue = nullptr;
 ThroughputMonitor* updateThroughputMonitor = nullptr; 
 
-#ifdef USE_BITMEX_EXCHANGE  
+#if defined(USE_BITMEX_EXCHANGE) || defined(USE_BITMEX_MOCK_EXCHANGE)  
 const std::vector<std::string> currencyPairs = {"XBTETH", "XBTUSDT", "ETHUSDT"};
-#elif defined(USE_KRAKEN_EXCHANGE) 
+#elif defined(USE_KRAKEN_EXCHANGE) || defined(USE_KRAKEN_MOCK_EXCHANGE)  
 const std::vector<std::string> currencyPairs = {"ETH/BTC", "BTC/USD", "ETH/USD"};
 #endif
 
@@ -83,7 +83,8 @@ book_builder_lws_callback(struct lws *wsi, enum lws_callback_reasons reason,
         case LWS_CALLBACK_CLIENT_ESTABLISHED: {
             printf("LWS_CALLBACK_CLIENT_ESTABLISHED\n");
             lwsl_user("%s: established\n", __func__);
-#ifndef USE_MOCK_EXCHANGE
+#ifndef USE_KRAKEN_MOCK_EXCHANGE
+#ifndef USE_BITMEX_MOCK_EXCHANGE
             // Send subscription message 
     #ifdef USE_BITMEX_EXCHANGE   
             for (const std::string& currencyPair : currencyPairs) { 
@@ -127,6 +128,7 @@ book_builder_lws_callback(struct lws *wsi, enum lws_callback_reasons reason,
             // Send data using lws_write
             lws_write(wsi, &buf[LWS_PRE], subscriptionMessage.size(), LWS_WRITE_TEXT);
     #endif
+#endif
 #endif
 			interrupted = 1;
             break;
@@ -256,7 +258,7 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
                         break;
                     }
 
-#ifdef USE_BITMEX_EXCHANGE
+#if defined(USE_BITMEX_EXCHANGE) || defined(USE_BITMEX_MOCK_EXCHANGE) 
                     GenericValue<rapidjson::UTF8<>>::MemberIterator data = doc.FindMember("data");
                     const char* action = doc["action"].GetString();
                     std::vector<std::string> updatedCurrencies;
@@ -308,7 +310,7 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
                         updatedCurrencies.push_back(std::string(symbol));
                     } 
 
-#elif defined(USE_KRAKEN_EXCHANGE)
+#elif defined(USE_KRAKEN_EXCHANGE) || defined (USE_KRAKEN_MOCK_EXCHANGE)
                     GenericValue<rapidjson::UTF8<>>::MemberIterator data = doc.FindMember("data");
                     const char* type = doc["type"].GetString();
                     std::vector<std::string> updatedCurrencies;
@@ -498,7 +500,7 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_, int orderMan
 
 	memset(&i, 0, sizeof i);
 	i.context = context;
-#ifdef USE_MOCK_EXCHANGE
+#if defined(USE_KRAKEN_MOCK_EXCHANGE) || defined(USE_BITMEX_MOCK_EXCHANGE)
     i.port = 7681;
     i.address = "146.169.41.107";
     i.ssl_connection = LCCSCF_USE_SSL | LCCSCF_PRIORITIZE_READS | LCCSCF_ALLOW_SELFSIGNED | LCCSCF_SKIP_SERVER_CERT_HOSTNAME_CHECK | LCCSCF_ALLOW_INSECURE |  LWS_SERVER_OPTION_IGNORE_MISSING_CERT | LWS_SERVER_OPTION_PEER_CERT_NOT_REQUIRED;

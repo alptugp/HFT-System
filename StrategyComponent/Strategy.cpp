@@ -20,7 +20,7 @@ using namespace std::chrono;
 using namespace std;
 using namespace boost;
 
-#ifdef USE_KRAKEN_EXCHANGE
+#if defined(USE_KRAKEN_EXCHANGE) || defined(USE_KRAKEN_MOCK_EXCHANGE)
 typedef adjacency_list<vecS, vecS, directedS, no_property, property<edge_weight_t, double>> Graph;
 typedef graph_traits<Graph>::vertex_descriptor Vertex;
 typedef graph_traits<Graph>::edge_descriptor Edge;
@@ -220,10 +220,9 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
       
       system_clock::time_point bookBuilderUpdateRxTimestamp = orderBook.getUpdateReceiveTimestamp();
       std::string bookBuilderUpdateRxTimepoint = std::to_string(duration_cast<milliseconds>(bookBuilderUpdateRxTimestamp.time_since_epoch()).count());
-      std::cout << "bookBuilderUpdateRxTimepoint: " << bookBuilderUpdateRxTimepoint << std::endl;
 
-      std::cout << "Exchange-Receival (ms): " << duration_cast<milliseconds>(bookBuilderUpdateRxTimestamp - exchangeUpdateTxTimestamp).count() << "      "
-                << "Receival-Detection (ms): " << duration_cast<milliseconds>(strategyComponentArbitrageDetectionTimestamp - bookBuilderUpdateRxTimestamp).count() << "      "
+      std::cout << "Exchange Update Occurence to Update Receival (ms): " << duration_cast<milliseconds>(bookBuilderUpdateRxTimestamp - exchangeUpdateTxTimestamp).count() << "      "
+                << "Update Receival to Arbitrage Detection (ms): " << duration_cast<milliseconds>(strategyComponentArbitrageDetectionTimestamp - bookBuilderUpdateRxTimestamp).count() << "      "
       << std::endl;
 
       for (const auto& cycle : cycles) {
@@ -269,7 +268,7 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
     //     break;
     }
 }
-#elif defined(USE_BITMEX_EXCHANGE) || defined(USE_MOCK_EXCHANGE)
+#elif defined(USE_BITMEX_EXCHANGE) || defined(USE_BITMEX_MOCK_EXCHANGE)
     int V;
     std::vector<std::vector<double>> adjList;
     const std::vector<std::string> currencies = {"XBT", "USDT", "ETH"};
@@ -354,62 +353,51 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
             double secondDirectionReturnsAfterFees = returns.second * std::pow(0.99925, 3);
             // std::cout << symbol << " - Best Sell: " << bestSellPrice << " Best Buy: " << bestBuyPrice << std::endl;
 
-            system_clock::time_point strategyTimestamp = high_resolution_clock::now();
-            std::string strategyTimepoint = std::to_string(duration_cast<milliseconds>(strategyTimestamp.time_since_epoch()).count());
-            long updateExchangeTimestamp = orderBook.getUpdateExchangeTimestamp();
-            auto updateExchangeTimepoint = std::chrono::time_point<std::chrono::high_resolution_clock>(
-                        std::chrono::milliseconds(updateExchangeTimestamp));
-            system_clock::time_point updateReceiveTimepoint = orderBook.getUpdateReceiveTimestamp();
+            system_clock::time_point strategyComponentArbitrageDetectionTimestamp = high_resolution_clock::now();
+            std::string strategyComponentArbitrageDetectionTimepoint = std::to_string(duration_cast<milliseconds>(strategyComponentArbitrageDetectionTimestamp.time_since_epoch()).count());
+            
+            auto exchangeUpdateTxTimestamp = time_point<high_resolution_clock>(milliseconds(orderBook.getUpdateExchangeTimestamp()));
+            std::string exchangeUpdateTxTimepoint = std::to_string(duration_cast<milliseconds>(exchangeUpdateTxTimestamp.time_since_epoch()).count());  
+            
+            system_clock::time_point bookBuilderUpdateRxTimestamp = orderBook.getUpdateReceiveTimestamp();
+            std::string bookBuilderUpdateRxTimepoint = std::to_string(duration_cast<milliseconds>(bookBuilderUpdateRxTimestamp.time_since_epoch()).count());
 
             std::cout << "XBT->USDT->ETH->XBT: " << firstDirectionReturnsAfterFees << "      "
                         << "XBT->ETH->USDT->XBT: " << secondDirectionReturnsAfterFees << "      "
-                        << "Exchange-Receival (ms): " << duration_cast<milliseconds>(updateReceiveTimepoint - updateExchangeTimepoint).count() << "      "
-                        << "Receival-Detection (ms): " << duration_cast<milliseconds>(strategyTimestamp - updateReceiveTimepoint).count() << "      "
+                        << "Exchange Update Occurence to Update Receival (ms): " << duration_cast<milliseconds>(bookBuilderUpdateRxTimestamp - exchangeUpdateTxTimestamp).count() << "      "
+                        << "Update Receival to Arbitrage Detection (ms): " << duration_cast<milliseconds>(strategyComponentArbitrageDetectionTimestamp - bookBuilderUpdateRxTimestamp).count() << "      "
 
                         // << "Exch. Ts.: " << updateExchangeTimestamp << "      "
                         // << "Rec. Ts.: " << std::to_string(duration_cast<milliseconds>(updateReceiveTimepoint.time_since_epoch()).count()) << "      "
                         // << "Strat. Ts.: " << strategyTimepoint
-                        << std::endl;
+            << std::endl;
+
             if (startingTimestamp == time_point<std::chrono::system_clock>::min()) {
-                    startingTimestamp = updateExchangeTimepoint;
+                    startingTimestamp = exchangeUpdateTxTimestamp;
             }
             // throughputMonitorStrategyComponent.operationCompleted();
-            // "symbol=XBTUSD&side=Buy&orderQty=1&price=50000&ordType=Limit"
 
-            std::string updateExchangeTimepointStr = std::to_string(duration_cast<milliseconds>(updateExchangeTimepoint.time_since_epoch()).count());
-            std::string updateReceiveTimepointStr = std::to_string(duration_cast<milliseconds>(updateReceiveTimepoint.time_since_epoch()).count());
-            if (/*firstDirectionReturnsAfterFees > 1.0 &&*/ (duration_cast<milliseconds>(strategyTimestamp - startingTimestamp).count() > 1000)) {
-                /*std::cout << "PROFIT POSSIBLE for XBT->USDT->ETH->XBT" << std::endl;*/
-
-                //std::cout << "firstLegPrice: " << graph.getExchangeRateBetween(0, 1) << std::endl;
-                //double usdConvertedAmount = 0.001 * graph.getExchangeRateBetween(0, 1) * 0.99925;
-                //std::cout << "converted usd amount: " << usdConvertedAmount << std::endl;
-                std::string firstLeg = std::string("symbol=XBTUSDT&side=Sell&orderQty=1000") + "&ordType=Market" + updateExchangeTimepointStr + updateReceiveTimepointStr + strategyTimepoint;
+            if (/*firstDirectionReturnsAfterFees > 1.0 &&*/ (duration_cast<milliseconds>(strategyComponentArbitrageDetectionTimestamp - startingTimestamp).count() > 1000)) {
+                std::string firstLeg = std::string("symbol=XBTUSDT&side=Sell&orderQty=1000") + "&ordType=Market" + exchangeUpdateTxTimepoint + bookBuilderUpdateRxTimepoint + strategyComponentArbitrageDetectionTimepoint;
                 while (!strategyToOrderManagerQueue.push(firstLeg));
 
-                //double ethConvertedAmount = usdConvertedAmount * graph.getExchangeRateBetween(1, 2) * 0.99925;
-                //std::cout << "converted eth amount: " << ethConvertedAmount << std::endl;
-                std::string secondLeg = std::string("symbol=ETHUSDT&side=Buy&orderQty=1000") + "&ordType=Market" + updateExchangeTimepointStr + updateReceiveTimepointStr + strategyTimepoint;
+                std::string secondLeg = std::string("symbol=ETHUSDT&side=Buy&orderQty=1000") + "&ordType=Market" + exchangeUpdateTxTimepoint + bookBuilderUpdateRxTimepoint + strategyComponentArbitrageDetectionTimepoint;
                 while (!strategyToOrderManagerQueue.push(secondLeg));
 
-                //double xbtConvertedAmount = ethConvertedAmount * graph.getExchangeRateBetween(2, 0) * 0.99925;
-                //std::cout << "converted xbt amount: " << xbtConvertedAmount << std::endl;
-                std::string thirdLeg = std::string("symbol=XBTETH&side=Buy&orderQty=1") + "&ordType=Market" + updateExchangeTimepointStr + updateReceiveTimepointStr + strategyTimepoint;
+                std::string thirdLeg = std::string("symbol=XBTETH&side=Buy&orderQty=1") + "&ordType=Market" + exchangeUpdateTxTimepoint + bookBuilderUpdateRxTimepoint + strategyComponentArbitrageDetectionTimepoint;
                 while (!strategyToOrderManagerQueue.push(thirdLeg));
 
                 startingTimestamp = time_point<high_resolution_clock>(high_resolution_clock::now());
             }
 
-            if (/*secondDirectionReturnsAfterFees > 1.0 &&*/ (duration_cast<milliseconds>(strategyTimestamp - startingTimestamp).count() > 1000)) {
-                /*std::cout << "PROFIT POSSIBLE for XBT->ETH->USDT->XBT" << std::endl;*/
-
-                std::string firstLeg = std::string("symbol=XBTETH&side=Sell&orderQty=1") + "&ordType=Market" + updateExchangeTimepointStr + updateReceiveTimepointStr + strategyTimepoint;
+            if (/*secondDirectionReturnsAfterFees > 1.0 &&*/ (duration_cast<milliseconds>(strategyComponentArbitrageDetectionTimestamp - startingTimestamp).count() > 1000)) {
+                std::string firstLeg = std::string("symbol=XBTETH&side=Sell&orderQty=1") + "&ordType=Market" + exchangeUpdateTxTimepoint + bookBuilderUpdateRxTimepoint + strategyComponentArbitrageDetectionTimepoint;
                 while (!strategyToOrderManagerQueue.push(firstLeg));
 
-                std::string secondLeg = std::string("symbol=ETHUSDT&side=Sell&orderQty=1000") + "&ordType=Market" + updateExchangeTimepointStr + updateReceiveTimepointStr + strategyTimepoint;
+                std::string secondLeg = std::string("symbol=ETHUSDT&side=Sell&orderQty=1000") + "&ordType=Market" + exchangeUpdateTxTimepoint + bookBuilderUpdateRxTimepoint + strategyComponentArbitrageDetectionTimepoint;
                 while (!strategyToOrderManagerQueue.push(secondLeg));
 
-                std::string thirdLeg = std::string("symbol=XBTUSDT&side=Buy&orderQty=1000") + "&ordType=Market" + updateExchangeTimepointStr + updateReceiveTimepointStr + strategyTimepoint;
+                std::string thirdLeg = std::string("symbol=XBTUSDT&side=Buy&orderQty=1000") + "&ordType=Market" + exchangeUpdateTxTimepoint + bookBuilderUpdateRxTimepoint + strategyComponentArbitrageDetectionTimepoint;
                 while (!strategyToOrderManagerQueue.push(thirdLeg));
 
                 startingTimestamp = time_point<high_resolution_clock>(high_resolution_clock::now());
