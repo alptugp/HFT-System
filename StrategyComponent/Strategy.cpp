@@ -27,11 +27,13 @@ typedef graph_traits<Graph>::edge_descriptor Edge;
 std::vector<std::string> currencies;    
 std::unordered_map<string, int> symbolToIndex;
 
-vector<vector<double>> createAdjMatrix() {
-    const std::unordered_map<string, vector<string>> pairsDict = {
+const std::unordered_map<string, vector<string>> pairsDict = {
         {"ETH", {"BTC", "USD"}},
         {"BTC", {"USD"}},
     };
+
+vector<vector<double>> createAdjMatrix() {
+    
 
     for (const auto& [key, vals] : pairsDict) {
         currencies.push_back(key);
@@ -40,9 +42,12 @@ vector<vector<double>> createAdjMatrix() {
     sort(currencies.begin(), currencies.end());
     currencies.erase(unique(currencies.begin(), currencies.end()), currencies.end());
 
+    cout << "CURRENCIES: " << endl;
     for (size_t i = 0; i < currencies.size(); ++i) {
         symbolToIndex[currencies[i]] = i;
+        cout << currencies[i] << endl;
     }
+    
 
     int n = currencies.size();
     vector<vector<double>> adjMatrix(n, vector<double>(n, 0.0));
@@ -55,18 +60,6 @@ vector<vector<double>> createAdjMatrix() {
     }
 
     return adjMatrix;
-}
-
-// Function to calculate arbitrage from a cycle
-double calculateTriangularArbitrage(const vector<int>& cycle, const vector<vector<double>>& adjMatrix) {
-    double arb = 1;
-    for (size_t i = 0; i < cycle.size() - 1; ++i) {
-        int p1 = cycle[i];
-        int p2 = cycle[i + 1];
-        arb *= adjMatrix[p1][p2];
-    }
-
-    return arb - 1;
 }
 
 vector<vector<int>> findNegativeCycles(const vector<vector<double>>& adjMatrix, const Graph& g, const property_map<Graph, edge_weight_t>::type& weightmap, int start) {
@@ -94,10 +87,6 @@ vector<vector<int>> findNegativeCycles(const vector<vector<double>>& adjMatrix, 
             }
         }
     }
-
-    // auto end2 = std::chrono::high_resolution_clock::now();
-    // std::chrono::duration<double, std::milli> duration2 = end2 - starttime2;
-    // std::cout << "Time taken by relaxation(): " << duration2.count() << " milliseconds" << std::endl;
 
     // Cycle detection
     vector<vector<int>> allCycles;
@@ -127,9 +116,6 @@ vector<vector<int>> findNegativeCycles(const vector<vector<double>>& adjMatrix, 
             }
         }
     }
-    // auto end = std::chrono::high_resolution_clock::now();
-    // std::chrono::duration<double, std::milli> duration = end - starttime;
-    // std::cout << "Time taken by for(): " << duration.count() << " milliseconds" << std::endl;
 
     return allCycles;
 }
@@ -155,9 +141,6 @@ void printAdjMatrix(const vector<vector<double>>& adjMatrix) {
 
 // Function to change the weight of an edge
 void changeEdgeWeight(Graph& g, property_map<Graph, edge_weight_t>::type& weightmap, int u, int v, double new_weight) {
-    // std::pair<Edge, bool> edge_pair = edge(u, v, g);
-    // put(boost::edge_weight_t(), g, edge_pair.first, new_weight);
-
     std::pair<Edge, bool> edge_pair = edge(u, v, g);
     if (edge_pair.second) {
         put(weightmap, edge_pair.first, new_weight);
@@ -201,7 +184,6 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
                 std::cout << "NOT ZERO" << std::endl;
                 Edge e; bool inserted;
                 tie(e, inserted) = add_edge(u, v, g);
-                weightmap[e] = adjMatrix[u][v];
             }
         }
     }
@@ -212,27 +194,69 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
       std::pair<double, double> bestBuyAndSellPrice = orderBook.getBestBuyAndSellPrice();
       double bestBuyPrice = bestBuyAndSellPrice.first;
       double bestSellPrice = bestBuyAndSellPrice.second;
-      std::string symbol = orderBook.getSymbol();
-      std :: cout << bestBuyPrice << " " << bestSellPrice << " " << symbol << std::endl;
+      std::string currencyPair = orderBook.getSymbol();
+      std :: cout << bestBuyPrice << " " << bestSellPrice << " " << currencyPair << std::endl;
 
-      std::size_t baseCurrencyEndPos = symbol.find('/');
-      int baseCurrencyGraphIndex = symbolToIndex[symbol.substr(0, baseCurrencyEndPos)];
-      int quoteCurrencyGraphIndex = symbolToIndex[symbol.substr(baseCurrencyEndPos + 1, symbol.size())];
+      std::size_t baseCurrencyEndPos = currencyPair.find('/');
+      int baseCurrencyGraphIndex = symbolToIndex[currencyPair.substr(0, baseCurrencyEndPos)];
+      int quoteCurrencyGraphIndex = symbolToIndex[currencyPair.substr(baseCurrencyEndPos + 1, currencyPair.size())];
 
       adjMatrix[baseCurrencyGraphIndex][quoteCurrencyGraphIndex] = bestBuyPrice;
       adjMatrix[quoteCurrencyGraphIndex][baseCurrencyGraphIndex] = 1.0 / bestSellPrice;
-      std::cout << symbol << " " << symbol.substr(0, baseCurrencyEndPos) << " " << symbol.substr(baseCurrencyEndPos + 1, symbol.size()) << baseCurrencyGraphIndex << " " << quoteCurrencyGraphIndex << std::endl;
       changeEdgeWeight(g, weightmap, baseCurrencyGraphIndex, quoteCurrencyGraphIndex, -log(bestBuyPrice));
       changeEdgeWeight(g, weightmap, quoteCurrencyGraphIndex, baseCurrencyGraphIndex, -log(1.0 / bestSellPrice));
       
-    //   printAdjMatrix(adjMatrix);
-    //   printEdgeWeights(g, weightmap);
+      printAdjMatrix(adjMatrix);
+      printEdgeWeights(g, weightmap);
 
-      vector<vector<int>> cycles = findNegativeCycles(adjMatrix, g, weightmap, 0);
+      vector<vector<int>> cycles = findNegativeCycles(adjMatrix, g, weightmap, 1);
       
+      system_clock::time_point strategyComponentArbitrageDetectionTimestamp = high_resolution_clock::now();
+      std::string strategyComponentArbitrageDetectionTimepoint = std::to_string(duration_cast<milliseconds>(strategyComponentArbitrageDetectionTimestamp.time_since_epoch()).count());
+    
+      auto exchangeUpdateTxTimestamp = time_point<high_resolution_clock>(milliseconds(orderBook.getUpdateExchangeTimestamp()));
+      std::string exchangeUpdateTxTimepoint = std::to_string(duration_cast<milliseconds>(exchangeUpdateTxTimestamp.time_since_epoch()).count());  
+
+      system_clock::time_point bookBuilderUpdateRxTimestamp = orderBook.getUpdateReceiveTimestamp();
+      std::string bookBuilderUpdateRxTimepoint = std::to_string(duration_cast<milliseconds>(exchangeUpdateTxTimestamp.time_since_epoch()).count());
+      
+      std::cout << "Exchange-Receival (ms): " << duration_cast<milliseconds>(bookBuilderUpdateRxTimestamp - exchangeUpdateTxTimestamp).count() << "      "
+                << "Receival-Detection (ms): " << duration_cast<milliseconds>(strategyComponentArbitrageDetectionTimestamp - bookBuilderUpdateRxTimestamp).count() << "      "
+      << std::endl;
+
       for (const auto& cycle : cycles) {
           std::cout << "CYCLE FOUND" << std::endl;
-          double arb = calculateTriangularArbitrage(cycle, adjMatrix);
+
+          // Calculate triangular arbitrage
+          double arb = 1;
+          for (size_t i = 0; i < cycle.size() - 1; ++i) {
+              int p1 = cycle[i];
+              int p2 = cycle[i + 1];
+
+              std::string orderQty = "1";  
+
+              std::string orderSide;
+              std::string orderPair;
+              auto it = pairsDict.find(currencies[p1]);
+              if (it != pairsDict.end()) {
+                    if (std::find(it->second.begin(), it->second.end(), currencies[p2]) != it->second.end()) {
+                        orderSide = "Sell";
+                        orderPair = currencies[p1] + "/" + currencies[p2];
+                    }
+              } else {
+                orderSide = "Buy";
+                orderPair = currencies[p2] + "/" + currencies[p1];
+              }
+
+              std::string order = std::string("symbol=") + orderPair + "&side=" + orderSide + "&orderQty=" + orderQty + "&ordType=Market" + exchangeUpdateTxTimepoint + bookBuilderUpdateRxTimepoint + strategyComponentArbitrageDetectionTimepoint;
+              std::cout << "ORDER: " << order << std::endl;
+              while (!strategyToOrderManagerQueue.push(order));
+
+              arb *= adjMatrix[p1][p2];
+          }
+
+          arb = arb - 1;
+            
           cout << "Path: ";
           for (int node : cycle) {
                 cout << node << " ";

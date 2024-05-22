@@ -308,7 +308,7 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
 #elif defined(USE_KRAKEN_EXCHANGE)
                     GenericValue<rapidjson::UTF8<>>::MemberIterator data = doc.FindMember("data");
                     const char* type = doc["type"].GetString();
-                    std::vector<std::string> updatedCurrencies(3);
+                    std::vector<std::string> updatedCurrencies;
 
                     for (SizeType i = 0; i < doc["data"].Size(); i++) {
                         const Value& data_i = data->value[i];

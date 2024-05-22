@@ -10,7 +10,7 @@
 #include "BookBuilder/ThroughputMonitor/ThroughputMonitor.hpp"
 #include "BookBuilder/BookBuilder.cpp"
 #include "Utils/Utils.hpp"
-#include "StrategyComponent/Graph.hpp"
+#include "StrategyComponent/Strategy.hpp"
 #include "OrderManager/OrderManager.hpp"
 
 template <typename T> 
