@@ -189,7 +189,7 @@ void orderManager(SPSCQueue<std::string>& strategyToOrderManagerQueue, int bookB
         params.wq_fd = bookBuilderRingFd;
 
         params.flags |= IORING_SETUP_ATTACH_WQ;
-        params.sq_thread_idle = 20000;
+        params.sq_thread_idle = 200000;
         int ret = io_uring_queue_init_params(NUMBER_OF_IO_URING_SQ_ENTRIES, &ring, &params);
         printf("ORDER MANAGER RING WQ_FD: %d\n", ring.ring_fd);
         if (ret) {
@@ -223,13 +223,15 @@ void orderManager(SPSCQueue<std::string>& strategyToOrderManagerQueue, int bookB
             std::string orderData_i;
             size_t sizeOrderData_i;
 
+            // Inside the loop, check if nothing has been sent for the past 90 seconds?
             while (!strategyToOrderManagerQueue.pop(orderData_i)) {};
             system_clock::time_point orderDetectionTimepoint = high_resolution_clock::now();
             orderManagerOrderDetectionTimepoints[i] = std::to_string(duration_cast<milliseconds>(orderDetectionTimepoint.time_since_epoch()).count());
-            
+
+            // std::cout << "orderData_i: " << orderData_i << std::endl;
             sizeOrderData_i = orderData_i.length();
             strcpy(orderData[i], orderData_i.substr(0, sizeOrderData_i - 39).c_str());
-            // std::cout << orderData[i] << std::endl;
+            // std::cout << "orderData[i]: " << orderData[i] << std::endl;
             exchangeUpdateTxTimepoints[i] = orderData_i.substr(sizeOrderData_i - 39, 13);
             bookBuilderUpdateRxTimepoints[i] = orderData_i.substr(sizeOrderData_i - 26, 13);
             strategyComponentArbitrageDetectionTimepoints[i] = orderData_i.substr(sizeOrderData_i - 13);
@@ -325,8 +327,6 @@ void orderManager(SPSCQueue<std::string>& strategyToOrderManagerQueue, int bookB
             io_uring_cqe_seen(&ring, cqe);
         }
 
-        // print_sq_poll_kernel_thread_status();
-
         int break_polling = 0;
         while (true) {
             int nready = poll(&fdset[0], BATCH_SIZE, -1);
@@ -343,6 +343,8 @@ void orderManager(SPSCQueue<std::string>& strategyToOrderManagerQueue, int bookB
                     /*printf("exits %d %c\n", bytes_read, clients[i].response_buf[strlen(clients[i].response_buf) - 1]);*/
 
                     if (clients[i].response_buf[last_char_index] == '}') {
+                        std::cout << "RESPONSE BUF: " << clients[i].response_buf << std::endl;
+
                         long exchangeExecutionTimestamp = convertTimestampToTimePoint(extract_json(std::string(clients[i].response_buf)).FindMember("transactTime")->value.GetString());
 
                         std::cout
@@ -391,6 +393,7 @@ void orderManager(SPSCQueue<std::string>& strategyToOrderManagerQueue, int bookB
         print_ssl_state(&clients[i]);
         print_ssl_error();
         ssl_client_cleanup(&clients[i]);
+      
     }
 }
 

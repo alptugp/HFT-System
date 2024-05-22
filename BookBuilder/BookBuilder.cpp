@@ -259,6 +259,8 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
 #ifdef USE_BITMEX_EXCHANGE
                     GenericValue<rapidjson::UTF8<>>::MemberIterator data = doc.FindMember("data");
                     const char* action = doc["action"].GetString();
+                    std::vector<std::string> updatedCurrencies;
+
                     for (SizeType i = 0; i < doc["data"].Size(); i++) {
                         const Value& data_i = data->value[i];
                         const char* symbol = data_i["symbol"].GetString();
@@ -303,8 +305,9 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
                                     break;
                             }
                         }
-                        while (!bookBuilderToStrategyQueue->push(orderBookMap[symbol]));  
-                    }
+                        updatedCurrencies.push_back(std::string(symbol));
+                    } 
+
 #elif defined(USE_KRAKEN_EXCHANGE)
                     GenericValue<rapidjson::UTF8<>>::MemberIterator data = doc.FindMember("data");
                     const char* type = doc["type"].GetString();
@@ -364,12 +367,11 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
                         }
                         updatedCurrencies.push_back(std::string(symbol));
                     }
-
-                    for (std::string updatedCurrency : updatedCurrencies) { 
-                        std::cout << "UPDATED CURRENCY: " << updatedCurrency << std::endl;
-                        while (!bookBuilderToStrategyQueue->push(orderBookMap[updatedCurrency]));    
-                    }
 #endif
+                for (std::string updatedCurrency : updatedCurrencies) { 
+                    std::cout << "UPDATED CURRENCY: " << updatedCurrency << std::endl;
+                    while (!bookBuilderToStrategyQueue->push(orderBookMap[updatedCurrency]));    
+                }
 
                 // Move to the next JSON object
                     currentPos = endPos + 1;
