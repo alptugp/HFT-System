@@ -24,7 +24,7 @@
 
 #define JSON_END_PATTERN "}]}"
 
-#define NUMBER_OF_CONNECTIONS 1
+#define NUMBER_OF_CONNECTIONS 3
 
 using namespace rapidjson;
 using namespace std::chrono;
@@ -41,14 +41,23 @@ const std::vector<std::string> currencyPairs = {"ETH/BTC", "BTC/USD", "ETH/USD"}
 #endif
 
 static int interrupted, rx_seen, test;
-static struct lws *client_wsi;
+// static struct lws *client_wsi;
+static struct lws *client_wsi[NUMBER_OF_CONNECTIONS];
 
 static struct ev_loop *loop_ev; 
-ev_io socket_watcher;
 ev_timer timeout_watcher;
 
-SSL *ssl;
-BIO *rbio;
+struct ws_client_io
+{
+  ev_io socket_watcher;
+  int sockfd;
+  void *connection_idx;
+};
+
+static struct ws_client_io *ws_clients_io[NUMBER_OF_CONNECTIONS];
+
+SSL *ssls[NUMBER_OF_CONNECTIONS];
+BIO *rbios[NUMBER_OF_CONNECTIONS];
 int sockfds[NUMBER_OF_CONNECTIONS];
 
 struct io_uring ring;
@@ -72,32 +81,48 @@ static int
 book_builder_lws_callback(struct lws *wsi, enum lws_callback_reasons reason,
 	      void *user, void *in, size_t len)
 {	
+
+    int n, connection_idx = (int)(intptr_t)lws_get_opaque_user_data(wsi);
+
 	lwsl_user("protocol called\n");
 	switch (reason) {
         case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
             lwsl_err("CLIENT_CONNECTION_ERROR: %s\n",
                 in ? (char *)in : "(null)");
-            client_wsi = NULL;
+            // client_wsi = NULL;
             break;
 
         case LWS_CALLBACK_CLIENT_ESTABLISHED: {
-            printf("LWS_CALLBACK_CLIENT_ESTABLISHED\n");
+            printf("LWS_CALLBACK_CLIENT_ESTABLISHED for %d\n", connection_idx);
             lwsl_user("%s: established\n", __func__);
 #ifndef USE_KRAKEN_MOCK_EXCHANGE
 #ifndef USE_BITMEX_MOCK_EXCHANGE
             // Send subscription message 
     #ifdef USE_BITMEX_EXCHANGE   
-            for (const std::string& currencyPair : currencyPairs) { 
-                    std::string subscriptionMessage = "{\"op\":\"subscribe\",\"args\":[\"orderBookL2_25:" + currencyPair + "\"]}";
-                    // Allocate buffer with LWS_PRE bytes before the data
-                    unsigned char buf[LWS_PRE + subscriptionMessage.size()];
+            std::string currencyPair = currencyPairs[connection_idx];
+            
+            std::string subscriptionMessage = "{\"op\":\"subscribe\",\"args\":[\"orderBookL2_25:" + currencyPair + "\"]}";
+            // Allocate buffer with LWS_PRE bytes before the data
+            unsigned char buf[LWS_PRE + subscriptionMessage.size()];
 
-                    // Copy subscription message to buffer after LWS_PRE bytes
-                    memcpy(&buf[LWS_PRE], subscriptionMessage.c_str(), subscriptionMessage.size());
+            // Copy subscription message to buffer after LWS_PRE bytes
+            memcpy(&buf[LWS_PRE], subscriptionMessage.c_str(), subscriptionMessage.size());
                     
-                    // Send data using lws_write
-                    lws_write(wsi, &buf[LWS_PRE], subscriptionMessage.size(), LWS_WRITE_TEXT);
-            }
+            // Send data using lws_write
+            lws_write(wsi, &buf[LWS_PRE], subscriptionMessage.size(), LWS_WRITE_TEXT);
+
+            // for (const std::string& currencyPair : currencyPairs) { 
+            //         std::string subscriptionMessage = "{\"op\":\"subscribe\",\"args\":[\"orderBookL2_25:" + currencyPair + "\"]}";
+            //         // Allocate buffer with LWS_PRE bytes before the data
+            //         unsigned char buf[LWS_PRE + subscriptionMessage.size()];
+
+            //         // Copy subscription message to buffer after LWS_PRE bytes
+            //         memcpy(&buf[LWS_PRE], subscriptionMessage.c_str(), subscriptionMessage.size());
+                    
+            //         // Send data using lws_write
+            //         lws_write(wsi, &buf[LWS_PRE], subscriptionMessage.size(), LWS_WRITE_TEXT);
+            // }
+            
     #elif defined(USE_KRAKEN_EXCHANGE)
             std::string subscriptionMessage = R"({
                                                 "method": "subscribe",
@@ -107,12 +132,13 @@ book_builder_lws_callback(struct lws *wsi, enum lws_callback_reasons reason,
                                                     "snapshot": true,
                                                     "symbol": [)";
 
-            for (size_t i = 0; i < currencyPairs.size(); ++i) {
-                subscriptionMessage += "\"" + currencyPairs[i] + "\"";
-                if (i < currencyPairs.size() - 1) {
-                    subscriptionMessage += ",";
-                }
-            }
+            subscriptionMessage += "\"" + currencyPairs[connection_idx] + "\"";
+            // for (size_t i = 0; i < currencyPairs.size(); ++i) {
+            //     subscriptionMessage += "\"" + currencyPairs[i] + "\"";
+            //     if (i < currencyPairs.size() - 1) {
+            //         subscriptionMessage += ",";
+            //     }
+            // }
 
             subscriptionMessage += R"(]
                                         },
@@ -135,7 +161,7 @@ book_builder_lws_callback(struct lws *wsi, enum lws_callback_reasons reason,
         }
 
         case LWS_CALLBACK_CLIENT_CLOSED:
-            client_wsi = NULL;
+            // client_wsi = NULL;
             break;
 
         default:
@@ -164,9 +190,12 @@ void removeIncorrectNullCharacters(char* buffer, size_t size) {
     }
 }
 
-void socket_cb (EV_P_ ev_io *w, int revents) {
+void socket_cb (EV_P_ ev_io *w_, int revents) {
+    struct ws_client_io *w = (struct ws_client_io *) w_;
+    uint64_t connection_idx = (uint64_t) w->connection_idx;
+
   	if (revents & EV_READ) { 
-        puts ("SOCKET ready for reading\n");
+        printf("SOCKET ready for reading for connection %d\n", connection_idx);
 		int decryptedBytesRead;
 		
 		do {
@@ -183,7 +212,7 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
             }
 			
 			// printf("Reading for sockfd %d\n", sockfd);
-			io_uring_prep_read(sqe, 0, buffer, bufferSize, 0);  // use offset on same buffer later?
+			io_uring_prep_read(sqe, connection_idx, buffer, bufferSize, 0);  // use offset on same buffer later?
             sqe->flags |= IOSQE_FIXED_FILE;
 
 			if (io_uring_submit(&ring) < 0) {
@@ -208,18 +237,19 @@ void socket_cb (EV_P_ ev_io *w, int revents) {
 				
             io_uring_cqe_seen(&ring, cqe);
 
-			int bytesBioWritten = BIO_write(rbio, buffer, encryptedBytesRead);
+			int bytesBioWritten = BIO_write(rbios[connection_idx], buffer, encryptedBytesRead);
 
 			memset(buffer, 0, sizeof(buffer));
     
-            decryptedBytesRead = SSL_read(ssl, buffer, sizeof(buffer));
+            decryptedBytesRead = SSL_read(ssls[connection_idx], buffer, sizeof(buffer));
             
             // printf("BYTES READ: %d\n", decryptedBytesRead);
             if (decryptedBytesRead > 0) {
                 removeIncorrectNullCharacters(buffer, decryptedBytesRead);
 
                 std::cout << "BUFFER: " << buffer << std::endl;
-				const char* currentPos = buffer;
+				return;
+                const char* currentPos = buffer;
                 int isAllDataRead = false;
                 while (currentPos < buffer + strlen(buffer)) {
                     const char* startPos = strstr(currentPos, JSON_START_PATTERN);
@@ -518,32 +548,45 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_, int orderMan
 	i.host = i.address;
 	i.origin = i.address;
 	i.protocol = NULL; 
-	i.pwsi = &client_wsi;
+	// i.pwsi = &client_wsi;
+    
+    for (int m = 0; m < NUMBER_OF_CONNECTIONS; m++) {
+        i.pwsi = &client_wsi[m];
+        i.opaque_user_data = (void *)(intptr_t)m;
+        lws_client_connect_via_info(&i);
 
-	lws_client_connect_via_info(&i);
+        std::cout << "SOCKET FD:" << lws_get_socket_fd(client_wsi[m]) << std::endl;
 
-    std::cout << "SOCKET FD:" << lws_get_socket_fd(client_wsi) << std::endl;
+        while (n >= 0 && client_wsi[m] && !interrupted) {
+            n = lws_service(context, 0);
+            // std::cout << "LWS SERVICE EXECUTING" << std::endl;
+        }
 
-    outFile.open("bitmex_data.txt", std::ios_base::out); 
+        interrupted = 0;
 
-	while (n >= 0 && client_wsi && !interrupted) {
-        n = lws_service(context, 0);
-        std::cout << "LWS SERVICE EXECUTING" << std::endl;
+        sockfds[m] = lws_get_socket_fd(client_wsi[m]);
+        ssls[m] = lws_get_ssl(client_wsi[m]);
+        rbios[m] = BIO_new(BIO_s_mem());
+	    SSL_set_bio(ssls[m], rbios[m], NULL);
     }
-
-    sockfds[0] = lws_get_socket_fd(client_wsi);
-	ssl = lws_get_ssl(client_wsi);
-	rbio = BIO_new(BIO_s_mem());
-	SSL_set_bio(ssl, rbio, NULL);
-
+	
+    outFile.open("bitmex_data.txt", std::ios_base::out); 
 
     if (io_uring_register_files(&ring, sockfds, NUMBER_OF_CONNECTIONS) < 0) {
         perror("io_uring_register_files");
         return;
     }
 
-    ev_io_init (&socket_watcher, socket_cb, sockfds[0], EV_READ);
-    ev_io_start (loop_ev, &socket_watcher);
+    for (int m = 0; m < NUMBER_OF_CONNECTIONS; m++) {
+        std::cout << "aa" << std::endl;
+        ws_clients_io[m] = new ws_client_io();
+        ws_clients_io[m]->sockfd = sockfds[m];
+        ws_clients_io[m]->connection_idx = (void *)m;
+        std::cout << "aa" << std::endl;
+        ev_io_init (&ws_clients_io[m]->socket_watcher, socket_cb, sockfds[m], EV_READ);
+        std::cout << "aa" << std::endl;
+        ev_io_start (loop_ev, &ws_clients_io[m]->socket_watcher);
+    }
     
     // initialise a timer watcher, then start it
     // simple non-repeating 5.5 second timeout
