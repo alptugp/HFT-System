@@ -13,9 +13,9 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 add_definitions(-DLWS_WITH_LIBEV=1)
 # add_definitions(-DUSE_KRAKEN_MOCK_EXCHANGE=1)
-# add_definitions(-DUSE_BITMEX_MOCK_EXCHANGE=1)
+add_definitions(-DUSE_BITMEX_MOCK_EXCHANGE=1)
 # add_definitions(-DUSE_BITMEX_EXCHANGE=1)
-add_definitions(-DUSE_KRAKEN_EXCHANGE=1)
+# add_definitions(-DUSE_KRAKEN_EXCHANGE=1)
 
 include_directories("/homes/aap221/local/include")
 link_directories("/homes/aap221/local/lib")

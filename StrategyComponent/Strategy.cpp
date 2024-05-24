@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include <cmath>
 #include <chrono> 
+#include <iomanip>
+#include <fstream>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/iteration_macros.hpp>
@@ -166,6 +168,8 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
     // struct sched_param schedParams;
     // schedParams.sched_priority = sched_get_priority_max(SCHED_FIFO);
     // pthread_setschedparam(pthread_self(), SCHED_FIFO, &schedParams);
+    
+    std::ofstream outFile("data/book-builder.txt", std::ios::app);
 
     system_clock::time_point startingTimestamp = time_point<std::chrono::system_clock>::min();
 
@@ -211,20 +215,30 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
       vector<vector<int>> cycles = findNegativeCycles(adjMatrix, g, weightmap, 1);
       
       system_clock::time_point strategyComponentArbitrageDetectionTimestamp = high_resolution_clock::now();
-      std::string strategyComponentArbitrageDetectionTimepoint = std::to_string(duration_cast<milliseconds>(strategyComponentArbitrageDetectionTimestamp.time_since_epoch()).count());
+      std::string strategyComponentArbitrageDetectionTimepoint = std::to_string(duration_cast<microseconds>(strategyComponentArbitrageDetectionTimestamp.time_since_epoch()).count());
     
-      auto exchangeUpdateTxTimestamp = time_point<high_resolution_clock>(milliseconds(orderBook.getUpdateExchangeTimestamp()));
-      std::string exchangeUpdateTxTimepoint = std::to_string(duration_cast<milliseconds>(exchangeUpdateTxTimestamp.time_since_epoch()).count());  
+      auto exchangeUpdateTxTimestamp = time_point<high_resolution_clock>(microseconds(orderBook.getUpdateExchangeTimestamp()));
+      std::string exchangeUpdateTxTimepoint = std::to_string(duration_cast<microseconds>(exchangeUpdateTxTimestamp.time_since_epoch()).count());  
       if (exchangeUpdateTxTimepoint == "0")
         continue;
       
       system_clock::time_point bookBuilderUpdateRxTimestamp = orderBook.getUpdateReceiveTimestamp();
-      std::string bookBuilderUpdateRxTimepoint = std::to_string(duration_cast<milliseconds>(bookBuilderUpdateRxTimestamp.time_since_epoch()).count());
+      std::string bookBuilderUpdateRxTimepoint = std::to_string(duration_cast<microseconds>(bookBuilderUpdateRxTimestamp.time_since_epoch()).count());
 
-      std::cout << "Exchange Update Occurence to Update Receival (ms): " << duration_cast<milliseconds>(bookBuilderUpdateRxTimestamp - exchangeUpdateTxTimestamp).count() << "      "
-                << "Update Receival to Arbitrage Detection (ms): " << duration_cast<milliseconds>(strategyComponentArbitrageDetectionTimestamp - bookBuilderUpdateRxTimestamp).count() << "      "
+
+      std::cout 
+                << "exchangeUpdateTxTimestamp: " << exchangeUpdateTxTimepoint
+                << "bookBuilderUpdateRxTimestamp: " << bookBuilderUpdateRxTimepoint
+                << "Exchange Update Occurence to Update Receival (ms): " << duration_cast<microseconds>(bookBuilderUpdateRxTimestamp - exchangeUpdateTxTimestamp).count() / 1000.0 << "      "
+                << "Update Receival to Arbitrage Detection (ms): " << duration_cast<microseconds>(strategyComponentArbitrageDetectionTimestamp - bookBuilderUpdateRxTimestamp).count() / 1000.0 << "      "
       << std::endl;
 
+      if (outFile.is_open()) {
+        outFile << duration_cast<microseconds>(bookBuilderUpdateRxTimestamp - exchangeUpdateTxTimestamp).count() / 1000.0 << std::endl;
+      } else {
+        std::cerr << "Unable to open file for writing" << std::endl;
+      }
+s
       for (const auto& cycle : cycles) {
           std::cout << "CYCLE FOUND" << std::endl;
 
@@ -326,6 +340,8 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
         // schedParams.sched_priority = sched_get_priority_max(SCHED_FIFO);
         // pthread_setschedparam(pthread_self(), SCHED_FIFO, &schedParams);
 
+        std::ofstream outFile("data/book-builder.txt", std::ios::app);
+
         V = currencies.size();
         adjList.resize(V, std::vector<double>(V, 1.0));
 
@@ -354,30 +370,36 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
             // std::cout << symbol << " - Best Sell: " << bestSellPrice << " Best Buy: " << bestBuyPrice << std::endl;
 
             system_clock::time_point strategyComponentArbitrageDetectionTimestamp = high_resolution_clock::now();
-            std::string strategyComponentArbitrageDetectionTimepoint = std::to_string(duration_cast<milliseconds>(strategyComponentArbitrageDetectionTimestamp.time_since_epoch()).count());
+            std::string strategyComponentArbitrageDetectionTimepoint = std::to_string(duration_cast<microseconds>(strategyComponentArbitrageDetectionTimestamp.time_since_epoch()).count());
             
-            auto exchangeUpdateTxTimestamp = time_point<high_resolution_clock>(milliseconds(orderBook.getUpdateExchangeTimestamp()));
-            std::string exchangeUpdateTxTimepoint = std::to_string(duration_cast<milliseconds>(exchangeUpdateTxTimestamp.time_since_epoch()).count());  
+            auto exchangeUpdateTxTimestamp = time_point<high_resolution_clock>(microseconds(orderBook.getUpdateExchangeTimestamp()));
+            std::string exchangeUpdateTxTimepoint = std::to_string(duration_cast<microseconds>(exchangeUpdateTxTimestamp.time_since_epoch()).count());  
             
             system_clock::time_point bookBuilderUpdateRxTimestamp = orderBook.getUpdateReceiveTimestamp();
-            std::string bookBuilderUpdateRxTimepoint = std::to_string(duration_cast<milliseconds>(bookBuilderUpdateRxTimestamp.time_since_epoch()).count());
+            std::string bookBuilderUpdateRxTimepoint = std::to_string(duration_cast<microseconds>(bookBuilderUpdateRxTimestamp.time_since_epoch()).count());
 
             std::cout << "XBT->USDT->ETH->XBT: " << firstDirectionReturnsAfterFees << "      "
                         << "XBT->ETH->USDT->XBT: " << secondDirectionReturnsAfterFees << "      "
-                        << "Exchange Update Occurence to Update Receival (ms): " << duration_cast<milliseconds>(bookBuilderUpdateRxTimestamp - exchangeUpdateTxTimestamp).count() << "      "
-                        << "Update Receival to Arbitrage Detection (ms): " << duration_cast<milliseconds>(strategyComponentArbitrageDetectionTimestamp - bookBuilderUpdateRxTimestamp).count() << "      "
+                        << "Exchange Update Occurence to Update Receival (ms): " << duration_cast<microseconds>(bookBuilderUpdateRxTimestamp - exchangeUpdateTxTimestamp).count() / 1000.0 << "      "
+                        << "Update Receival to Arbitrage Detection (ms): " << duration_cast<microseconds>(strategyComponentArbitrageDetectionTimestamp - bookBuilderUpdateRxTimestamp).count() / 1000.0 << "      "
 
                         // << "Exch. Ts.: " << updateExchangeTimestamp << "      "
-                        // << "Rec. Ts.: " << std::to_string(duration_cast<milliseconds>(updateReceiveTimepoint.time_since_epoch()).count()) << "      "
+                        // << "Rec. Ts.: " << std::to_string(duration_cast<microseconds>(updateReceiveTimepoint.time_since_epoch()).count()) << "      "
                         // << "Strat. Ts.: " << strategyTimepoint
             << std::endl;
+
+            if (outFile.is_open()) {
+                outFile << duration_cast<microseconds>(bookBuilderUpdateRxTimestamp - exchangeUpdateTxTimestamp).count() / 1000.0 << std::endl;
+            } else {
+                std::cerr << "Unable to open file for writing" << std::endl;
+            }
 
             if (startingTimestamp == time_point<std::chrono::system_clock>::min()) {
                     startingTimestamp = exchangeUpdateTxTimestamp;
             }
             // throughputMonitorStrategyComponent.operationCompleted();
 
-            if (/*firstDirectionReturnsAfterFees > 1.0 &&*/ (duration_cast<milliseconds>(strategyComponentArbitrageDetectionTimestamp - startingTimestamp).count() > 1000)) {
+            if (/*firstDirectionReturnsAfterFees > 1.0 &&*/ (duration_cast<microseconds>(strategyComponentArbitrageDetectionTimestamp - startingTimestamp).count() > 1000)) {
                 std::string firstLeg = std::string("symbol=XBTUSDT&side=Sell&orderQty=1000") + "&ordType=Market" + exchangeUpdateTxTimepoint + bookBuilderUpdateRxTimepoint + strategyComponentArbitrageDetectionTimepoint;
                 while (!strategyToOrderManagerQueue.push(firstLeg));
 
@@ -390,7 +412,7 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
                 startingTimestamp = time_point<high_resolution_clock>(high_resolution_clock::now());
             }
 
-            if (/*secondDirectionReturnsAfterFees > 1.0 &&*/ (duration_cast<milliseconds>(strategyComponentArbitrageDetectionTimestamp - startingTimestamp).count() > 1000)) {
+            if (/*secondDirectionReturnsAfterFees > 1.0 &&*/ (duration_cast<microseconds>(strategyComponentArbitrageDetectionTimestamp - startingTimestamp).count() > 1000)) {
                 std::string firstLeg = std::string("symbol=XBTETH&side=Sell&orderQty=1") + "&ordType=Market" + exchangeUpdateTxTimepoint + bookBuilderUpdateRxTimepoint + strategyComponentArbitrageDetectionTimepoint;
                 while (!strategyToOrderManagerQueue.push(firstLeg));
 

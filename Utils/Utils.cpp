@@ -14,8 +14,8 @@ long convertTimestampToTimePoint(const std::string& timestamp) {
         return -1; // Indicate failure
     }
 
-    // If there are milliseconds in the updateExchangeTimestamp, parse and add them
-    long milliseconds = 0;
+    // If there are fractional seconds in the updateExchangeTimestamp, parse and add them
+    long microseconds = 0;
     if (ss.peek() == '.') {
         ss.ignore(); // Ignore the dot
         std::string fractional;
@@ -24,21 +24,24 @@ long convertTimestampToTimePoint(const std::string& timestamp) {
             // Failed to parse fractional seconds
             return -1; // Indicate failure
         }
-        // For now, only consider the first three digits for milliseconds (TO CHANGE FOR KRAKEN)
-        if (fractional.length() > 3) {
-            fractional = fractional.substr(0, 3);
+        
+        // Pad or trim the fractional part to 6 digits for microseconds
+        if (fractional.length() > 6) {
+            fractional = fractional.substr(0, 6);
+        } else if (fractional.length() < 6) {
+            fractional.append(6 - fractional.length(), '0');
         }
         
-        milliseconds = std::stol(fractional);
+        microseconds = std::stol(fractional);
     }
 
     // Convert std::tm to std::chrono::system_clock::time_point
     auto time_point = std::chrono::system_clock::from_time_t(std::mktime(&tm));
 
     // Convert std::chrono::system_clock::time_point to duration since epoch
-    auto duration = time_point.time_since_epoch() + std::chrono::milliseconds(milliseconds);
+    auto duration = time_point.time_since_epoch() + std::chrono::microseconds(microseconds);
 
-    return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+    return std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
 }
 
 long long getTimeDifferenceInMillis(const std::string& strTime1, const std::string& strTime2) {
@@ -59,11 +62,11 @@ long long getTimeDifferenceInMillis(const std::string& strTime1, const std::stri
 std::string getCurrentTimestamp() {
     auto now = std::chrono::system_clock::now();
     auto in_time_t = std::chrono::system_clock::to_time_t(now);
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+    auto us = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()) % 1000000;
 
     std::stringstream ss;
     ss << std::put_time(std::gmtime(&in_time_t), "%Y-%m-%dT%H:%M:%S");
-    ss << '.' << std::setw(3) << std::setfill('0') << ms.count();
+    ss << '.' << std::setw(6) << std::setfill('0') << us.count();
     ss << 'Z';
     return ss.str();
 }
