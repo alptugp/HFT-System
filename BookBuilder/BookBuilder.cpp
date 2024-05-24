@@ -51,7 +51,9 @@ struct ws_client_io
 {
   ev_io socket_watcher;
   int sockfd;
-  void *connection_idx;
+  uint connection_idx;
+  char readBuffer[WEBSOCKET_CLIENT_RX_BUFFER_SIZE];	
+  int readBufferSize = sizeof(readBuffer);
 };
 
 static struct ws_client_io *ws_clients_io[NUMBER_OF_CONNECTIONS];
@@ -192,15 +194,15 @@ void removeIncorrectNullCharacters(char* buffer, size_t size) {
 
 void socket_cb (EV_P_ ev_io *w_, int revents) {
     struct ws_client_io *w = (struct ws_client_io *) w_;
-    uint64_t connection_idx = (uint64_t) w->connection_idx;
+    uint connection_idx = w->connection_idx;
 
   	if (revents & EV_READ) { 
+        system_clock::time_point marketUpdateReadyToReadTimestamp = high_resolution_clock::now();
         printf("SOCKET ready for reading for connection %d\n", connection_idx);
-		int decryptedBytesRead;
-		
+        int decryptedBytesRead;
+        
+
 		do {
-            char buffer[WEBSOCKET_CLIENT_RX_BUFFER_SIZE];	
-            int bufferSize = sizeof(buffer);
             printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 
 			sqe = io_uring_get_sqe(&ring);
@@ -212,7 +214,7 @@ void socket_cb (EV_P_ ev_io *w_, int revents) {
             }
 			
 			// printf("Reading for sockfd %d\n", sockfd);
-			io_uring_prep_read(sqe, connection_idx, buffer, bufferSize, 0);  // use offset on same buffer later?
+			io_uring_prep_read(sqe, connection_idx, w->readBuffer, w->readBufferSize, 0);  // use offset on same buffer later?
             sqe->flags |= IOSQE_FIXED_FILE;
 
 			if (io_uring_submit(&ring) < 0) {
@@ -222,7 +224,7 @@ void socket_cb (EV_P_ ev_io *w_, int revents) {
 			}
 
 			int ret = io_uring_wait_cqe(&ring, &cqe);
-            system_clock::time_point marketUpdateReceiveTimestamp = high_resolution_clock::now();
+            system_clock::time_point marketUpdateReadFinishTimestamp = high_resolution_clock::now();
             if (ret < 0) {
                 perror("Error waiting for completion: %s\n");
                 return;
@@ -237,21 +239,21 @@ void socket_cb (EV_P_ ev_io *w_, int revents) {
 				
             io_uring_cqe_seen(&ring, cqe);
 
-			int bytesBioWritten = BIO_write(rbios[connection_idx], buffer, encryptedBytesRead);
+			int bytesBioWritten = BIO_write(rbios[connection_idx], w->readBuffer, encryptedBytesRead);
 
-			memset(buffer, 0, sizeof(buffer));
+			memset(w->readBuffer, 0, w->readBufferSize);
     
-            decryptedBytesRead = SSL_read(ssls[connection_idx], buffer, sizeof(buffer));
+            decryptedBytesRead = SSL_read(ssls[connection_idx], w->readBuffer, w->readBufferSize);
             
             // printf("BYTES READ: %d\n", decryptedBytesRead);
             if (decryptedBytesRead > 0) {
-                removeIncorrectNullCharacters(buffer, decryptedBytesRead);
+                removeIncorrectNullCharacters(w->readBuffer, decryptedBytesRead);
 
-                std::cout << "BUFFER: " << buffer << std::endl;
-				return;
-                const char* currentPos = buffer;
+                std::cout << "BUFFER: " << w->readBuffer << std::endl;
+   
+                const char* currentPos = w->readBuffer;
                 int isAllDataRead = false;
-                while (currentPos < buffer + strlen(buffer)) {
+                while (currentPos < w->readBuffer + strlen(w->readBuffer)) {
                     const char* startPos = strstr(currentPos, JSON_START_PATTERN);
                     if (!startPos) 
                         break;
@@ -310,13 +312,13 @@ void socket_cb (EV_P_ ev_io *w_, int revents) {
                             switch (action[0]) {
                                 case 'p':
                                 case 'i':
-                                    orderBookMap[symbol].insertBuy(id, price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                    orderBookMap[symbol].insertBuy(id, price, size, exchangeUpdateTimestamp, marketUpdateReadFinishTimestamp);
                                     break;
                                 case 'u':
-                                    orderBookMap[symbol].updateBuy(id, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                    orderBookMap[symbol].updateBuy(id, size, exchangeUpdateTimestamp, marketUpdateReadFinishTimestamp);
                                     break;
                                 case 'd':
-                                    orderBookMap[symbol].removeBuy(id, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                    orderBookMap[symbol].removeBuy(id, exchangeUpdateTimestamp, marketUpdateReadFinishTimestamp);
                                     break;
                                 default:
                                     break;
@@ -325,13 +327,13 @@ void socket_cb (EV_P_ ev_io *w_, int revents) {
                             switch (action[0]) {
                                 case 'p':
                                 case 'i':
-                                    orderBookMap[symbol].insertSell(id, price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                    orderBookMap[symbol].insertSell(id, price, size, exchangeUpdateTimestamp, marketUpdateReadFinishTimestamp);
                                     break;
                                 case 'u':
-                                    orderBookMap[symbol].updateSell(id, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                    orderBookMap[symbol].updateSell(id, size, exchangeUpdateTimestamp, marketUpdateReadFinishTimestamp);
                                     break;
                                 case 'd':
-                                    orderBookMap[symbol].removeSell(id, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                    orderBookMap[symbol].removeSell(id, exchangeUpdateTimestamp, marketUpdateReadFinishTimestamp);
                                     break;
                                 default:
                                     break;
@@ -413,7 +415,7 @@ void socket_cb (EV_P_ ev_io *w_, int revents) {
                     break;   
 			}	
 
-			memset(buffer, 0, sizeof(buffer));
+			memset(w->readBuffer, 0, w->readBufferSize);
         } while (decryptedBytesRead > 0);
     }
 }
@@ -581,7 +583,7 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_, int orderMan
         std::cout << "aa" << std::endl;
         ws_clients_io[m] = new ws_client_io();
         ws_clients_io[m]->sockfd = sockfds[m];
-        ws_clients_io[m]->connection_idx = (void *)m;
+        ws_clients_io[m]->connection_idx = m;
         std::cout << "aa" << std::endl;
         ev_io_init (&ws_clients_io[m]->socket_watcher, socket_cb, sockfds[m], EV_READ);
         std::cout << "aa" << std::endl;
