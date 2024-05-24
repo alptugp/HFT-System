@@ -44,6 +44,10 @@ long convertTimestampToTimePoint(const std::string& timestamp) {
     return std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
 }
 
+long long timePointToMicroseconds(const std::chrono::system_clock::time_point& tp) {
+    return std::chrono::duration_cast<std::chrono::microseconds>(tp.time_since_epoch()).count();
+}
+
 long long getTimeDifferenceInMillis(const std::string& strTime1, const std::string& strTime2) {
     long long time1 = std::stoll(strTime1);
     long long time2 = std::stoll(strTime2);

@@ -52,8 +52,10 @@ struct ws_client_io
   ev_io socket_watcher;
   int sockfd;
   uint connection_idx;
-  char readBuffer[WEBSOCKET_CLIENT_RX_BUFFER_SIZE];	
-  int readBufferSize = sizeof(readBuffer);
+  char undecryptedReadBuffer[WEBSOCKET_CLIENT_RX_BUFFER_SIZE];	
+  int undecryptedReadBufferSize = sizeof(undecryptedReadBuffer);
+  char decryptedReadBuffer[WEBSOCKET_CLIENT_RX_BUFFER_SIZE];	
+  int decryptedReadBufferSize = sizeof(decryptedReadBuffer);
 };
 
 static struct ws_client_io *ws_clients_io[NUMBER_OF_CONNECTIONS];
@@ -201,10 +203,8 @@ void socket_cb (EV_P_ ev_io *w_, int revents) {
         printf("SOCKET ready for reading for connection %d\n", connection_idx);
         int decryptedBytesRead;
         
-
 		do {
-            printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-
+            // printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 			sqe = io_uring_get_sqe(&ring);
 
             if (!sqe) {
@@ -214,7 +214,7 @@ void socket_cb (EV_P_ ev_io *w_, int revents) {
             }
 			
 			// printf("Reading for sockfd %d\n", sockfd);
-			io_uring_prep_read(sqe, connection_idx, w->readBuffer, w->readBufferSize, 0);  // use offset on same buffer later?
+			io_uring_prep_read(sqe, connection_idx, w->undecryptedReadBuffer, w->undecryptedReadBufferSize, 0);  // use offset on same buffer later?
             sqe->flags |= IOSQE_FIXED_FILE;
 
 			if (io_uring_submit(&ring) < 0) {
@@ -235,25 +235,23 @@ void socket_cb (EV_P_ ev_io *w_, int revents) {
                 return;
             } 
 
-			int encryptedBytesRead = cqe->res;
-				
+			int undecryptedBytesRead = cqe->res;				
+			int bytesBioWritten = BIO_write(rbios[connection_idx], w->undecryptedReadBuffer, undecryptedBytesRead);
+            decryptedBytesRead = SSL_read(ssls[connection_idx], w->decryptedReadBuffer, w->decryptedReadBufferSize);
+
+            system_clock::time_point marketUpdateDecryptionFinishTimestamp = high_resolution_clock::now();
+
             io_uring_cqe_seen(&ring, cqe);
-
-			int bytesBioWritten = BIO_write(rbios[connection_idx], w->readBuffer, encryptedBytesRead);
-
-			memset(w->readBuffer, 0, w->readBufferSize);
-    
-            decryptedBytesRead = SSL_read(ssls[connection_idx], w->readBuffer, w->readBufferSize);
             
             // printf("BYTES READ: %d\n", decryptedBytesRead);
             if (decryptedBytesRead > 0) {
-                removeIncorrectNullCharacters(w->readBuffer, decryptedBytesRead);
+                removeIncorrectNullCharacters(w->decryptedReadBuffer, decryptedBytesRead);
 
-                std::cout << "BUFFER: " << w->readBuffer << std::endl;
+                std::cout << "BUFFER: " << w->decryptedReadBuffer << std::endl;
    
-                const char* currentPos = w->readBuffer;
+                const char* currentPos = w->decryptedReadBuffer;
                 int isAllDataRead = false;
-                while (currentPos < w->readBuffer + strlen(w->readBuffer)) {
+                while (currentPos < w->decryptedReadBuffer + strlen(w->decryptedReadBuffer)) {
                     const char* startPos = strstr(currentPos, JSON_START_PATTERN);
                     if (!startPos) 
                         break;
@@ -289,6 +287,8 @@ void socket_cb (EV_P_ ev_io *w_, int revents) {
                         std::cerr << "JSON parsing error\n";
                         break;
                     }
+
+                    system_clock::time_point marketUpdateJsonParsingFinishTimestamp = high_resolution_clock::now();
 
 #if defined(USE_BITMEX_EXCHANGE) || defined(USE_BITMEX_MOCK_EXCHANGE) 
                     GenericValue<rapidjson::UTF8<>>::MemberIterator data = doc.FindMember("data");
@@ -353,6 +353,7 @@ void socket_cb (EV_P_ ev_io *w_, int revents) {
                         GenericValue<rapidjson::UTF8<>>::ConstMemberIterator bids = data_i.FindMember("bids");
                         const char* symbol = data_i["symbol"].GetString();    
                         uint64_t checksum = data_i["checksum"].GetInt64();
+                        
                         if (type[0] == 's') {
                             for (SizeType i = 0; i < data_i["asks"].Size(); i++) {
                                 const Value& ask_i = asks->value[i];
@@ -401,13 +402,22 @@ void socket_cb (EV_P_ ev_io *w_, int revents) {
                         }
                         updatedCurrencies.push_back(std::string(symbol));
                     }
-#endif
-                for (std::string updatedCurrency : updatedCurrencies) { 
-                    std::cout << "UPDATED CURRENCY: " << updatedCurrency << std::endl;
-                    while (!bookBuilderToStrategyQueue->push(orderBookMap[updatedCurrency]));    
-                }
+#endif          
+                    system_clock::time_point marketUpdateBookBuildingFinishTimestamp = high_resolution_clock::now();
+                    
+                    for (std::string updatedCurrency : updatedCurrencies) { 
+                        std::cout << "UPDATED CURRENCY: " << updatedCurrency << std::endl;
+                        while (!bookBuilderToStrategyQueue->push(orderBookMap[updatedCurrency]));    
+                    }
 
-                // Move to the next JSON object
+                    outFile 
+                    << timePointToMicroseconds(marketUpdateReadyToReadTimestamp) << ", "
+                    << timePointToMicroseconds(marketUpdateReadFinishTimestamp) << ", "
+                    << timePointToMicroseconds(marketUpdateDecryptionFinishTimestamp) << ", "
+                    << timePointToMicroseconds(marketUpdateJsonParsingFinishTimestamp) << ", "
+                    << timePointToMicroseconds(marketUpdateBookBuildingFinishTimestamp) << std::endl;
+
+                    // Move to the next JSON object
                     currentPos = endPos + 1;
                 }
 
@@ -415,7 +425,8 @@ void socket_cb (EV_P_ ev_io *w_, int revents) {
                     break;   
 			}	
 
-			memset(w->readBuffer, 0, w->readBufferSize);
+			memset(w->undecryptedReadBuffer, 0, w->undecryptedReadBufferSize);
+            memset(w->decryptedReadBuffer, 0, w->decryptedReadBufferSize);
         } while (decryptedBytesRead > 0);
     }
 }
@@ -572,7 +583,7 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_, int orderMan
 	    SSL_set_bio(ssls[m], rbios[m], NULL);
     }
 	
-    outFile.open("bitmex_data.txt", std::ios_base::out); 
+    outFile.open("book-builder-bitmex-data/book-builder-data.txt", std::ios_base::out); 
 
     if (io_uring_register_files(&ring, sockfds, NUMBER_OF_CONNECTIONS) < 0) {
         perror("io_uring_register_files");
