@@ -11,7 +11,6 @@
 #define WEBSOCKET_CLIENT_RX_BUFFER_SIZE 16378
 
 using namespace std::chrono;
-using Clock = std::chrono::high_resolution_clock;
 
 struct BookBuilderGatewayToComponentQueueEntry {
     char decryptedReadBuffer[WEBSOCKET_CLIENT_RX_BUFFER_SIZE];	

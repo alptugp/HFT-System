@@ -59,7 +59,7 @@ void bench(int cpu1, int cpu2) {
 }
 
 void runTradingSystem()  {   
-    const size_t queueSize = 1000;
+    const size_t queueSize = 10000;
     SPSCQueue<BookBuilderGatewayToComponentQueueEntry> bookBuilderGatewayToComponentQueue(queueSize);
     SPSCQueue<OrderBook> builderToStrategyQueue(queueSize);
     SPSCQueue<std::string> strategyToOrderManagerQueue(queueSize);
@@ -78,11 +78,11 @@ void runTradingSystem()  {
       strategy(builderToStrategyQueue, strategyToOrderManagerQueue);
     });
 
-    auto bookBuilderGatewayThread = std::thread([&bookBuilderGatewayToComponentQueue, orderManagerPipeEnd, currencyPairs] {
+    auto bookBuilderGatewayThread = std::thread([&bookBuilderGatewayToComponentQueue, orderManagerPipeEnd, currencyPairs = currencyPairs] {
       bookBuilderGateway(bookBuilderGatewayToComponentQueue, currencyPairs, orderManagerPipeEnd);
     });
 
-    auto bookBuilderThread = std::thread([&bookBuilderGatewayToComponentQueue, &builderToStrategyQueue, currencyPairs] {
+    auto bookBuilderThread = std::thread([&bookBuilderGatewayToComponentQueue, &builderToStrategyQueue, currencyPairs = currencyPairs] {
       bookBuilder(bookBuilderGatewayToComponentQueue, builderToStrategyQueue, currencyPairs);
     });
 

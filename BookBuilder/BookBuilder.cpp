@@ -24,12 +24,11 @@
 
 using namespace rapidjson;
 using namespace std::chrono;
-using Clock = std::chrono::high_resolution_clock;
 
-std::unordered_map<std::string, OrderBook> orderBookMap;
+static std::unordered_map<std::string, OrderBook> orderBookMap;
 
-std::ofstream latencyDataFile;
-std::ofstream historicalDataFile;
+static std::ofstream latencyDataFile;
+static std::ofstream historicalDataFile;
 
 void bookBuilder(SPSCQueue<BookBuilderGatewayToComponentQueueEntry>& bookBuilderGatewayToComponentQueue, SPSCQueue<OrderBook>& bookBuilderToStrategyQueue, std::vector<std::string> currencyPairs) {
     int numCores = std::thread::hardware_concurrency();
@@ -56,6 +55,13 @@ void bookBuilder(SPSCQueue<BookBuilderGatewayToComponentQueueEntry>& bookBuilder
 
     // ThroughputMonitor updateThroughputMonitorBookBuilder("Book Builder Throughput Monitor", std::chrono::high_resolution_clock::now());
     // updateThroughputMonitor = &updateThroughputMonitorBookBuilder;
+
+    #if defined(USE_BITMEX_MOCK_EXCHANGE)    
+        latencyDataFile.open("bitmex-book-builder-data/new.txt", std::ios_base::out); 
+    #elif defined(USE_KRAKEN_MOCK_EXCHANGE)
+        latencyDataFile.open("after-separation-kraken-book-builder/new.txt", std::ios_base::out); 
+        // latencyDataFile.open("conn-type-kraken-book-builder/conn-type-kraken-book-builder-data.txt", std::ios_base::out); 
+    #endif
 
 #if defined(USE_BITMEX_EXCHANGE)    
     // historicalDataFile.open("bitmex_data.txt", std::ios_base::out);
