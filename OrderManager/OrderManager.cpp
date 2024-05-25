@@ -7,7 +7,7 @@
 #include <iomanip>
 
 #define TX_DEFAULT_BUF_SIZE 128
-#define CPU_CORE_INDEX_FOR_ORDER_MANAGER_THREAD 3
+#define CPU_CORE_INDEX_FOR_ORDER_MANAGER_THREAD 4
 #define HEARTBEAT_SENDER_PERIOD_IN_SECONDS 80 // CAN BE HIGHER?
 #define NUMBER_OF_IO_URING_SQ_ENTRIES 8
 // #define CPU_CORE_NUMBER_OFFSET_FOR_HEARTBEAT_THREAD 3
@@ -60,24 +60,31 @@ void sendPeriodicHeartbeat(struct ssl_client (&clients)[BATCH_SIZE]) {
 }
 
 void orderManager(SPSCQueue<std::string>& strategyToOrderManagerQueue, int bookBuilderPipeEnd) {
-    // int numCores = std::thread::hardware_concurrency();
+    int numCores = std::thread::hardware_concurrency();
     
-    // if (numCores == 0) {
-    //     std::cerr << "Error: Unable to determine the number of CPU cores." << std::endl;
-    //     return;
-    // } else if (numCores < CPU_CORE_INDEX_FOR_ORDER_MANAGER_THREAD) {
-    //     std::cerr << "Error: Not enough cores to run the system." << std::endl;
-    //     return;
-    // }
+    if (numCores == 0) {
+        std::cerr << "Error: Unable to determine the number of CPU cores." << std::endl;
+        return;
+    } else if (numCores < CPU_CORE_INDEX_FOR_ORDER_MANAGER_THREAD) {
+        std::cerr << "Error: Not enough cores to run the system." << std::endl;
+        return;
+    }
 
-    // int cpuCoreNumberForOrderManagerThread = CPU_CORE_INDEX_FOR_ORDER_MANAGER_THREAD;
+    int cpuCoreNumberForOrderManagerThread = CPU_CORE_INDEX_FOR_ORDER_MANAGER_THREAD;
 
-    // setThreadAffinity(pthread_self(), cpuCoreNumberForOrderManagerThread);
+    setThreadAffinity(pthread_self(), cpuCoreNumberForOrderManagerThread);
 
     // // Set the current thread's real-time priority to highest value
     // // struct sched_param schedParams;
     // // schedParams.sched_priority = sched_get_priority_max(SCHED_FIFO);
     // // pthread_setschedparam(pthread_self(), SCHED_FIFO, &schedParams);
+    while (true) { 
+        std::string orderData_i;
+        size_t sizeOrderData_i;
+
+        // Inside the loop, check if nothing has been sent for the past 90 seconds?
+        while (!strategyToOrderManagerQueue.pop(orderData_i)) {};
+    }
 
     // int port = 443;
     // const char* host_ip = "104.18.32.75";

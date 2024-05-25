@@ -16,7 +16,7 @@
 #include "../Utils/Utils.hpp"
 #include "../BookBuilder/ThroughputMonitor/ThroughputMonitor.hpp"
 
-#define CPU_CORE_INDEX_FOR_STRATEGY_THREAD 2
+#define CPU_CORE_INDEX_FOR_STRATEGY_THREAD 3
 #define AFTER_FEE_RATE 0.99925
 using namespace std::chrono;
 using namespace std;

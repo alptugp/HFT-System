@@ -9,9 +9,17 @@
 #include "BookBuilder/OrderBook/OrderBook.hpp"
 #include "BookBuilder/ThroughputMonitor/ThroughputMonitor.hpp"
 #include "BookBuilder/BookBuilder.cpp"
+#include "BookBuilder/BookBuilderGateway.cpp"
 #include "Utils/Utils.hpp"
 #include "StrategyComponent/Strategy.hpp"
 #include "OrderManager/OrderManager.hpp"
+
+#if defined(USE_BITMEX_EXCHANGE) || defined(USE_BITMEX_MOCK_EXCHANGE)  
+static const std::vector<std::string> currencyPairs = {"XBTETH", "XBTUSDT", "ETHUSDT"};
+#elif defined(USE_KRAKEN_EXCHANGE) || defined(USE_KRAKEN_MOCK_EXCHANGE)  
+static const std::vector<std::string> currencyPairs = {"ETH/BTC", "BTC/USD", "ETH/USD"};
+#endif
+
 
 template <typename T> 
 void bench(int cpu1, int cpu2) {
@@ -50,8 +58,9 @@ void bench(int cpu1, int cpu2) {
   t2.join();
 }
 
-void runAlgo()  {   
-    const size_t queueSize = 10000;
+void runTradingSystem()  {   
+    const size_t queueSize = 1000;
+    SPSCQueue<BookBuilderGatewayToComponentQueueEntry> bookBuilderGatewayToComponentQueue(queueSize);
     SPSCQueue<OrderBook> builderToStrategyQueue(queueSize);
     SPSCQueue<std::string> strategyToOrderManagerQueue(queueSize);
     
@@ -65,28 +74,33 @@ void runAlgo()  {
     int bookBuilderPipeEnd = pipefd[0];
     int orderManagerPipeEnd = pipefd[1];
 
-    auto t1 = std::thread([&builderToStrategyQueue, &strategyToOrderManagerQueue] {
+    auto strategyThread = std::thread([&builderToStrategyQueue, &strategyToOrderManagerQueue] {
       strategy(builderToStrategyQueue, strategyToOrderManagerQueue);
     });
 
-    auto t2 = std::thread([&builderToStrategyQueue, orderManagerPipeEnd] {
-      bookBuilder(builderToStrategyQueue, orderManagerPipeEnd);
+    auto bookBuilderGatewayThread = std::thread([&bookBuilderGatewayToComponentQueue, orderManagerPipeEnd, currencyPairs] {
+      bookBuilderGateway(bookBuilderGatewayToComponentQueue, currencyPairs, orderManagerPipeEnd);
     });
 
-    auto t3 = std::thread([&strategyToOrderManagerQueue, bookBuilderPipeEnd] {
+    auto bookBuilderThread = std::thread([&bookBuilderGatewayToComponentQueue, &builderToStrategyQueue, currencyPairs] {
+      bookBuilder(bookBuilderGatewayToComponentQueue, builderToStrategyQueue, currencyPairs);
+    });
+
+    auto orderManagerThread = std::thread([&strategyToOrderManagerQueue, bookBuilderPipeEnd] {
       orderManager(strategyToOrderManagerQueue, bookBuilderPipeEnd);
     });
 
-    t2.join();
-    t1.join();
-    t3.join();
+    bookBuilderGatewayThread.join();
+    bookBuilderThread.join();
+    strategyThread.join();
+    orderManagerThread.join();
 }
 
 int main(int argc, char *argv[]) {
   // int cpu1 = 1;
   // int cpu2 = 2;
   // bench<SPSCQueue<OrderBook>>(cpu1, cpu2);
-  runAlgo();
+  runTradingSystem();
 
   return 0;
 }

@@ -44,6 +44,14 @@ long convertTimestampToTimePoint(const std::string& timestamp) {
     return std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
 }
 
+void removeIncorrectNullCharacters(char* buffer, size_t size) {
+    for (size_t i = 0; i < size; ++i) {
+        if (buffer[i] == '\0') {
+            buffer[i] = ' ';
+        }
+    }
+}
+
 long long timePointToMicroseconds(const std::chrono::system_clock::time_point& tp) {
     return std::chrono::duration_cast<std::chrono::microseconds>(tp.time_since_epoch()).count();
 }
