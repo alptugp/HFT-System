@@ -6,6 +6,7 @@
 #include <ev.h>
 #include <liburing.h>
 #include <fstream>
+#include <sys/socket.h>
 #include "./OrderBook/OrderBook.hpp"
 #include "./ThroughputMonitor/ThroughputMonitor.hpp"
 #include "../SPSCQueue/SPSCQueue.hpp"
@@ -24,7 +25,7 @@
 
 #define JSON_END_PATTERN "}]}"
 
-#define NUMBER_OF_CONNECTIONS 3
+#define NUMBER_OF_CONNECTIONS 1
 
 using namespace rapidjson;
 using namespace std::chrono;
@@ -56,6 +57,11 @@ struct ws_client_io
   int undecryptedReadBufferSize = sizeof(undecryptedReadBuffer);
   char decryptedReadBuffer[WEBSOCKET_CLIENT_RX_BUFFER_SIZE];	
   int decryptedReadBufferSize = sizeof(decryptedReadBuffer);
+  struct msghdr msg;
+  struct iovec iov[1];
+  struct timeval tv;
+  char ctrl_buf[CMSG_SPACE(sizeof(tv))];
+  struct cmsghdr* cmsg;
 };
 
 static struct ws_client_io *ws_clients_io[NUMBER_OF_CONNECTIONS];
@@ -68,7 +74,8 @@ struct io_uring ring;
 struct io_uring_sqe *sqe;
 struct io_uring_cqe *cqe;
 
-std::ofstream outFile;
+std::ofstream latencyDataFile;
+std::ofstream historicalDataFile;
 
 // static const struct lws_extension extensions[] = {
 //         {
@@ -103,29 +110,29 @@ book_builder_lws_callback(struct lws *wsi, enum lws_callback_reasons reason,
 #ifndef USE_BITMEX_MOCK_EXCHANGE
             // Send subscription message 
     #ifdef USE_BITMEX_EXCHANGE   
-            std::string currencyPair = currencyPairs[connection_idx];
+            // std::string currencyPair = currencyPairs[connection_idx];
             
-            std::string subscriptionMessage = "{\"op\":\"subscribe\",\"args\":[\"orderBookL2_25:" + currencyPair + "\"]}";
-            // Allocate buffer with LWS_PRE bytes before the data
-            unsigned char buf[LWS_PRE + subscriptionMessage.size()];
+            // std::string subscriptionMessage = "{\"op\":\"subscribe\",\"args\":[\"orderBookL2_25:" + currencyPair + "\"]}";
+            // // Allocate buffer with LWS_PRE bytes before the data
+            // unsigned char buf[LWS_PRE + subscriptionMessage.size()];
 
-            // Copy subscription message to buffer after LWS_PRE bytes
-            memcpy(&buf[LWS_PRE], subscriptionMessage.c_str(), subscriptionMessage.size());
+            // // Copy subscription message to buffer after LWS_PRE bytes
+            // memcpy(&buf[LWS_PRE], subscriptionMessage.c_str(), subscriptionMessage.size());
                     
-            // Send data using lws_write
-            lws_write(wsi, &buf[LWS_PRE], subscriptionMessage.size(), LWS_WRITE_TEXT);
+            // // Send data using lws_write
+            // lws_write(wsi, &buf[LWS_PRE], subscriptionMessage.size(), LWS_WRITE_TEXT);
 
-            // for (const std::string& currencyPair : currencyPairs) { 
-            //         std::string subscriptionMessage = "{\"op\":\"subscribe\",\"args\":[\"orderBookL2_25:" + currencyPair + "\"]}";
-            //         // Allocate buffer with LWS_PRE bytes before the data
-            //         unsigned char buf[LWS_PRE + subscriptionMessage.size()];
+            for (const std::string& currencyPair : currencyPairs) { 
+                    std::string subscriptionMessage = "{\"op\":\"subscribe\",\"args\":[\"orderBookL2_25:" + currencyPair + "\"]}";
+                    // Allocate buffer with LWS_PRE bytes before the data
+                    unsigned char buf[LWS_PRE + subscriptionMessage.size()];
 
-            //         // Copy subscription message to buffer after LWS_PRE bytes
-            //         memcpy(&buf[LWS_PRE], subscriptionMessage.c_str(), subscriptionMessage.size());
+                    // Copy subscription message to buffer after LWS_PRE bytes
+                    memcpy(&buf[LWS_PRE], subscriptionMessage.c_str(), subscriptionMessage.size());
                     
-            //         // Send data using lws_write
-            //         lws_write(wsi, &buf[LWS_PRE], subscriptionMessage.size(), LWS_WRITE_TEXT);
-            // }
+                    // Send data using lws_write
+                    lws_write(wsi, &buf[LWS_PRE], subscriptionMessage.size(), LWS_WRITE_TEXT);
+            }
             
     #elif defined(USE_KRAKEN_EXCHANGE)
             std::string subscriptionMessage = R"({
@@ -136,13 +143,13 @@ book_builder_lws_callback(struct lws *wsi, enum lws_callback_reasons reason,
                                                     "snapshot": true,
                                                     "symbol": [)";
 
-            subscriptionMessage += "\"" + currencyPairs[connection_idx] + "\"";
-            // for (size_t i = 0; i < currencyPairs.size(); ++i) {
-            //     subscriptionMessage += "\"" + currencyPairs[i] + "\"";
-            //     if (i < currencyPairs.size() - 1) {
-            //         subscriptionMessage += ",";
-            //     }
-            // }
+            // subscriptionMessage += "\"" + currencyPairs[connection_idx] + "\"";
+            for (size_t i = 0; i < currencyPairs.size(); ++i) {
+                subscriptionMessage += "\"" + currencyPairs[i] + "\"";
+                if (i < currencyPairs.size() - 1) {
+                    subscriptionMessage += ",";
+                }
+            }
 
             subscriptionMessage += R"(]
                                         },
@@ -200,7 +207,7 @@ void socket_cb (EV_P_ ev_io *w_, int revents) {
 
   	if (revents & EV_READ) { 
         system_clock::time_point marketUpdateReadyToReadTimestamp = high_resolution_clock::now();
-        printf("SOCKET ready for reading for connection %d\n", connection_idx);
+        // printf("SOCKET ready for reading for connection %d\n", connection_idx);
         int decryptedBytesRead;
         
 		do {
@@ -212,9 +219,10 @@ void socket_cb (EV_P_ ev_io *w_, int revents) {
                 io_uring_queue_exit(&ring);
                 return;
             }
-			
+
 			// printf("Reading for sockfd %d\n", sockfd);
-			io_uring_prep_read(sqe, connection_idx, w->undecryptedReadBuffer, w->undecryptedReadBufferSize, 0);  // use offset on same buffer later?
+            io_uring_prep_recvmsg(sqe, connection_idx, &w->msg, 0);
+			// io_uring_prep_recv(sqe, connection_idx, w->undecryptedReadBuffer, w->undecryptedReadBufferSize, 0);  // use offset on same buffer later?
             sqe->flags |= IOSQE_FIXED_FILE;
 
 			if (io_uring_submit(&ring) < 0) {
@@ -223,8 +231,9 @@ void socket_cb (EV_P_ ev_io *w_, int revents) {
 				return;
 			}
 
-			int ret = io_uring_wait_cqe(&ring, &cqe);
+            int ret = io_uring_wait_cqe(&ring, &cqe);
             system_clock::time_point marketUpdateReadFinishTimestamp = high_resolution_clock::now();
+
             if (ret < 0) {
                 perror("Error waiting for completion: %s\n");
                 return;
@@ -234,20 +243,19 @@ void socket_cb (EV_P_ ev_io *w_, int revents) {
                 perror("Async operation error");
                 return;
             } 
-
+            
 			int undecryptedBytesRead = cqe->res;				
 			int bytesBioWritten = BIO_write(rbios[connection_idx], w->undecryptedReadBuffer, undecryptedBytesRead);
             decryptedBytesRead = SSL_read(ssls[connection_idx], w->decryptedReadBuffer, w->decryptedReadBufferSize);
 
             system_clock::time_point marketUpdateDecryptionFinishTimestamp = high_resolution_clock::now();
-
             io_uring_cqe_seen(&ring, cqe);
             
-            // printf("BYTES READ: %d\n", decryptedBytesRead);
+            // printf("BYTES READ from ssl: %d\n", decryptedBytesRead);
             if (decryptedBytesRead > 0) {
                 removeIncorrectNullCharacters(w->decryptedReadBuffer, decryptedBytesRead);
 
-                std::cout << "BUFFER: " << w->decryptedReadBuffer << std::endl;
+                // std::cout << "BUFFER: " << w->decryptedReadBuffer << std::endl;
    
                 const char* currentPos = w->decryptedReadBuffer;
                 int isAllDataRead = false;
@@ -274,10 +282,10 @@ void socket_cb (EV_P_ ev_io *w_, int revents) {
                     strncpy(jsonStr, startPos, jsonLen);
                     jsonStr[jsonLen] = '\0';
 					
-                    // if (outFile.is_open()) {
-                    //     outFile << jsonStr << std::endl;
+                    // if (historicalDataFile.is_open()) {
+                    //     historicalDataFile << jsonStr << std::endl;
                     // } else {
-                    //     std::cerr << "Unable to open file: " << "bitmex_data.txt" << std::endl;
+                    //     std::cerr << "Unable to open file: " << "kraken_data.txt" << std::endl;
                     // }
 
                     Document doc;
@@ -289,6 +297,7 @@ void socket_cb (EV_P_ ev_io *w_, int revents) {
                     }
 
                     system_clock::time_point marketUpdateJsonParsingFinishTimestamp = high_resolution_clock::now();
+                    long exchangeUpdateRxTimestamp;
 
 #if defined(USE_BITMEX_EXCHANGE) || defined(USE_BITMEX_MOCK_EXCHANGE) 
                     GenericValue<rapidjson::UTF8<>>::MemberIterator data = doc.FindMember("data");
@@ -306,19 +315,19 @@ void socket_cb (EV_P_ ev_io *w_, int revents) {
                         
                         double price = data_i["price"].GetDouble();
                         const char* timestamp = data_i["timestamp"].GetString();
-                        long exchangeUpdateTimestamp = convertTimestampToTimePoint(timestamp);
+                        exchangeUpdateRxTimestamp = convertTimestampToTimePoint(timestamp);
                        // std::cout << "exchangeUpdateTimestamp: " << exchangeUpdateTimestamp << ", marketUpdateReceiveTimestamp: " << std::to_string(duration_cast<milliseconds>(marketUpdateReceiveTimestamp.time_since_epoch()).count()) << std::endl;
                         if (strcmp(side, "Buy") == 0) {
                             switch (action[0]) {
                                 case 'p':
                                 case 'i':
-                                    orderBookMap[symbol].insertBuy(id, price, size, exchangeUpdateTimestamp, marketUpdateReadFinishTimestamp);
+                                    orderBookMap[symbol].insertBuy(id, price, size, exchangeUpdateRxTimestamp, marketUpdateReadFinishTimestamp);
                                     break;
                                 case 'u':
-                                    orderBookMap[symbol].updateBuy(id, size, exchangeUpdateTimestamp, marketUpdateReadFinishTimestamp);
+                                    orderBookMap[symbol].updateBuy(id, size, exchangeUpdateRxTimestamp, marketUpdateReadFinishTimestamp);
                                     break;
                                 case 'd':
-                                    orderBookMap[symbol].removeBuy(id, exchangeUpdateTimestamp, marketUpdateReadFinishTimestamp);
+                                    orderBookMap[symbol].removeBuy(id, exchangeUpdateRxTimestamp, marketUpdateReadFinishTimestamp);
                                     break;
                                 default:
                                     break;
@@ -327,13 +336,13 @@ void socket_cb (EV_P_ ev_io *w_, int revents) {
                             switch (action[0]) {
                                 case 'p':
                                 case 'i':
-                                    orderBookMap[symbol].insertSell(id, price, size, exchangeUpdateTimestamp, marketUpdateReadFinishTimestamp);
+                                    orderBookMap[symbol].insertSell(id, price, size, exchangeUpdateRxTimestamp, marketUpdateReadFinishTimestamp);
                                     break;
                                 case 'u':
-                                    orderBookMap[symbol].updateSell(id, size, exchangeUpdateTimestamp, marketUpdateReadFinishTimestamp);
+                                    orderBookMap[symbol].updateSell(id, size, exchangeUpdateRxTimestamp, marketUpdateReadFinishTimestamp);
                                     break;
                                 case 'd':
-                                    orderBookMap[symbol].removeSell(id, exchangeUpdateTimestamp, marketUpdateReadFinishTimestamp);
+                                    orderBookMap[symbol].removeSell(id, exchangeUpdateRxTimestamp, marketUpdateReadFinishTimestamp);
                                     break;
                                 default:
                                     break;
@@ -359,18 +368,18 @@ void socket_cb (EV_P_ ev_io *w_, int revents) {
                                 const Value& ask_i = asks->value[i];
                                 double price = ask_i["price"].GetDouble();
                                 double size = ask_i["qty"].GetDouble();
-                                orderBookMap[symbol].insertSell(price, price, size, 0, marketUpdateReceiveTimestamp);
+                                orderBookMap[symbol].insertSell(price, price, size, 0, marketUpdateReadFinishTimestamp);
                             }
 
                             for (SizeType i = 0; i < data_i["bids"].Size(); i++) {
                                 const Value& bid_i = bids->value[i];
                                 double price = bid_i["price"].GetDouble();
                                 double size = bid_i["qty"].GetDouble();
-                                orderBookMap[symbol].insertBuy(price, price, size, 0, marketUpdateReceiveTimestamp);
+                                orderBookMap[symbol].insertBuy(price, price, size, 0, marketUpdateReadFinishTimestamp);
                             }
                         } else if (type[0] == 'u') {
                             const char* timestamp = data_i["timestamp"].GetString();
-                            long exchangeUpdateTimestamp = convertTimestampToTimePoint(timestamp);
+                            exchangeUpdateRxTimestamp = convertTimestampToTimePoint(timestamp);
                             GenericValue<rapidjson::UTF8<>>::ConstMemberIterator asks = data_i.FindMember("asks");
                             GenericValue<rapidjson::UTF8<>>::ConstMemberIterator bids = data_i.FindMember("bids");
                             const char* symbol = data_i["symbol"].GetString();    
@@ -381,11 +390,11 @@ void socket_cb (EV_P_ ev_io *w_, int revents) {
                                 double price = ask_i["price"].GetDouble();
                                 double size = ask_i["qty"].GetDouble();
                                 if (size == 0)
-                                    orderBookMap[symbol].removeSell(price, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                    orderBookMap[symbol].removeSell(price, exchangeUpdateRxTimestamp, marketUpdateReadFinishTimestamp);
                                 else if (orderBookMap[symbol].checkSellPriceLevel(price))
-                                    orderBookMap[symbol].updateSell(price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                    orderBookMap[symbol].updateSell(price, size, exchangeUpdateRxTimestamp, marketUpdateReadFinishTimestamp);
                                 else 
-                                    orderBookMap[symbol].insertSell(price, price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                    orderBookMap[symbol].insertSell(price, price, size, exchangeUpdateRxTimestamp, marketUpdateReadFinishTimestamp);
                             }
                             
                             for (SizeType i = 0; i < data_i["bids"].Size(); i++) {
@@ -393,11 +402,11 @@ void socket_cb (EV_P_ ev_io *w_, int revents) {
                                 double price = bid_i["price"].GetDouble();
                                 double size = bid_i["qty"].GetDouble();
                                 if (size == 0)
-                                    orderBookMap[symbol].removeBuy(price, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                    orderBookMap[symbol].removeBuy(price, exchangeUpdateRxTimestamp, marketUpdateReadFinishTimestamp);
                                 else if (orderBookMap[symbol].checkBuyPriceLevel(price))
-                                    orderBookMap[symbol].updateBuy(price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                    orderBookMap[symbol].updateBuy(price, size, exchangeUpdateRxTimestamp, marketUpdateReadFinishTimestamp);
                                 else 
-                                    orderBookMap[symbol].insertBuy(price, price, size, exchangeUpdateTimestamp, marketUpdateReceiveTimestamp);
+                                    orderBookMap[symbol].insertBuy(price, price, size, exchangeUpdateRxTimestamp, marketUpdateReadFinishTimestamp);
                             }
                         }
                         updatedCurrencies.push_back(std::string(symbol));
@@ -410,19 +419,49 @@ void socket_cb (EV_P_ ev_io *w_, int revents) {
                         while (!bookBuilderToStrategyQueue->push(orderBookMap[updatedCurrency]));    
                     }
 
-                    outFile 
-                    << timePointToMicroseconds(marketUpdateReadyToReadTimestamp) << ", "
-                    << timePointToMicroseconds(marketUpdateReadFinishTimestamp) << ", "
-                    << timePointToMicroseconds(marketUpdateDecryptionFinishTimestamp) << ", "
-                    << timePointToMicroseconds(marketUpdateJsonParsingFinishTimestamp) << ", "
-                    << timePointToMicroseconds(marketUpdateBookBuildingFinishTimestamp) << std::endl;
+                    system_clock::time_point marketUpdateSocketRxTimestamp;
+                    w->cmsg = CMSG_FIRSTHDR(&w->msg);
+                    if (w->cmsg->cmsg_level == SOL_SOCKET && w->cmsg->cmsg_type == SCM_TIMESTAMP) {
+                        memcpy(&w->tv, CMSG_DATA(w->cmsg), sizeof(w->tv));
+                        std::cout << "Received packet at timestamp: " << w->tv.tv_sec << " seconds and " << w->tv.tv_usec << " microseconds" << std::endl;
+                        marketUpdateSocketRxTimestamp = std::chrono::system_clock::from_time_t((long)w->tv.tv_sec);
+                        marketUpdateSocketRxTimestamp += std::chrono::microseconds((long) w->tv.tv_usec);
+                    }
+
+                    // Convert time_point to microseconds since epoch
+                    auto socketRxUs = timePointToMicroseconds(marketUpdateSocketRxTimestamp);
+                    auto readyToReadUs = timePointToMicroseconds(marketUpdateReadyToReadTimestamp);
+                    auto readFinishUs = timePointToMicroseconds(marketUpdateReadFinishTimestamp);
+                    auto decryptionFinishUs = timePointToMicroseconds(marketUpdateDecryptionFinishTimestamp);
+                    auto jsonParsingFinishUs = timePointToMicroseconds(marketUpdateJsonParsingFinishTimestamp);
+                    auto bookBuildingFinishUs = timePointToMicroseconds(marketUpdateBookBuildingFinishTimestamp);
+
+                    double networkLatency = (socketRxUs - exchangeUpdateRxTimestamp) / 1000.0; 
+                    double socketWaitLatency = (readyToReadUs - socketRxUs) / 1000.0;
+                    double readLatency = (readFinishUs - readyToReadUs) / 1000.0;
+                    double decryptionLatency = (decryptionFinishUs - readFinishUs) / 1000.0;
+                    double jsonParsingLatency = (jsonParsingFinishUs - decryptionFinishUs) / 1000.0;
+                    double bookBuildingLatency = (bookBuildingFinishUs - jsonParsingFinishUs) / 1000.0;
+
+                    latencyDataFile 
+                    << networkLatency << ", "
+                    << socketWaitLatency << ", "
+                    << readLatency << ", "
+                    << decryptionLatency << ", "
+                    << jsonParsingLatency << ", "
+                    << bookBuildingLatency 
+                    << std::endl;
 
                     // Move to the next JSON object
                     currentPos = endPos + 1;
                 }
 
-                if (isAllDataRead) 
+                if (isAllDataRead) {
+                    memset(w->undecryptedReadBuffer, 0, w->undecryptedReadBufferSize);
+                    memset(w->decryptedReadBuffer, 0, w->decryptedReadBufferSize);
+                    memset(w->ctrl_buf, 0, sizeof(w->ctrl_buf));
                     break;   
+                } 
 			}	
 
 			memset(w->undecryptedReadBuffer, 0, w->undecryptedReadBufferSize);
@@ -578,12 +617,29 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_, int orderMan
         interrupted = 0;
 
         sockfds[m] = lws_get_socket_fd(client_wsi[m]);
+        int timestamp_option = 1;
+        if (setsockopt(sockfds[m], SOL_SOCKET, SO_TIMESTAMP, &timestamp_option, sizeof(timestamp_option)) < 0) {
+            perror("setsockopt SO_TIMESTAMP failed");
+            // Handle error
+        }
+        
         ssls[m] = lws_get_ssl(client_wsi[m]);
         rbios[m] = BIO_new(BIO_s_mem());
 	    SSL_set_bio(ssls[m], rbios[m], NULL);
     }
 	
-    outFile.open("book-builder-bitmex-data/book-builder-data.txt", std::ios_base::out); 
+#if defined(USE_BITMEX_MOCK_EXCHANGE)    
+    latencyDataFile.open("bitmex-book-builder-data/bitmex-book-builder-data.txt", std::ios_base::out); 
+#elif defined(USE_KRAKEN_MOCK_EXCHANGE)
+    latencyDataFile.open("mapping-kraken-book-builder/mapping-kraken-book-builder-data.txt", std::ios_base::out); 
+    // latencyDataFile.open("conn-type-kraken-book-builder/conn-type-kraken-book-builder-data.txt", std::ios_base::out); 
+#endif
+
+#if defined(USE_BITMEX_EXCHANGE)    
+    // historicalDataFile.open("bitmex_data.txt", std::ios_base::out);
+#elif defined(USE_KRAKEN_EXCHANGE)
+    // historicalDataFile.open("kraken_data.txt", std::ios_base::out);
+#endif
 
     if (io_uring_register_files(&ring, sockfds, NUMBER_OF_CONNECTIONS) < 0) {
         perror("io_uring_register_files");
@@ -591,13 +647,20 @@ void bookBuilder(SPSCQueue<OrderBook>& bookBuilderToStrategyQueue_, int orderMan
     }
 
     for (int m = 0; m < NUMBER_OF_CONNECTIONS; m++) {
-        std::cout << "aa" << std::endl;
         ws_clients_io[m] = new ws_client_io();
         ws_clients_io[m]->sockfd = sockfds[m];
         ws_clients_io[m]->connection_idx = m;
-        std::cout << "aa" << std::endl;
+
+        ws_clients_io[m]->iov[0].iov_base = ws_clients_io[m]->undecryptedReadBuffer;
+        ws_clients_io[m]->iov[0].iov_len = ws_clients_io[m]->undecryptedReadBufferSize;
+
+        ws_clients_io[m]->msg.msg_control = ws_clients_io[m]->ctrl_buf;
+        ws_clients_io[m]->msg.msg_controllen = sizeof(ws_clients_io[m]->ctrl_buf);
+        ws_clients_io[m]->msg.msg_iov = ws_clients_io[m]->iov;
+        ws_clients_io[m]->msg.msg_iovlen = 1;
+
         ev_io_init (&ws_clients_io[m]->socket_watcher, socket_cb, sockfds[m], EV_READ);
-        std::cout << "aa" << std::endl;
+
         ev_io_start (loop_ev, &ws_clients_io[m]->socket_watcher);
     }
     

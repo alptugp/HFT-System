@@ -238,7 +238,7 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
       } else {
         std::cerr << "Unable to open file for writing" << std::endl;
       }
-s
+
       for (const auto& cycle : cycles) {
           std::cout << "CYCLE FOUND" << std::endl;
 
