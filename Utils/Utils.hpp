@@ -16,10 +16,10 @@ struct BookBuilderGatewayToComponentQueueEntry {
     char decryptedReadBuffer[WEBSOCKET_CLIENT_RX_BUFFER_SIZE];	
     int decryptedReadBufferSize = sizeof(decryptedReadBuffer);
     int decryptedBytesRead;
-    system_clock::time_point marketUpdateReadyToReadTimestamp;
-    system_clock::time_point marketUpdateReadFinishTimestamp;
+    system_clock::time_point marketUpdatePollTimestamp;
+    system_clock::time_point marketUpdateReadCompletionTimestamp;
     system_clock::time_point marketUpdateSocketRxTimestamp;
-    system_clock::time_point marketUpdateDecryptionFinishTimestamp;
+    system_clock::time_point marketUpdateDecryptionCompletionTimestamp;
 };
 
 long convertTimestampToTimePoint(const std::string& timestamp);

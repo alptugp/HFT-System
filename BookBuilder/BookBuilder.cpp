@@ -59,7 +59,7 @@ void bookBuilder(SPSCQueue<BookBuilderGatewayToComponentQueueEntry>& bookBuilder
     #if defined(USE_BITMEX_MOCK_EXCHANGE)    
         latencyDataFile.open("bitmex-book-builder-data/new.txt", std::ios_base::out); 
     #elif defined(USE_KRAKEN_MOCK_EXCHANGE)
-        latencyDataFile.open("after-separation-kraken-book-builder/new.txt", std::ios_base::out); 
+        latencyDataFile.open("polling-and-reading-book-builder-data/new.txt", std::ios_base::out); 
         // latencyDataFile.open("conn-type-kraken-book-builder/conn-type-kraken-book-builder-data.txt", std::ios_base::out); 
     #endif
 
@@ -91,6 +91,7 @@ void bookBuilder(SPSCQueue<BookBuilderGatewayToComponentQueueEntry>& bookBuilder
                 std::cerr << "JSON string too long\n";
                 break;
             }
+            
             char jsonStr[WEBSOCKET_CLIENT_RX_BUFFER_SIZE];
             strncpy(jsonStr, startPos, jsonLen);
             jsonStr[jsonLen] = '\0';
@@ -106,123 +107,121 @@ void bookBuilder(SPSCQueue<BookBuilderGatewayToComponentQueueEntry>& bookBuilder
                 std::cerr << "JSON parsing error\n";
                 break;
             }
-            system_clock::time_point marketUpdateJsonParsingFinishTimestamp = high_resolution_clock::now();
+            system_clock::time_point marketUpdateJsonParsingCompletionTimestamp = high_resolution_clock::now();
             long exchangeUpdateRxTimestamp;
+            std::vector<std::string> updatedCurrencies;
+            GenericValue<rapidjson::UTF8<>>::MemberIterator data = doc.FindMember("data");
 
 #if defined(USE_BITMEX_EXCHANGE) || defined(USE_BITMEX_MOCK_EXCHANGE) 
-            GenericValue<rapidjson::UTF8<>>::MemberIterator data = doc.FindMember("data");
             const char* action = doc["action"].GetString();
-            std::vector<std::string> updatedCurrencies;
 
             for (SizeType i = 0; i < doc["data"].Size(); i++) {
-                            const Value& data_i = data->value[i];
-                            const char* symbol = data_i["symbol"].GetString();
-                            uint64_t id = data_i["id"].GetInt64();
-                            const char* side = data_i["side"].GetString();
-                            double size;
-                            if (data->value[i].HasMember("size")) 
-                                size = data_i["size"].GetInt64();
-                            
-                            double price = data_i["price"].GetDouble();
-                            const char* timestamp = data_i["timestamp"].GetString();
-                            exchangeUpdateRxTimestamp = convertTimestampToTimePoint(timestamp);
-                        // std::cout << "exchangeUpdateTimestamp: " << exchangeUpdateTimestamp << ", marketUpdateReceiveTimestamp: " << std::to_string(duration_cast<milliseconds>(marketUpdateReceiveTimestamp.time_since_epoch()).count()) << std::endl;
-                            if (strcmp(side, "Buy") == 0) {
-                                switch (action[0]) {
-                                    case 'p':
-                                    case 'i':
-                                        orderBookMap[symbol].insertBuy(id, price, size, exchangeUpdateRxTimestamp, queueEntry.marketUpdateReadFinishTimestamp);
-                                        break;
-                                    case 'u':
-                                        orderBookMap[symbol].updateBuy(id, size, exchangeUpdateRxTimestamp, queueEntry.marketUpdateReadFinishTimestamp);
-                                        break;
-                                    case 'd':
-                                        orderBookMap[symbol].removeBuy(id, exchangeUpdateRxTimestamp, queueEntry.marketUpdateReadFinishTimestamp);
-                                        break;
-                                    default:
-                                        break;
-                                }
-                            } else if (strcmp(side, "Sell") == 0) {
-                                switch (action[0]) {
-                                    case 'p':
-                                    case 'i':
-                                        orderBookMap[symbol].insertSell(id, price, size, exchangeUpdateRxTimestamp, queueEntry.marketUpdateReadFinishTimestamp);
-                                        break;
-                                    case 'u':
-                                        orderBookMap[symbol].updateSell(id, size, exchangeUpdateRxTimestamp, queueEntry.marketUpdateReadFinishTimestamp);
-                                        break;
-                                    case 'd':
-                                        orderBookMap[symbol].removeSell(id, exchangeUpdateRxTimestamp, queueEntry.marketUpdateReadFinishTimestamp);
-                                        break;
-                                    default:
-                                        break;
-                                }
-                            }
-                            updatedCurrencies.push_back(std::string(symbol));
+                const Value& data_i = data->value[i];
+                const char* symbol = data_i["symbol"].GetString();
+                uint64_t id = data_i["id"].GetInt64();
+                const char* side = data_i["side"].GetString();
+                double size;
+                if (data->value[i].HasMember("size")) 
+                    size = data_i["size"].GetInt64();
+                
+                double price = data_i["price"].GetDouble();
+                const char* timestamp = data_i["timestamp"].GetString();
+                exchangeUpdateRxTimestamp = convertTimestampToTimePoint(timestamp);
+                // std::cout << "exchangeUpdateTimestamp: " << exchangeUpdateTimestamp << ", marketUpdateReceiveTimestamp: " << std::to_string(duration_cast<milliseconds>(marketUpdateReceiveTimestamp.time_since_epoch()).count()) << std::endl;
+                if (strcmp(side, "Buy") == 0) {
+                    switch (action[0]) {
+                        case 'p':
+                        case 'i':
+                            orderBookMap[symbol].insertBuy(id, price, size, exchangeUpdateRxTimestamp, queueEntry.marketUpdateReadFinishTimestamp);
+                            break;
+                        case 'u':
+                            orderBookMap[symbol].updateBuy(id, size, exchangeUpdateRxTimestamp, queueEntry.marketUpdateReadFinishTimestamp);
+                            break;
+                        case 'd':
+                            orderBookMap[symbol].removeBuy(id, exchangeUpdateRxTimestamp, queueEntry.marketUpdateReadFinishTimestamp);
+                            break;
+                        default:
+                            break;
+                    }
+                } else if (strcmp(side, "Sell") == 0) {
+                    switch (action[0]) {
+                        case 'p':
+                        case 'i':
+                            orderBookMap[symbol].insertSell(id, price, size, exchangeUpdateRxTimestamp, queueEntry.marketUpdateReadFinishTimestamp);
+                            break;
+                        case 'u':
+                            orderBookMap[symbol].updateSell(id, size, exchangeUpdateRxTimestamp, queueEntry.marketUpdateReadFinishTimestamp);
+                            break;
+                        case 'd':
+                            orderBookMap[symbol].removeSell(id, exchangeUpdateRxTimestamp, queueEntry.marketUpdateReadFinishTimestamp);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                updatedCurrencies.push_back(std::string(symbol));
             } 
 
 #elif defined(USE_KRAKEN_EXCHANGE) || defined (USE_KRAKEN_MOCK_EXCHANGE)
-            GenericValue<rapidjson::UTF8<>>::MemberIterator data = doc.FindMember("data");
             const char* type = doc["type"].GetString();
-            std::vector<std::string> updatedCurrencies;
 
             for (SizeType i = 0; i < doc["data"].Size(); i++) {
-                            const Value& data_i = data->value[i];
-                            GenericValue<rapidjson::UTF8<>>::ConstMemberIterator asks = data_i.FindMember("asks");
-                            GenericValue<rapidjson::UTF8<>>::ConstMemberIterator bids = data_i.FindMember("bids");
-                            const char* symbol = data_i["symbol"].GetString();    
-                            uint64_t checksum = data_i["checksum"].GetInt64();
-                            
-                            if (type[0] == 's') {
-                                for (SizeType i = 0; i < data_i["asks"].Size(); i++) {
-                                    const Value& ask_i = asks->value[i];
-                                    double price = ask_i["price"].GetDouble();
-                                    double size = ask_i["qty"].GetDouble();
-                                    orderBookMap[symbol].insertSell(price, price, size, 0, queueEntry.marketUpdateReadFinishTimestamp);
-                                }
+                const Value& data_i = data->value[i];
+                GenericValue<rapidjson::UTF8<>>::ConstMemberIterator asks = data_i.FindMember("asks");
+                GenericValue<rapidjson::UTF8<>>::ConstMemberIterator bids = data_i.FindMember("bids");
+                const char* symbol = data_i["symbol"].GetString();    
+                uint64_t checksum = data_i["checksum"].GetInt64();
+                
+                if (type[0] == 's') {
+                    for (SizeType i = 0; i < data_i["asks"].Size(); i++) {
+                        const Value& ask_i = asks->value[i];
+                        double price = ask_i["price"].GetDouble();
+                        double size = ask_i["qty"].GetDouble();
+                        orderBookMap[symbol].insertSell(price, price, size, 0, queueEntry.marketUpdateReadCompletionTimestamp);
+                    }
 
-                                for (SizeType i = 0; i < data_i["bids"].Size(); i++) {
-                                    const Value& bid_i = bids->value[i];
-                                    double price = bid_i["price"].GetDouble();
-                                    double size = bid_i["qty"].GetDouble();
-                                    orderBookMap[symbol].insertBuy(price, price, size, 0, queueEntry.marketUpdateReadFinishTimestamp);
-                                }
-                            } else if (type[0] == 'u') {
-                                const char* timestamp = data_i["timestamp"].GetString();
-                                exchangeUpdateRxTimestamp = convertTimestampToTimePoint(timestamp);
-                                GenericValue<rapidjson::UTF8<>>::ConstMemberIterator asks = data_i.FindMember("asks");
-                                GenericValue<rapidjson::UTF8<>>::ConstMemberIterator bids = data_i.FindMember("bids");
-                                const char* symbol = data_i["symbol"].GetString();    
-                                uint64_t checksum = data_i["checksum"].GetInt64();
+                    for (SizeType i = 0; i < data_i["bids"].Size(); i++) {
+                        const Value& bid_i = bids->value[i];
+                        double price = bid_i["price"].GetDouble();
+                        double size = bid_i["qty"].GetDouble();
+                        orderBookMap[symbol].insertBuy(price, price, size, 0, queueEntry.marketUpdateReadCompletionTimestamp);
+                    }
+                } else if (type[0] == 'u') {
+                    const char* timestamp = data_i["timestamp"].GetString();
+                    exchangeUpdateRxTimestamp = convertTimestampToTimePoint(timestamp);
+                    GenericValue<rapidjson::UTF8<>>::ConstMemberIterator asks = data_i.FindMember("asks");
+                    GenericValue<rapidjson::UTF8<>>::ConstMemberIterator bids = data_i.FindMember("bids");
+                    const char* symbol = data_i["symbol"].GetString();    
+                    uint64_t checksum = data_i["checksum"].GetInt64();
 
-                                for (SizeType i = 0; i < data_i["asks"].Size(); i++) {
-                                    const Value& ask_i = asks->value[i]; 
-                                    double price = ask_i["price"].GetDouble();
-                                    double size = ask_i["qty"].GetDouble();
-                                    if (size == 0)
-                                        orderBookMap[symbol].removeSell(price, exchangeUpdateRxTimestamp, queueEntry.marketUpdateReadFinishTimestamp);
-                                    else if (orderBookMap[symbol].checkSellPriceLevel(price))
-                                        orderBookMap[symbol].updateSell(price, size, exchangeUpdateRxTimestamp, queueEntry.marketUpdateReadFinishTimestamp);
-                                    else 
-                                        orderBookMap[symbol].insertSell(price, price, size, exchangeUpdateRxTimestamp, queueEntry.marketUpdateReadFinishTimestamp);
-                                }
-                                
-                                for (SizeType i = 0; i < data_i["bids"].Size(); i++) {
-                                    const Value& bid_i = bids->value[i]; 
-                                    double price = bid_i["price"].GetDouble();
-                                    double size = bid_i["qty"].GetDouble();
-                                    if (size == 0)
-                                        orderBookMap[symbol].removeBuy(price, exchangeUpdateRxTimestamp, queueEntry.marketUpdateReadFinishTimestamp);
-                                    else if (orderBookMap[symbol].checkBuyPriceLevel(price))
-                                        orderBookMap[symbol].updateBuy(price, size, exchangeUpdateRxTimestamp, queueEntry.marketUpdateReadFinishTimestamp);
-                                    else 
-                                        orderBookMap[symbol].insertBuy(price, price, size, exchangeUpdateRxTimestamp, queueEntry.marketUpdateReadFinishTimestamp);
-                                }
-                            }
-                            updatedCurrencies.push_back(std::string(symbol));
+                    for (SizeType i = 0; i < data_i["asks"].Size(); i++) {
+                        const Value& ask_i = asks->value[i]; 
+                        double price = ask_i["price"].GetDouble();
+                        double size = ask_i["qty"].GetDouble();
+                        if (size == 0)
+                            orderBookMap[symbol].removeSell(price, exchangeUpdateRxTimestamp, queueEntry.marketUpdateReadCompletionTimestamp);
+                        else if (orderBookMap[symbol].checkSellPriceLevel(price))
+                            orderBookMap[symbol].updateSell(price, size, exchangeUpdateRxTimestamp, queueEntry.marketUpdateReadCompletionTimestamp);
+                        else 
+                            orderBookMap[symbol].insertSell(price, price, size, exchangeUpdateRxTimestamp, queueEntry.marketUpdateReadCompletionTimestamp);
+                    }
+                    
+                    for (SizeType i = 0; i < data_i["bids"].Size(); i++) {
+                        const Value& bid_i = bids->value[i]; 
+                        double price = bid_i["price"].GetDouble();
+                        double size = bid_i["qty"].GetDouble();
+                        if (size == 0)
+                            orderBookMap[symbol].removeBuy(price, exchangeUpdateRxTimestamp, queueEntry.marketUpdateReadCompletionTimestamp);
+                        else if (orderBookMap[symbol].checkBuyPriceLevel(price))
+                            orderBookMap[symbol].updateBuy(price, size, exchangeUpdateRxTimestamp, queueEntry.marketUpdateReadCompletionTimestamp);
+                        else 
+                            orderBookMap[symbol].insertBuy(price, price, size, exchangeUpdateRxTimestamp, queueEntry.marketUpdateReadCompletionTimestamp);
+                    }
+                }
+                updatedCurrencies.push_back(std::string(symbol));
             }
 #endif          
-            system_clock::time_point marketUpdateBookBuildingFinishTimestamp = high_resolution_clock::now();
+            system_clock::time_point marketUpdateBookBuildingCompletionTimestamp = high_resolution_clock::now();
                         
             for (std::string updatedCurrency : updatedCurrencies) { 
                 std::cout << "UPDATED CURRENCY: " << updatedCurrency << std::endl;
@@ -231,14 +230,14 @@ void bookBuilder(SPSCQueue<BookBuilderGatewayToComponentQueueEntry>& bookBuilder
 
             // Convert time_point to microseconds since epoch
             auto socketRxUs = timePointToMicroseconds(queueEntry.marketUpdateSocketRxTimestamp);
-            auto readyToReadUs = timePointToMicroseconds(queueEntry.marketUpdateReadyToReadTimestamp);
-            auto readFinishUs = timePointToMicroseconds(queueEntry.marketUpdateReadFinishTimestamp);
-            auto decryptionFinishUs = timePointToMicroseconds(queueEntry.marketUpdateDecryptionFinishTimestamp);
-            auto jsonParsingFinishUs = timePointToMicroseconds(marketUpdateJsonParsingFinishTimestamp);
-            auto bookBuildingFinishUs = timePointToMicroseconds(marketUpdateBookBuildingFinishTimestamp);
+            auto pollUs = timePointToMicroseconds(queueEntry.marketUpdatePollTimestamp);
+            auto readFinishUs = timePointToMicroseconds(queueEntry.marketUpdateReadCompletionTimestamp);
+            auto decryptionFinishUs = timePointToMicroseconds(queueEntry.marketUpdateDecryptionCompletionTimestamp);
+            auto jsonParsingFinishUs = timePointToMicroseconds(marketUpdateJsonParsingCompletionTimestamp);
+            auto bookBuildingFinishUs = timePointToMicroseconds(marketUpdateBookBuildingCompletionTimestamp);
             double networkLatency = (socketRxUs - exchangeUpdateRxTimestamp) / 1000.0; 
-            double socketWaitLatency = (readyToReadUs - socketRxUs) / 1000.0;
-            double readLatency = (readFinishUs - readyToReadUs) / 1000.0;
+            double socketWaitLatency = (pollUs - socketRxUs) / 1000.0;
+            double readLatency = (readFinishUs - pollUs) / 1000.0;
             double decryptionLatency = (decryptionFinishUs - readFinishUs) / 1000.0;
             double jsonParsingLatency = (jsonParsingFinishUs - decryptionFinishUs) / 1000.0;
             double bookBuildingLatency = (bookBuildingFinishUs - jsonParsingFinishUs) / 1000.0;

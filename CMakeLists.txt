@@ -11,6 +11,8 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 find_package(Boost REQUIRED COMPONENTS graph)
 include_directories(${Boost_INCLUDE_DIRS})
 
+add_compile_options(-msse4.2)
+add_definitions(-DRAPIDJSON_SSE42)
 add_definitions(-DLWS_WITH_LIBEV=1)
 add_definitions(-DUSE_KRAKEN_MOCK_EXCHANGE=1)
 # add_definitions(-DUSE_BITMEX_MOCK_EXCHANGE=1)
