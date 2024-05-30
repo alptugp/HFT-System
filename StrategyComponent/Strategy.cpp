@@ -194,10 +194,9 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
     while (true) {
       OrderBook orderBook;
       while (!builderToStrategyQueue.pop(orderBook));
-      std::pair<double, double> bestBuyAndSellPrice = orderBook.getBestBuyAndSellPrice();
-      double bestBuyPrice = bestBuyAndSellPrice.first;
-      double bestSellPrice = bestBuyAndSellPrice.second;
-      std::string currencyPair = orderBook.getSymbol();
+      double bestBuyPrice = orderBook.getBestBuyLimitPriceAndSize().first;
+      double bestSellPrice = orderBook.getBestSellLimitPriceAndSize().first;
+      std::string currencyPair = orderBook.getCurrencyPairSymbol();
       std :: cout << bestBuyPrice << " " << bestSellPrice << " " << currencyPair << std::endl;
 
       std::size_t baseCurrencyEndPos = currencyPair.find('/');
@@ -217,12 +216,12 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
       system_clock::time_point strategyComponentArbitrageDetectionTimestamp = high_resolution_clock::now();
       std::string strategyComponentArbitrageDetectionTimepoint = std::to_string(duration_cast<microseconds>(strategyComponentArbitrageDetectionTimestamp.time_since_epoch()).count());
     
-      auto exchangeUpdateTxTimestamp = time_point<high_resolution_clock>(microseconds(orderBook.getUpdateExchangeTimestamp()));
+      auto exchangeUpdateTxTimestamp = time_point<high_resolution_clock>(microseconds(orderBook.getMarketUpdateExchangeTxTimestamp()));
       std::string exchangeUpdateTxTimepoint = std::to_string(duration_cast<microseconds>(exchangeUpdateTxTimestamp.time_since_epoch()).count());  
       if (exchangeUpdateTxTimepoint == "0")
         continue;
       
-      system_clock::time_point bookBuilderUpdateRxTimestamp = orderBook.getUpdateReceiveTimestamp();
+      system_clock::time_point bookBuilderUpdateRxTimestamp = orderBook.getFinalUpdateTimestamp();
       std::string bookBuilderUpdateRxTimepoint = std::to_string(duration_cast<microseconds>(bookBuilderUpdateRxTimestamp.time_since_epoch()).count());
 
 
@@ -355,10 +354,9 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
         while (true) {
             OrderBook orderBook;
             while (!builderToStrategyQueue.pop(orderBook));
-            std::pair<double, double> bestBuyAndSellPrice = orderBook.getBestBuyAndSellPrice();
-            double bestBuyPrice = bestBuyAndSellPrice.first;
-            double bestSellPrice = bestBuyAndSellPrice.second;
-            std::string symbol = orderBook.getSymbol();
+            double bestBuyPrice = orderBook.getBestBuyLimitPriceAndSize().first;
+            double bestSellPrice = orderBook.getBestSellLimitPriceAndSize().first;
+            std::string symbol = orderBook.getCurrencyPairSymbol();
             const std::size_t baseCurrencyEndPos = 3;  
             int baseCurrencyGraphIndex = symbolToGraphIndex[symbol.substr(0, baseCurrencyEndPos)];
             int quoteCurrencyGraphIndex = symbolToGraphIndex[symbol.substr(baseCurrencyEndPos, symbol.size())];  
@@ -372,10 +370,10 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
             system_clock::time_point strategyComponentArbitrageDetectionTimestamp = high_resolution_clock::now();
             std::string strategyComponentArbitrageDetectionTimepoint = std::to_string(duration_cast<microseconds>(strategyComponentArbitrageDetectionTimestamp.time_since_epoch()).count());
             
-            auto exchangeUpdateTxTimestamp = time_point<high_resolution_clock>(microseconds(orderBook.getUpdateExchangeTimestamp()));
+            auto exchangeUpdateTxTimestamp = time_point<high_resolution_clock>(microseconds(orderBook.getMarketUpdateExchangeTxTimestamp()));
             std::string exchangeUpdateTxTimepoint = std::to_string(duration_cast<microseconds>(exchangeUpdateTxTimestamp.time_since_epoch()).count());  
             
-            system_clock::time_point bookBuilderUpdateRxTimestamp = orderBook.getUpdateReceiveTimestamp();
+            system_clock::time_point bookBuilderUpdateRxTimestamp = orderBook.getFinalUpdateTimestamp();
             std::string bookBuilderUpdateRxTimepoint = std::to_string(duration_cast<microseconds>(bookBuilderUpdateRxTimestamp.time_since_epoch()).count());
 
             std::cout << "XBT->USDT->ETH->XBT: " << firstDirectionReturnsAfterFees << "      "

@@ -8,80 +8,90 @@
 #include <vector>
 #include <chrono>
 
-
+#define PRINT_INTERVAL 100
 using namespace std::chrono;
 
-struct AVLNode {
+struct LimitNode {
     double id;
     double price;
-    int size;
-    AVLNode* left;
-    AVLNode* right;
-    int height;
+    double size;
+    LimitNode* parentLimitNode;
+    LimitNode* leftLimitNode;
+    LimitNode* rightLimitNode;
 
-    AVLNode(double id, double price, int size) : id(id), price(price), size(size), left(nullptr), right(nullptr), height(1) {}
+    LimitNode(double id, double price, double size) : id(id), price(price), size(size), parentLimitNode(nullptr), leftLimitNode(nullptr), rightLimitNode(nullptr) {}
+};
+
+enum class ParentRelation {
+    Left,
+    Right
+};
+
+enum class OrderBookSide {
+    Buy,
+    Sell
 };
 
 class OrderBook {
 private:
-    AVLNode* buyRoot;
-    AVLNode* sellRoot;
-    std::unordered_map<double, AVLNode*> buyIdMap;
-    std::unordered_map<double, AVLNode*> sellIdMap;
-    std::string symbol;
-    long updateExchangeTimestamp_;
-    system_clock::time_point updateReceiveTimestamp_;
-    std::vector<size_t> memoryUsages;  // Store memory usage values for average memory usage calculation
-    static const int PRINT_INTERVAL = 100;
+    LimitNode* buyRootNode;
+    LimitNode* sellRootNode;
+    std::unordered_map<double, LimitNode*> buyMap;
+    std::unordered_map<double, LimitNode*> sellMap;
+    LimitNode* lowestSellLimitNode;
+    LimitNode* highestBuyLimitNode; 
 
-    int height(AVLNode* node);
-    int balanceFactor(AVLNode* node);
-    AVLNode* rotateRight(AVLNode* y);
-    AVLNode* rotateLeft(AVLNode* x);
-    AVLNode* balance(AVLNode* node);
+    std::string currencyPairSymbol;
+    long marketUpdateExchangeRxTimestamp;
+    system_clock::time_point finalUpdateTimestamp;
+    std::vector<size_t> memoryUsages;  // Store memory usage values for average memory usage calculation
+
+    size_t buyNodeCount;
+    size_t sellNodeCount;
+
+    void transplant(LimitNode* u, LimitNode* v, OrderBookSide orderBookSide);
+    void insertLimitNode(LimitNode* newNode, LimitNode* currentNode, LimitNode* parentLimitNodeNode, ParentRelation parentLimitNodeRelation);
+    void removeLimitNode(LimitNode* node, OrderBookSide orderBookSide);
+    LimitNode* minPriceLimitNode(LimitNode* node);
+    LimitNode* maxPriceLimitNode(LimitNode* node);
     
-    AVLNode* insertHelper(AVLNode* node, double id, double price, int size);
-    void updateHelper(AVLNode* node, double price, int size);
-    AVLNode* deleteNode(AVLNode* root, double price);
-    AVLNode* minValueNode(AVLNode* node);
-    AVLNode* maxValueNode(AVLNode* node);
-    
-    void postorderTraversal(AVLNode* root);
+    void postorderTraversal(LimitNode* root);
     size_t calculateMemoryUsage() const;
-    size_t calculateTreeMemoryUsage(AVLNode* root) const;
+    size_t calculateTreeMemoryUsage(LimitNode* root) const;
     double calculateAverageMemoryUsage() const;
-    size_t calculateMapMemoryUsage(const std::unordered_map<double, AVLNode*>& idMap) const; 
+    size_t calculateMapMemoryUsage(const std::unordered_map<double, LimitNode*>& idMap) const; 
 
 public:
-    OrderBook(std::string symbol) : buyRoot(nullptr), sellRoot(nullptr), symbol(symbol) {}
-    OrderBook() : buyRoot(nullptr), sellRoot(nullptr), symbol("") {}
-
-    void printOrderBook();
-    std::string getSymbol() const {
-        return this->symbol;
-    }
-    long getUpdateExchangeTimestamp() {
-        return this->updateExchangeTimestamp_;
-    }
-    system_clock::time_point getUpdateReceiveTimestamp() {
-        return this->updateReceiveTimestamp_;
-    }
-
-    std::pair<double, double> getBestBuyAndSellPrice();
+    OrderBook(std::string currencyPairSymbol) : buyRootNode(nullptr), sellRootNode(nullptr), lowestSellLimitNode(nullptr), highestBuyLimitNode(nullptr), currencyPairSymbol(currencyPairSymbol), buyNodeCount(0), sellNodeCount(0) {}
+    OrderBook() : buyRootNode(nullptr), sellRootNode(nullptr), lowestSellLimitNode(nullptr), highestBuyLimitNode(nullptr), currencyPairSymbol(""), buyNodeCount(0), sellNodeCount(0) {}
 
     // Buy side functions
-    void insertBuy(double id, double price, int size, long timestamp, system_clock::time_point updateReceiveTimestamp);
-    void updateBuy(double id, int size, long timestamp, system_clock::time_point updateReceiveTimestamp);
+    void insertBuy(double id, double price, double size, long timestamp, system_clock::time_point updateReceiveTimestamp);
+    void updateBuy(double id, double size, long timestamp, system_clock::time_point updateReceiveTimestamp);
     void removeBuy(double id, long timestamp, system_clock::time_point updateReceiveTimestamp);
-
     // Sell side functions
-    void insertSell(double id, double price, int size, long timestamp, system_clock::time_point updateReceiveTimestamp);
-    void updateSell(double id, int size, long timestamp, system_clock::time_point updateReceiveTimestamp);
+    void insertSell(double id, double price, double size, long timestamp, system_clock::time_point updateReceiveTimestamp);
+    void updateSell(double id, double size, long timestamp, system_clock::time_point updateReceiveTimestamp);
     void removeSell(double id, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp);
 
-    bool checkBuyPriceLevel(double price);
-    bool checkSellPriceLevel(double price);
-   
+    std::pair<double, double> getBestBuyLimitPriceAndSize();
+    std::pair<double, double> getBestSellLimitPriceAndSize(); 
+    bool checkBuySidePriceLevel(double price);
+    bool checkSellSidePriceLevel(double price);
+
+    std::string getCurrencyPairSymbol() const {
+        return this->currencyPairSymbol;
+    }
+
+    long getMarketUpdateExchangeTxTimestamp() {
+        return this->marketUpdateExchangeRxTimestamp;
+    }
+
+    system_clock::time_point getFinalUpdateTimestamp() {
+        return this->finalUpdateTimestamp;
+    }
+
+    void printOrderBook();
     void updateOrderBookMemoryUsage();
 };
 

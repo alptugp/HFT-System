@@ -2,322 +2,293 @@
 
 #include "OrderBook.hpp"
 
-
-std::pair<double, double> OrderBook::getBestBuyAndSellPrice() {
-    // std::cout << (buyRoot != nullptr) << (sellRoot != nullptr) << std::endl;
-    double bestBuyPrice = buyRoot != nullptr ? maxValueNode(this->buyRoot)->price : 0.0;
-    double bestSellPrice = sellRoot != nullptr ? minValueNode(this->sellRoot)->price : 0.0;
-
-    return std::make_pair(bestBuyPrice, bestSellPrice);
+std::pair<double, double> OrderBook::getBestBuyLimitPriceAndSize() {
+    double highestBuyLimitNodePrice = highestBuyLimitNode != nullptr ? highestBuyLimitNode->price : 0.0;
+    double highestBuyLimitNodeSize = highestBuyLimitNode != nullptr ? highestBuyLimitNode->size : 0.0;
+    return std::make_pair(highestBuyLimitNodePrice, highestBuyLimitNodeSize); 
 }
 
-int OrderBook::height(AVLNode* node) {
-    if (node == nullptr)
-        return 0;
-    std::cout << "height" << std::endl;
-    return node->height;
+std::pair<double, double> OrderBook::getBestSellLimitPriceAndSize() {
+    double lowestSellLimitNodePrice = lowestSellLimitNode != nullptr ? lowestSellLimitNode->price : 0.0;
+    double lowestSellLimitNodeSize = lowestSellLimitNode != nullptr ? lowestSellLimitNode->size : 0.0;
+    return std::make_pair(lowestSellLimitNodePrice, lowestSellLimitNodeSize); 
 }
 
-int OrderBook::balanceFactor(AVLNode* node) {
-    std::cout << "balanceFactor" << std::endl;
-    if (node == nullptr)
-        return 0;
-    return height(node->left) - height(node->right);
-}
-
-AVLNode* OrderBook::insertHelper(AVLNode* node, double id, double price, int size) {
-    // std::cout << "insertHelper" << std::endl;
-    if (node == nullptr) {
-        AVLNode* newNode = new AVLNode(id, price, size);
-        return newNode;
-    }
-
-    if (price < node->price)
-        node->left = insertHelper(node->left, id, price, size);
-    else if (price > node->price)
-        node->right = insertHelper(node->right, id, price, size);
-    else
-        return node;
-
-    // node->height = 1 + std::max(height(node->left), height(node->right));
-
-    // return balance(node);
-    return node;
-}
-
-void OrderBook::updateHelper(AVLNode* node, double price, int size) {
-    // std::cout << "updateHelper" << std::endl;
-    if (node == nullptr)
+void OrderBook::insertLimitNode(LimitNode* newNode, LimitNode* currentNode, LimitNode* parentNode, ParentRelation parentRelation) {
+    // std::cout << "insertLimitNode" << std::endl;
+    if (currentNode == nullptr) {
+        (parentRelation == ParentRelation::Left) ? parentNode->leftLimitNode = newNode : parentNode->rightLimitNode = newNode;
+        newNode->parentLimitNode = parentNode;
         return;
+    }
 
-    if (price < node->price)
-        updateHelper(node->left, price, size);
-    else if (price > node->price)
-        updateHelper(node->right, price, size);
+    if (newNode->price < currentNode->price)
+        insertLimitNode(newNode, currentNode->leftLimitNode, currentNode, ParentRelation::Left);
+    else if (newNode->price > currentNode->price)
+        insertLimitNode(newNode, currentNode->rightLimitNode, currentNode, ParentRelation::Right);        
     else {
-        node->size = size;
-        return; 
+        std::cerr << "Error: Price level already exists for price " << newNode->price << std::endl;
+        return;
     }
-
-    // node->height = 1 + std::max(height(node->left), height(node->right));
-    // balance(node);
 }
 
-AVLNode* OrderBook::rotateRight(AVLNode* y) {
-    // std::cout << "rotateRight" << std::endl;
-    AVLNode* x = y->left;
-    AVLNode* T2 = x->right;
+LimitNode* OrderBook::minPriceLimitNode(LimitNode* node) {
+    LimitNode* current = node;
 
-    x->right = y;
-    y->left = T2;
-
-    y->height = std::max(height(y->left), height(y->right)) + 1;
-    x->height = std::max(height(x->left), height(x->right)) + 1;
-
-    return x;
-}
-
-AVLNode* OrderBook::rotateLeft(AVLNode* x) {
-    // std::cout << "rotateLeft" << std::endl;
-    AVLNode* y = x->right;
-    AVLNode* T2 = y->left;
-
-    y->left = x;
-    x->right = T2;
-
-    x->height = std::max(height(x->left), height(x->right)) + 1;
-    y->height = std::max(height(y->left), height(y->right)) + 1;
-
-    return y;
-}
-
-AVLNode* OrderBook::balance(AVLNode* node) {
-    // std::cout << "balance" << std::endl;
-    if (node == nullptr)
-        return node;
-
-    int bf = balanceFactor(node);
-
-    if (bf > 1) {
-        if (balanceFactor(node->left) < 0) {
-            node->left = rotateLeft(node->left);
-            return rotateRight(node);
-        } else {
-            return rotateRight(node);
-        }
-    } else if (bf < -1) {
-        if (balanceFactor(node->right) > 0) {
-            node->right = rotateRight(node->right);
-            return rotateLeft(node);
-        } else {
-            return rotateLeft(node);
-        }
-    }
-
-    return node;
-}
-
-AVLNode* OrderBook::minValueNode(AVLNode* node) {
-    // std::cout << "minValueNode" << std::endl;
-    AVLNode* current = node;
-
-    while (current->left != nullptr) 
-        current = current->left;
+    while (current->leftLimitNode != nullptr) 
+        current = current->leftLimitNode;
 
     return current;
 }
 
-AVLNode* OrderBook::maxValueNode(AVLNode* node) {
-    // std::cout << "maxValueNode" << std::endl;
-    AVLNode* current = node;
+LimitNode* OrderBook::maxPriceLimitNode(LimitNode* node) {
+    LimitNode* current = node;
 
-    while (current->right != nullptr) 
-        current = current->right;
+    while (current->rightLimitNode != nullptr) 
+        current = current->rightLimitNode;
 
     return current;
 }
 
-AVLNode* OrderBook::deleteNode(AVLNode* root, double price) {
-    // std::cout << "deleteNode" << std::endl;
-    if (root == nullptr)
-        return root;
-
-    if (price < root->price) {
-        root->left = deleteNode(root->left, price);
-    }  
-    else if (price > root->price) {
-        root->right = deleteNode(root->right, price);
+// Transplant function replaces subtree rooted at u with subtree rooted at v
+void OrderBook::transplant(LimitNode* u, LimitNode* v, OrderBookSide orderBookSide) {
+    if (u->parentLimitNode == nullptr) {
+        (orderBookSide == OrderBookSide::Buy) ? buyRootNode = v : sellRootNode = v;
+    } else if (u == u->parentLimitNode->leftLimitNode) {
+        u->parentLimitNode->leftLimitNode = v;
+    } else {
+        u->parentLimitNode->rightLimitNode = v;
     }
-    else {
-        if (root->left == nullptr || root->right == nullptr) {
-            AVLNode* temp = root->left ? root->left : root->right;
+    if (v != nullptr) {
+        v->parentLimitNode = u->parentLimitNode;
+    }
+}
 
-            if (temp == nullptr) {
-                temp = root;
-                root = nullptr;
-            } else
-                *root = *temp;
-
-            delete temp;
-        } else {
-            AVLNode* temp = minValueNode(root->right);
-
-            root->id = temp->id;
-            root->price = temp->price;
-            root->size = temp->size;
-
-            root->right = deleteNode(root->right, temp->price);
+// Remove function
+void OrderBook::removeLimitNode(LimitNode* node, OrderBookSide orderBookSide) {
+    if (node->leftLimitNode == nullptr) {
+        transplant(node, node->rightLimitNode, orderBookSide);
+    } else if (node->rightLimitNode == nullptr) {
+        transplant(node, node->leftLimitNode, orderBookSide);
+    } else {
+        LimitNode* successor = minPriceLimitNode(node->rightLimitNode);
+        if (successor->parentLimitNode != node) {
+            transplant(successor, successor->rightLimitNode, orderBookSide);
+            successor->rightLimitNode = node->rightLimitNode;
+            successor->rightLimitNode->parentLimitNode = successor;
         }
+        transplant(node, successor, orderBookSide);
+        successor->leftLimitNode = node->leftLimitNode;
+        successor->leftLimitNode->parentLimitNode = successor;
     }
-
-    if (root == nullptr)
-        return root;
-
-    // root->height = 1 + std::max(height(root->left), height(root->right));
-
-    //return balance(root);
-    return root;
+    delete node;
 }
 
-void OrderBook::insertBuy(double id, double price, int size, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
-    buyRoot = insertHelper(buyRoot, id, price, size);
-    this->updateExchangeTimestamp_ = updateExchangeTimestamp;
-    this->updateReceiveTimestamp_ = updateReceiveTimestamp;
-    buyIdMap[id] = new AVLNode(id, price, size);
+void OrderBook::insertBuy(double id, double price, double size, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
+    LimitNode* newBuyNode = new LimitNode(id, price, size);
+    if (buyRootNode == nullptr)
+        buyRootNode = newBuyNode;
+    else if (price < buyRootNode->price)
+        insertLimitNode(newBuyNode, buyRootNode->leftLimitNode, buyRootNode, ParentRelation::Left);
+    else if (price > buyRootNode->price)
+        insertLimitNode(newBuyNode, buyRootNode->rightLimitNode, buyRootNode, ParentRelation::Right);    
+
+    buyMap[id] = newBuyNode; 
+    this->marketUpdateExchangeRxTimestamp = updateExchangeTimestamp;
+    this->finalUpdateTimestamp = updateReceiveTimestamp;
+    buyNodeCount++;
+
+    if (highestBuyLimitNode == nullptr || price > highestBuyLimitNode->price)
+        highestBuyLimitNode = newBuyNode;
+    
+#if defined(USE_KRAKEN_EXCHANGE) || defined(USE_KRAKEN_MOCK_EXCHANGE)
+    if (buyNodeCount > 10) {
+        LimitNode* nodeToRemove = minPriceLimitNode(buyRootNode);
+        this->buyMap.erase(nodeToRemove->price);
+        removeLimitNode(nodeToRemove, OrderBookSide::Buy);
+        buyNodeCount--;
+    }
+#endif
 }
 
-void OrderBook::updateBuy(double id, int size, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
-    updateHelper(buyRoot, this->buyIdMap[id]->price, size);
-    this->updateExchangeTimestamp_ = updateExchangeTimestamp;
-    this->updateReceiveTimestamp_ = updateReceiveTimestamp;
-    this->buyIdMap[id]->size = size;
+void OrderBook::updateBuy(double id, double size, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
+    this->buyMap[id]->size = size;
+    this->marketUpdateExchangeRxTimestamp = updateExchangeTimestamp;
+    this->finalUpdateTimestamp = updateReceiveTimestamp;
 }
 
 void OrderBook::removeBuy(double id, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
-    deleteNode(buyRoot, this->buyIdMap[id]->price);
-    this->updateExchangeTimestamp_ = updateExchangeTimestamp;
-    this->updateReceiveTimestamp_ = updateReceiveTimestamp;
-    this->buyIdMap.erase(id);
+    LimitNode* nodeToRemove = buyMap[id];
+    removeLimitNode(nodeToRemove, OrderBookSide::Buy);
+    this->buyMap.erase(id);
+    this->marketUpdateExchangeRxTimestamp = updateExchangeTimestamp;
+    this->finalUpdateTimestamp = updateReceiveTimestamp;
+    buyNodeCount--;
+    
+    if (nodeToRemove == highestBuyLimitNode) {
+        std::cout << "HIGHEST BUY ENTRY" << std::endl;
+        if (highestBuyLimitNode->parentLimitNode == nullptr) {
+            highestBuyLimitNode == maxPriceLimitNode(highestBuyLimitNode->leftLimitNode);
+        } else if (highestBuyLimitNode->parentLimitNode->leftLimitNode == nullptr) {
+            highestBuyLimitNode = highestBuyLimitNode->parentLimitNode;
+        } else {
+            highestBuyLimitNode = maxPriceLimitNode(highestBuyLimitNode->parentLimitNode->leftLimitNode);
+        }
+        std::cout << "HIGHEST BUY EXIT" << std::endl;
+    }
 }
 
-void OrderBook::insertSell(double id, double price, int size, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
-    sellRoot = insertHelper(sellRoot, id, price, size);
-    this->updateExchangeTimestamp_ = updateExchangeTimestamp;
-    this->updateReceiveTimestamp_ = updateReceiveTimestamp;
-    sellIdMap[id] = new AVLNode(id, price, size);
+void OrderBook::insertSell(double id, double price, double size, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
+    LimitNode* newSellLimitNode = new LimitNode(id, price, size);
+    if (sellRootNode == nullptr)
+        sellRootNode = newSellLimitNode;
+    else if (price < sellRootNode->price)
+        insertLimitNode(newSellLimitNode, sellRootNode->leftLimitNode, sellRootNode, ParentRelation::Left);
+    else if (price > sellRootNode->price)
+        insertLimitNode(newSellLimitNode, sellRootNode->rightLimitNode, sellRootNode, ParentRelation::Right);    
+
+    sellMap[id] = newSellLimitNode; 
+    this->marketUpdateExchangeRxTimestamp = updateExchangeTimestamp;
+    this->finalUpdateTimestamp = updateReceiveTimestamp;
+    sellNodeCount++;
+
+    if (lowestSellLimitNode == nullptr || price < lowestSellLimitNode->price)
+        lowestSellLimitNode = newSellLimitNode;
+
+#if defined(USE_KRAKEN_EXCHANGE) || defined(USE_KRAKEN_MOCK_EXCHANGE)
+    if (sellNodeCount > 10) {
+        LimitNode* nodeToRemove = maxPriceLimitNode(sellRootNode);
+        this->sellMap.erase(nodeToRemove->price);
+        removeLimitNode(nodeToRemove, OrderBookSide::Sell);
+        sellNodeCount--;
+    }
+#endif
 }
 
-void OrderBook::updateSell(double id, int size, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
-    updateHelper(sellRoot, this->sellIdMap[id]->price, size);
-    this->updateExchangeTimestamp_ = updateExchangeTimestamp;
-    this->updateReceiveTimestamp_ = updateReceiveTimestamp;
-    this->sellIdMap[id]->size = size;
+void OrderBook::updateSell(double id, double size, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
+    this->sellMap[id]->size = size;
+    this->marketUpdateExchangeRxTimestamp = updateExchangeTimestamp;
+    this->finalUpdateTimestamp = updateReceiveTimestamp;
 }
 
 void OrderBook::removeSell(double id, long updateExchangeTimestamp, system_clock::time_point updateReceiveTimestamp) {
-    deleteNode(sellRoot, this->sellIdMap[id]->price);
-    this->updateExchangeTimestamp_ = updateExchangeTimestamp;
-    this->updateReceiveTimestamp_ = updateReceiveTimestamp;
-    this->sellIdMap.erase(id);
+    LimitNode* nodeToRemove = sellMap[id];
+    removeLimitNode(nodeToRemove, OrderBookSide::Sell);
+    this->sellMap.erase(id);
+    this->marketUpdateExchangeRxTimestamp = updateExchangeTimestamp;
+    this->finalUpdateTimestamp = updateReceiveTimestamp;
+    sellNodeCount--;
+
+    if (nodeToRemove == lowestSellLimitNode) {
+        std::cout << "LOWEST SELL ENTRY" << std::endl;
+        if (lowestSellLimitNode->parentLimitNode == nullptr) {
+            lowestSellLimitNode == minPriceLimitNode(lowestSellLimitNode->rightLimitNode);
+        } else if (lowestSellLimitNode->parentLimitNode->rightLimitNode == nullptr)
+            lowestSellLimitNode = lowestSellLimitNode->parentLimitNode;
+        else {
+            lowestSellLimitNode = minPriceLimitNode(lowestSellLimitNode->parentLimitNode->rightLimitNode);
+        }
+        std::cout << "LOWEST SELL EXIT" << std::endl;
+    }  
 }
 
-bool OrderBook::checkBuyPriceLevel(double price) {
-    return this->buyIdMap.count(price) != 0;
+bool OrderBook::checkBuySidePriceLevel(double price) {
+    return this->buyMap.count(price) != 0;
 }
 
-bool OrderBook::checkSellPriceLevel(double price) {
-    return this->sellIdMap.count(price) != 0;
+bool OrderBook::checkSellSidePriceLevel(double price) {
+    return this->sellMap.count(price) != 0;
 }
 
-void OrderBook::postorderTraversal(AVLNode* root) {
+void OrderBook::postorderTraversal(LimitNode* root) {
     if (root != nullptr) {
-        postorderTraversal(root->left);
-        postorderTraversal(root->right);
+        postorderTraversal(root->leftLimitNode);
+        postorderTraversal(root->rightLimitNode);
         std::cout << "ID: " << root->id << ", Price: " << root->price << ", Size: " << root->size << "\n";
     }
 }
 
 void OrderBook::printOrderBook() {
-    std::cout << symbol << " - Sell Side Order Book:\n";
-    postorderTraversal(sellRoot);
+    std::cout << currencyPairSymbol << " - Sell Side of the LOB for " << currencyPairSymbol << ":\n";
+    postorderTraversal(sellRootNode);
     
     std::cout << "------------------------\n";
 
-    std::cout << symbol << " - Buy Side Order Book:\n";
-    postorderTraversal(buyRoot);
+    std::cout << currencyPairSymbol << " - Buy Side of the LOB for " << currencyPairSymbol << ":\n";
+    postorderTraversal(buyRootNode);
     
     std::cout << "########################\n";
 }
 
-size_t OrderBook::calculateMemoryUsage() const {
-    size_t size = 0;
+// size_t OrderBook::calculateMemoryUsage() const {
+//     size_t size = 0;
 
-    // Include the size of the OrderBook object itself
-    size += sizeof(*this);
+//     // Include the size of the OrderBook object itself
+//     size += sizeof(*this);
 
-    // Include the size of the buy side and sell side trees
-    size += calculateTreeMemoryUsage(buyRoot);
-    size += calculateTreeMemoryUsage(sellRoot);
+//     // Include the size of the buy side and sell side trees
+//     size += calculateTreeMemoryUsage(buyRootNode);
+//     size += calculateTreeMemoryUsage(sellRootNode);
 
-    // Add the size of the buyIdMap and sellIdMap
-    size += calculateMapMemoryUsage(buyIdMap);
-    size += calculateMapMemoryUsage(sellIdMap);
+//     // Add the size of the buyMap and sellMap
+//     size += calculateMapMemoryUsage(buyMap);
+//     size += calculateMapMemoryUsage(sellMap);
 
-    return size;
-}
+//     return size;
+// }
 
-size_t OrderBook::calculateTreeMemoryUsage(AVLNode* root) const {
-    if (root == nullptr) {
-        return 0;
-    }
+// size_t OrderBook::calculateTreeMemoryUsage(LimitNode* root) const {
+//     if (root == nullptr) {
+//         return 0;
+//     }
 
-    // Calculate the memory usage for the current node
-    size_t nodeSize = sizeof(AVLNode);
+//     // Calculate the memory usage for the current node
+//     size_t nodeSize = sizeof(LimitNode);
 
-    // Calculate memory usage for left and right subtrees recursively
-    size_t leftSize = calculateTreeMemoryUsage(root->left);
-    size_t rightSize = calculateTreeMemoryUsage(root->right);
+//     // Calculate memory usage for left and right subtrees recursively
+//     size_t leftSize = calculateTreeMemoryUsage(root->leftLimitNode);
+//     size_t rightSize = calculateTreeMemoryUsage(root->rightLimitNode);
 
-    // Total memory usage for the current node and its subtrees
-    return nodeSize + leftSize + rightSize;
-}
+//     // Total memory usage for the current node and its subtrees
+//     return nodeSize + leftSize + rightSize;
+// }
 
-size_t OrderBook::calculateMapMemoryUsage(const std::unordered_map<double, AVLNode*>& idMap) const {
-    size_t mapSize = sizeof(idMap); // Size of the map object
+// size_t OrderBook::calculateMapMemoryUsage(const std::unordered_map<double, LimitNode*>& idMap) const {
+//     size_t mapSize = sizeof(idMap); // Size of the map object
 
-    // Iterate over the map and add the size of its elements
-    for (const auto& entry : idMap) {
-        mapSize += sizeof(entry.first);  // Size of key
-        mapSize += sizeof(entry.second); // Size of value
-    }
+//     // Iterate over the map and add the size of its elements
+//     for (const auto& entry : idMap) {
+//         mapSize += sizeof(entry.first);  // Size of key
+//         mapSize += sizeof(entry.second); // Size of value
+//     }
 
-    return mapSize;
-}
+//     return mapSize;
+// }
 
-void OrderBook::updateOrderBookMemoryUsage() {
-    // Calculate memory usage and store in the vector
-    size_t memoryUsage = calculateMemoryUsage();
+// void OrderBook::updateOrderBookMemoryUsage() {
+//     // Calculate memory usage and store in the vector
+//     size_t memoryUsage = calculateMemoryUsage();
 
-    memoryUsages.push_back(memoryUsage);
+//     memoryUsages.push_back(memoryUsage);
 
-    // Print average memory usage periodically
-    if (memoryUsages.size() % PRINT_INTERVAL == 0) {
-        [[maybe_unused]] double averageMemory = calculateAverageMemoryUsage();
-        std::cout << "Average Memory Usage: " << averageMemory << " bytes" << std::endl;
-    }
-}
+//     // Print average memory usage periodically
+//     if (memoryUsages.size() % PRINT_INTERVAL == 0) {
+//         [[maybe_unused]] double averageMemory = calculateAverageMemoryUsage();
+//         std::cout << "Average Memory Usage: " << averageMemory << " bytes" << std::endl;
+//     }
+// }
 
-double OrderBook::calculateAverageMemoryUsage() const {
-    if (memoryUsages.empty()) {
-        return 0.0;  // Avoid division by zero
-    }
+// double OrderBook::calculateAverageMemoryUsage() const {
+//     if (memoryUsages.empty()) {
+//         return 0.0;  // Avoid division by zero
+//     }
 
-    size_t totalMemory = 0;
-    for (const auto& memory : memoryUsages) {
-        totalMemory += memory;
-    }
+//     size_t totalMemory = 0;
+//     for (const auto& memory : memoryUsages) {
+//         totalMemory += memory;
+//     }
 
-    return static_cast<double>(totalMemory) / memoryUsages.size();
-}
+//     return static_cast<double>(totalMemory) / memoryUsages.size();
+// }
 
 

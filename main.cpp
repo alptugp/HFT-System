@@ -32,7 +32,7 @@ void bench(int cpu1, int cpu2) {
     for (int i = 0; i < iters; ++i) {
       OrderBook orderBook;
       while (!q.pop(orderBook));
-      if (orderBook.getSymbol() != std::to_string(i)) {
+      if (orderBook.getCurrencyPairSymbol() != std::to_string(i)) {
         throw std::runtime_error("");
       }
     }

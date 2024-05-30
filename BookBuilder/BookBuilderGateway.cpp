@@ -21,6 +21,12 @@
 
 using namespace std::chrono;
 
+#if defined(USE_BITMEX_EXCHANGE) || defined(USE_BITMEX_MOCK_EXCHANGE)  
+static const std::vector<std::string> currencyPairs_ = {"XBTETH", "XBTUSDT", "ETHUSDT"};
+#elif defined(USE_KRAKEN_EXCHANGE) || defined(USE_KRAKEN_MOCK_EXCHANGE)  
+static const std::vector<std::string> currencyPairs_ = {"ETH/BTC", "BTC/USD", "ETH/USD"};
+#endif
+
 static SPSCQueue<BookBuilderGatewayToComponentQueueEntry>* bookBuilderGatewayToComponentQueue;
 // ThroughputMonitor* updateThroughputMonitor = nullptr; 
 
@@ -48,6 +54,11 @@ struct WebSocketClientEvContext
 };
 
 static struct WebSocketClientEvContext *wsClientsEvContexts[NUMBER_OF_CONNECTIONS];
+
+struct WebSocketSubscriptionData {
+    std::vector<std::string> currencyPairs;
+    int connectionIdx;
+};
 
 static SSL *ssls[NUMBER_OF_CONNECTIONS];
 static BIO *rbios[NUMBER_OF_CONNECTIONS];
@@ -88,19 +99,19 @@ bookBuilderLwsCallback(struct lws *wsi, enum lws_callback_reasons reason,
 #ifndef USE_BITMEX_MOCK_EXCHANGE
             // Send subscription message 
     #ifdef USE_BITMEX_EXCHANGE   
-            std::string currencyPair = currencyPairs[connectionIdx];
+            // std::string currencyPair = currencyPairs[connectionIdx];
             
-            std::string subscriptionMessage = R"({"op":"subscribe","args":["orderBookL2_25:")" + currencyPair + "\"]}";
-            // Allocate buffer with LWS_PRE bytes before the data
-            unsigned char buf[LWS_PRE + subscriptionMessage.size()];
+            // std::string subscriptionMessage = R"({"op":"subscribe","args":["orderBookL2_25:")" + currencyPair + "\"]}";
+            // // Allocate buffer with LWS_PRE bytes before the data
+            // unsigned char buf[LWS_PRE + subscriptionMessage.size()];
 
-            // Copy subscription message to buffer after LWS_PRE bytes
-            memcpy(&buf[LWS_PRE], subscriptionMessage.c_str(), subscriptionMessage.size());
+            // // Copy subscription message to buffer after LWS_PRE bytes
+            // memcpy(&buf[LWS_PRE], subscriptionMessage.c_str(), subscriptionMessage.size());
                     
-            // Send data using lws_write
-            lws_write(wsi, &buf[LWS_PRE], subscriptionMessage.size(), LWS_WRITE_TEXT);
+            // // Send data using lws_write
+            // lws_write(wsi, &buf[LWS_PRE], subscriptionMessage.size(), LWS_WRITE_TEXT);
 
-            for (const std::string& currencyPair : currencyPairs) { 
+            for (const std::string& currencyPair : currencyPairs_) { 
                     std::string subscriptionMessage = "{\"op\":\"subscribe\",\"args\":[\"orderBookL2_25:" + currencyPair + "\"]}";
                     // Allocate buffer with LWS_PRE bytes before the data
                     unsigned char buf[LWS_PRE + subscriptionMessage.size()];
@@ -122,9 +133,9 @@ bookBuilderLwsCallback(struct lws *wsi, enum lws_callback_reasons reason,
                                                     "symbol": [)";
 
             // subscriptionMessage += "\"" + currencyPairs[connectionIdx] + "\"";
-            for (size_t i = 0; i < currencyPairs.size(); ++i) {
-                subscriptionMessage += "\"" + currencyPairs[i] + "\"";
-                if (i < currencyPairs.size() - 1) {
+            for (size_t i = 0; i < currencyPairs_.size(); ++i) {
+                subscriptionMessage += "\"" + currencyPairs_[i] + "\"";
+                if (i < currencyPairs_.size() - 1) {
                     subscriptionMessage += ",";
                 }
             }
@@ -248,7 +259,7 @@ timeout_cb (EV_P_ ev_timer *w, int revents)
   ev_break (EV_A_ EVBREAK_ONE);
 }
 
-void bookBuilderGateway(SPSCQueue<BookBuilderGatewayToComponentQueueEntry>& bookBuilderGatewayToComponentQueue_, std::vector<std::string> currencyPairs, int orderManagerPipeEnd) {
+void bookBuilderGateway(SPSCQueue<BookBuilderGatewayToComponentQueueEntry>& bookBuilderGatewayToComponentQueue_, std::vector<std::string> currencyPairs_, int orderManagerPipeEnd) {
     int numCores = std::thread::hardware_concurrency();
     
     if (numCores == 0) {
@@ -266,7 +277,6 @@ void bookBuilderGateway(SPSCQueue<BookBuilderGatewayToComponentQueueEntry>& book
     // struct sched_param schedParams;
     // schedParams.sched_priority = sched_get_priority_max(SCHED_FIFO);
     // pthread_setschedparam(pthread_self(), SCHED_FIFO, &schedParams);
-
     bookBuilderGatewayToComponentQueue = &bookBuilderGatewayToComponentQueue_;
 
     // ThroughputMonitor updateThroughputMonitorBookBuilder("Book Builder Throughput Monitor", std::chrono::high_resolution_clock::now());
@@ -366,7 +376,11 @@ void bookBuilderGateway(SPSCQueue<BookBuilderGatewayToComponentQueueEntry>& book
     
     for (int m = 0; m < NUMBER_OF_CONNECTIONS; m++) {
         i.pwsi = &clientWsis[m];
-        i.opaque_user_data = (void *)(intptr_t)m;
+        i.opaque_user_data = (void *)(intptr_t) m;
+        // WebSocketSubscriptionData* webSocketSubscriptionData = new WebSocketSubscriptionData;
+        // webSocketSubscriptionData->connectionIdx = m;
+        // webSocketSubscriptionData->currencyPairs = currencyPairs_;
+        // i.opaque_user_data = (void *)webSocketSubscriptionData;
         lws_client_connect_via_info(&i);
 
         std::cout << "SOCKET FD:" << lws_get_socket_fd(clientWsis[m]) << std::endl;
