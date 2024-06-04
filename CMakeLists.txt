@@ -27,7 +27,7 @@ set(SOURCES
     ${PROJECT_NAME}.cpp
     ./BookBuilder/OrderBook/OrderBook.cpp
     ./OrderManager/OrderManager.cpp
-    ./BookBuilder/ThroughputMonitor/ThroughputMonitor.cpp
+    ./Utils/ThroughputMonitor/ThroughputMonitor.cpp
     ./Utils/Utils.cpp
     ./StrategyComponent/Strategy.cpp
     ./OrderManager/ThreadPool.cpp

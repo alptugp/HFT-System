@@ -9,7 +9,7 @@
 #include <sys/socket.h>
 #include <algorithm>
 #include "./OrderBook/OrderBook.hpp"
-#include "./ThroughputMonitor/ThroughputMonitor.hpp"
+#include "../Utils/ThroughputMonitor/ThroughputMonitor.hpp"
 #include "../SPSCQueue/SPSCQueue.hpp"
 #include "../Utils/Utils.hpp"
 

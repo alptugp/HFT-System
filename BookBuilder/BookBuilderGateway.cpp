@@ -8,7 +8,6 @@
 #include <fstream>
 #include <sys/socket.h>
 #include "./OrderBook/OrderBook.hpp"
-#include "./ThroughputMonitor/ThroughputMonitor.hpp"
 #include "../SPSCQueue/SPSCQueue.hpp"
 #include "../Utils/Utils.hpp"
 

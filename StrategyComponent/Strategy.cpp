@@ -1,23 +1,7 @@
-#include <iostream>
-#include <vector>
-#include <limits>
-#include <unordered_map>
-#include <cmath>
-#include <chrono> 
-#include <iomanip>
-#include <fstream>
-#include <algorithm>
-
 #include "Strategy.hpp"
-#include "../BookBuilder/OrderBook/OrderBook.hpp"
-#include "../SPSCQueue/SPSCQueue.hpp"
-#include "../Utils/Utils.hpp"
-#include "../BookBuilder/ThroughputMonitor/ThroughputMonitor.hpp"
 
 #define CPU_CORE_INDEX_FOR_STRATEGY_THREAD 3
 #define AFTER_FEE_RATE 0.99925
-using namespace std::chrono;
-using namespace std;
 
 struct ExchangeRatePriceAndSize {
     double bestPrice;
@@ -117,7 +101,18 @@ void createExchangeRatesMatrix() {
     }
 }
 
-vector<vector<int>> findTriangularArbitrage() {
+void createCurrencyGraph() {
+    g.resize(V);
+    for (int u = 0; u < V; ++u) {
+        for (int v = 0; v < V; ++v) {
+            if (exchangeRatesMatrix[u][v].bestPrice != 0) {
+                g[u].emplace_back(v, 0);
+            }
+        }
+    }
+}
+
+vector<int> findTriangularArbitrage() {
     int V = exchangeRatesMatrix.size();
     vector<double> distances(V);
     vector<int> predecessors(V, -1);
@@ -142,10 +137,11 @@ vector<vector<int>> findTriangularArbitrage() {
     system_clock::time_point relaxationCompletionTimestamp = std::chrono::high_resolution_clock::now();
 
     // Cycle detection
-    vector<vector<int>> triangularArbitrageCycles;
+    vector<int> triangularArbitrageCurrencySequence(3);
     vector<bool> seen(V, false);
+    bool stop = false;
     system_clock::time_point detectionStartTimestamp = std::chrono::high_resolution_clock::now();
-    for (int u = 0; u < V; ++u) 
+    for (int u = 0; u < V; ++u) { 
         for (const auto& [v, weight] : g[u]) {
             if (seen[v] || !(distances[u] < numeric_limits<double>::infinity())) continue;
             if (distances[u] + weight < distances[v]) {
@@ -160,11 +156,15 @@ vector<vector<int>> findTriangularArbitrage() {
                 int idx = find(triangularArbitrageCycle.begin(), triangularArbitrageCycle.end(), x) - triangularArbitrageCycle.begin();
                 if (triangularArbitrageCycle.size() - idx == 3) {
                     triangularArbitrageCycle.push_back(x);
-                    triangularArbitrageCycles.push_back(vector<int>(triangularArbitrageCycle.begin() + idx, triangularArbitrageCycle.end()));
-                    reverse(triangularArbitrageCycles.back().begin(), triangularArbitrageCycles.back().end());
+                    triangularArbitrageCurrencySequence = vector<int>(triangularArbitrageCycle.begin() + idx, triangularArbitrageCycle.end()); 
+                    reverse(triangularArbitrageCurrencySequence.begin(), triangularArbitrageCurrencySequence.end());
+                    stop = true;
+                    break;
                 }
             }
         }
+        if (stop) break;
+    }
     
     system_clock::time_point detectionCompletionTimestamp = std::chrono::high_resolution_clock::now();
 
@@ -178,10 +178,10 @@ vector<vector<int>> findTriangularArbitrage() {
     strategyComponentDataFile 
     << relaxationTime << ", "
     << detectionTime << ", "
-    << (triangularArbitrageCycles.size() > 0 ? "YES" : "NO") 
+    << (triangularArbitrageCurrencySequence.size() > 0 ? "YES" : "NO") 
     << std::endl;
 
-    return triangularArbitrageCycles;
+    return triangularArbitrageCurrencySequence;
 }
 
 void printEdgeWeights() {
@@ -244,18 +244,9 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
     // ThroughputMonitor throughputMonitorStrategyComponent("Strategy Component Throughput Monitor", std::chrono::high_resolution_clock::now());
     
     createExchangeRatesMatrix();
-
     V = exchangeRatesMatrix.size();
-    g.resize(V);
-
-    for (int u = 0; u < V; ++u) {
-        for (int v = 0; v < V; ++v) {
-            if (exchangeRatesMatrix[u][v].bestPrice != 0) {
-                g[u].emplace_back(v, 0);
-            }
-        }
-    }
-
+    createCurrencyGraph();
+    
     while (true) {
       OrderBook orderBook;
       while (!builderToStrategyQueue.pop(orderBook));
@@ -288,7 +279,7 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
       // printExchangeRatesMatrix(exchangeRatesMatrix);
       // printEdgeWeights(g, weightmap);
 
-      vector<vector<int>> cycles = findTriangularArbitrage();
+      vector<int> triangularArbitrageCurrencySequence = findTriangularArbitrage();
       system_clock::time_point strategyComponentArbitrageDetectionTimestamp = high_resolution_clock::now();
       std::string strategyComponentArbitrageDetectionTimepoint = std::to_string(duration_cast<microseconds>(strategyComponentArbitrageDetectionTimestamp.time_since_epoch()).count());
     
@@ -301,54 +292,42 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
 
 
       std::cout 
-                << "exchangeUpdateTxTimestamp: " << exchangeUpdateTxTimepoint
-                << "bookBuilderUpdateRxTimestamp: " << bookBuilderUpdateRxTimepoint
-                << "Exchange Update Occurence to Update Receival (ms): " << duration_cast<microseconds>(bookBuilderUpdateRxTimestamp - exchangeUpdateTxTimestamp).count() / 1000.0 << "      "
-                << "Update Receival to Arbitrage Detection (ms): " << duration_cast<microseconds>(strategyComponentArbitrageDetectionTimestamp - bookBuilderUpdateRxTimestamp).count() / 1000.0 << "      "
+      << "exchangeUpdateTxTimestamp: " << exchangeUpdateTxTimepoint
+      << "bookBuilderUpdateRxTimestamp: " << bookBuilderUpdateRxTimepoint
+      << "Exchange Update Occurence to Update Receival (ms): " << duration_cast<microseconds>(bookBuilderUpdateRxTimestamp - exchangeUpdateTxTimestamp).count() / 1000.0 << "      "
+      << "Update Receival to Arbitrage Detection (ms): " << duration_cast<microseconds>(strategyComponentArbitrageDetectionTimestamp - bookBuilderUpdateRxTimestamp).count() / 1000.0 << "      "
       << std::endl;
 
-      for (const auto& cycle : cycles) {
-        //   std::cout << "CYCLE FOUND" << std::endl;
-
-          // Calculate triangular arbitrage
-          double arb = 1;
-          for (size_t i = 0; i < cycle.size() - 1; ++i) {
-              int p1 = cycle[i];
-              int p2 = cycle[i + 1];
-
-              std::string orderQty = "1";  
-
-              std::string orderSide;
-              std::string orderPair;
-              auto it = pairsDict.find(currencies[p1]);
-              if (it != pairsDict.end() && std::find(it->second.begin(), it->second.end(), currencies[p2]) != it->second.end()) {
-                orderSide = "Sell";
-                orderPair = currencies[p1] + "/" + currencies[p2];
-              } else {
-                orderSide = "Buy";
-                orderPair = currencies[p2] + "/" + currencies[p1];
-              }
-
-              std::string order = std::string("symbol=") + orderPair + "&side=" + orderSide + "&orderQty=" + orderQty + "&ordType=Market" + exchangeUpdateTxTimepoint + bookBuilderUpdateRxTimepoint + strategyComponentArbitrageDetectionTimepoint;
-            //   std::cout << "ORDER: " << order << std::endl;
-              while (!strategyToOrderManagerQueue.push(order));
-
-              arb *= exchangeRatesMatrix[p1][p2].bestPrice;
-          }
-
-          arb = arb - 1;
-            
-          cout << "Currency Conversions: ";
-          for (int node : cycle) {
-                cout << node << " ";
-          }
-          cout << endl;
-          cout << "% Return: " << arb * 100 << "%" << endl << endl;
-          break; //FOR NOW
+      //   std::cout << "CYCLE FOUND" << std::endl;  
+      // Calculate triangular arbitrage
+      double arb = 1;
+      for (size_t i = 0; i < triangularArbitrageCurrencySequence.size() - 1; ++i) {
+          int p1 = triangularArbitrageCurrencySequence[i];
+          int p2 = triangularArbitrageCurrencySequence[i + 1];  
+          std::string orderQty = "1";    
+          std::string orderSide;
+          std::string orderPair;
+          auto it = pairsDict.find(currencies[p1]);
+          if (it != pairsDict.end() && std::find(it->second.begin(), it->second.end(), currencies[p2]) != it->second.end()) {
+            orderSide = "Sell";
+            orderPair = currencies[p1] + "/" + currencies[p2];
+          } else {
+            orderSide = "Buy";
+            orderPair = currencies[p2] + "/" + currencies[p1];
+          }  
+          std::string order = std::string("symbol=") + orderPair + "&side=" + orderSide + "&orderQty=" + orderQty + "&ordType=Market" + exchangeUpdateTxTimepoint + bookBuilderUpdateRxTimepoint + strategyComponentArbitrageDetectionTimepoint;
+          //   std::cout << "ORDER: " << order << std::endl;
+          while (!strategyToOrderManagerQueue.push(order));  
+          arb *= exchangeRatesMatrix[p1][p2].bestPrice;
+      }  
+      arb = arb - 1;
+      
+      cout << "Currency Conversions: ";
+      for (int currency : triangularArbitrageCurrencySequence) {
+          cout << currency << " ";
       }
-
-    //   if (cycles.size() > 0)
-    //     break;
+      cout << endl;
+      cout << "% Return: " << arb * 100 << "%" << endl << endl;
     }
 }
 #elif defined(USE_BITMEX_EXCHANGE) || defined(USE_BITMEX_MOCK_EXCHANGE)

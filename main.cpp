@@ -7,7 +7,7 @@
 #include <vector>
 #include "SPSCQueue/SPSCQueue.hpp"
 #include "BookBuilder/OrderBook/OrderBook.hpp"
-#include "BookBuilder/ThroughputMonitor/ThroughputMonitor.hpp"
+#include "Utils/ThroughputMonitor/ThroughputMonitor.hpp"
 #include "BookBuilder/BookBuilder.cpp"
 #include "BookBuilder/BookBuilderGateway.cpp"
 #include "Utils/Utils.hpp"
