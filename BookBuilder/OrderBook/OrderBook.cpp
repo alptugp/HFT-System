@@ -96,8 +96,9 @@ void OrderBook::insertBuy(double id, double price, double size, long updateExcha
     buyMap[id] = newBuyNode; 
     this->marketUpdateExchangeRxTimestamp = updateExchangeTimestamp;
     this->finalUpdateTimestamp = updateReceiveTimestamp;
+#if defined(USE_KRAKEN_EXCHANGE) || defined(USE_KRAKEN_MOCK_EXCHANGE)
     buyNodeCount++;
-
+#endif
     if (highestBuyLimitNode == nullptr || price > highestBuyLimitNode->price)
         highestBuyLimitNode = newBuyNode;
     
@@ -123,7 +124,9 @@ void OrderBook::removeBuy(double id, long updateExchangeTimestamp, system_clock:
     this->buyMap.erase(id);
     this->marketUpdateExchangeRxTimestamp = updateExchangeTimestamp;
     this->finalUpdateTimestamp = updateReceiveTimestamp;
+#if defined(USE_KRAKEN_EXCHANGE) || defined(USE_KRAKEN_MOCK_EXCHANGE)
     buyNodeCount--;
+#endif
     
     if (nodeToRemove == highestBuyLimitNode) {
         std::cout << "HIGHEST BUY ENTRY" << std::endl;
@@ -150,7 +153,9 @@ void OrderBook::insertSell(double id, double price, double size, long updateExch
     sellMap[id] = newSellLimitNode; 
     this->marketUpdateExchangeRxTimestamp = updateExchangeTimestamp;
     this->finalUpdateTimestamp = updateReceiveTimestamp;
+#if defined(USE_KRAKEN_EXCHANGE) || defined(USE_KRAKEN_MOCK_EXCHANGE)
     sellNodeCount++;
+#endif
 
     if (lowestSellLimitNode == nullptr || price < lowestSellLimitNode->price)
         lowestSellLimitNode = newSellLimitNode;
@@ -177,7 +182,9 @@ void OrderBook::removeSell(double id, long updateExchangeTimestamp, system_clock
     this->sellMap.erase(id);
     this->marketUpdateExchangeRxTimestamp = updateExchangeTimestamp;
     this->finalUpdateTimestamp = updateReceiveTimestamp;
+#if defined(USE_KRAKEN_EXCHANGE) || defined(USE_KRAKEN_MOCK_EXCHANGE)    
     sellNodeCount--;
+#endif
 
     if (nodeToRemove == lowestSellLimitNode) {
         std::cout << "LOWEST SELL ENTRY" << std::endl;
@@ -200,23 +207,20 @@ bool OrderBook::checkSellSidePriceLevel(double price) {
     return this->sellMap.count(price) != 0;
 }
 
-void OrderBook::postorderTraversal(LimitNode* root) {
-    if (root != nullptr) {
-        postorderTraversal(root->leftLimitNode);
-        postorderTraversal(root->rightLimitNode);
-        std::cout << "ID: " << root->id << ", Price: " << root->price << ", Size: " << root->size << "\n";
+void OrderBook::reverseInOrderTraversal(LimitNode* node) {
+    if (node != nullptr) {
+        reverseInOrderTraversal(node->rightLimitNode);
+        std::cout << "Price: " << node->price << ", Size: " << node->size << "\n";
+        reverseInOrderTraversal(node->leftLimitNode);
     }
 }
 
 void OrderBook::printOrderBook() {
     std::cout << currencyPairSymbol << " - Sell Side of the LOB for " << currencyPairSymbol << ":\n";
-    postorderTraversal(sellRootNode);
-    
+    reverseInOrderTraversal(sellRootNode);
     std::cout << "------------------------\n";
-
     std::cout << currencyPairSymbol << " - Buy Side of the LOB for " << currencyPairSymbol << ":\n";
-    postorderTraversal(buyRootNode);
-    
+    reverseInOrderTraversal(buyRootNode);
     std::cout << "########################\n";
 }
 

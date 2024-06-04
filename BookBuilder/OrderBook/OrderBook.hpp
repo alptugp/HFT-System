@@ -38,24 +38,27 @@ private:
     LimitNode* sellRootNode;
     std::unordered_map<double, LimitNode*> buyMap;
     std::unordered_map<double, LimitNode*> sellMap;
-    LimitNode* lowestSellLimitNode;
-    LimitNode* highestBuyLimitNode; 
-
+    LimitNode* lowestSellLimitNode; // Best sell price
+    LimitNode* highestBuyLimitNode; // Best buy price
+    
     std::string currencyPairSymbol;
     long marketUpdateExchangeRxTimestamp;
     system_clock::time_point finalUpdateTimestamp;
     std::vector<size_t> memoryUsages;  // Store memory usage values for average memory usage calculation
 
+#if defined(USE_KRAKEN_EXCHANGE) || defined(USE_KRAKEN_MOCK_EXCHANGE)
     size_t buyNodeCount;
     size_t sellNodeCount;
-
+    LimitNode* highestSelllLimitNode;
+    LimitNode* lowestBuyLimitNode;
+#endif
     void transplant(LimitNode* u, LimitNode* v, OrderBookSide orderBookSide);
     void insertLimitNode(LimitNode* newNode, LimitNode* currentNode, LimitNode* parentLimitNodeNode, ParentRelation parentLimitNodeRelation);
     void removeLimitNode(LimitNode* node, OrderBookSide orderBookSide);
     LimitNode* minPriceLimitNode(LimitNode* node);
     LimitNode* maxPriceLimitNode(LimitNode* node);
     
-    void postorderTraversal(LimitNode* root);
+    void reverseInOrderTraversal(LimitNode* node);
     size_t calculateMemoryUsage() const;
     size_t calculateTreeMemoryUsage(LimitNode* root) const;
     double calculateAverageMemoryUsage() const;

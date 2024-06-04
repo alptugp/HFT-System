@@ -6,9 +6,7 @@
 #include <chrono> 
 #include <iomanip>
 #include <fstream>
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/graph_traits.hpp>
-#include <boost/graph/iteration_macros.hpp>
+#include <algorithm>
 
 #include "Strategy.hpp"
 #include "../BookBuilder/OrderBook/OrderBook.hpp"
@@ -20,22 +18,81 @@
 #define AFTER_FEE_RATE 0.99925
 using namespace std::chrono;
 using namespace std;
-using namespace boost;
+
+struct ExchangeRatePriceAndSize {
+    double bestPrice;
+    double bestPriceSize;
+};
+
+static std::ofstream strategyComponentDataFile;
 
 #if defined(USE_KRAKEN_EXCHANGE) || defined(USE_KRAKEN_MOCK_EXCHANGE)
-typedef adjacency_list<vecS, vecS, directedS, no_property, property<edge_weight_t, double>> Graph;
-typedef graph_traits<Graph>::vertex_descriptor Vertex;
-typedef graph_traits<Graph>::edge_descriptor Edge;
+static size_t V;
+static std::vector<std::vector<std::pair<int, double>>> g;
+static std::vector<std::vector<ExchangeRatePriceAndSize>> exchangeRatesMatrix;
+static std::vector<std::string> currencies;    
+static std::unordered_map<string, int> symbolToIndex;
+// 115:
+static const std::unordered_map<string, vector<string>> pairsDict = {
+    {"KSM", {"EUR", "BTC", "DOT", "GBP", "ETH", "USD"}},
+    {"GBP", {"USD"}},
+    {"BTC", {"CAD", "EUR", "AUD", "JPY", "GBP", "CHF", "USDT", "USD", "USDC"}},
+    {"LTC", {"EUR", "BTC", "AUD", "JPY", "GBP", "ETH", "USDT", "USD"}},
+    {"SOL", {"EUR", "BTC", "GBP", "ETH", "USDT", "USD"}},
+    {"DOT", {"EUR", "BTC", "JPY", "GBP", "ETH", "USDT", "USD"}},
+    {"ETH", {"CAD", "EUR", "BTC", "AUD", "JPY", "GBP", "CHF", "USDT", "USD", "USDC"}},
+    {"LINK", {"EUR", "BTC", "AUD", "JPY", "GBP", "ETH", "USDT", "USD"}},
+    {"USDC", {"CAD", "EUR", "AUD", "GBP", "CHF", "USDT", "USD"}},
+    {"ADA", {"EUR", "BTC", "AUD", "GBP", "ETH", "USDT", "USD"}},
+    {"ATOM", {"EUR", "BTC", "GBP", "ETH", "USDT", "USD"}},
+    {"USDT", {"EUR", "AUD", "JPY", "GBP", "CHF", "USD", "CAD"}},
+    {"AUD", {"JPY", "USD"}},
+    {"XRP", {"CAD", "EUR", "BTC", "AUD", "GBP", "ETH", "USDT", "USD"}},
+    {"EUR", {"CAD", "AUD", "JPY", "GBP", "CHF", "USD"}},
+    {"BCH", {"EUR", "BTC", "AUD", "JPY", "GBP", "ETH", "USDT", "USD"}},
+    {"USD", {"CHF", "JPY", "CAD"}},
+    {"ALGO", {"EUR", "BTC", "GBP", "ETH", "USDT", "USD"}}
+};
 
-std::vector<std::string> currencies;    
-std::unordered_map<string, int> symbolToIndex;
+//85:
+// const std::unordered_map<string, vector<string>> pairsDict  = {
+//     {"BCH", {"USD", "BTC", "EUR", "AUD", "GBP", "ETH", "USDT", "JPY"}},
+//     {"BTC", {"USD", "EUR", "USDC", "AUD", "GBP", "CAD", "USDT", "JPY"}},
+//     {"USD", {"CAD", "JPY"}},
+//     {"XRP", {"USD", "BTC", "EUR", "AUD", "GBP", "ETH", "CAD", "USDT"}},
+//     {"EUR", {"USD", "AUD", "GBP", "CAD", "JPY"}},
+//     {"LTC", {"USD", "EUR", "BTC", "AUD", "GBP", "ETH", "USDT", "JPY"}},
+//     {"ETH", {"USD", "EUR", "BTC", "USDC", "AUD", "GBP", "CAD", "USDT", "JPY"}},
+//     {"LINK", {"USD", "BTC", "EUR", "AUD", "GBP", "ETH", "USDT", "JPY"}},
+//     {"ADA", {"USD", "BTC", "EUR", "AUD", "GBP", "ETH", "USDT"}},
+//     {"USDC", {"USD", "EUR", "AUD", "GBP", "CAD", "USDT"}},
+//     {"GBP", {"USD"}},
+//     {"DOT", {"USD", "BTC", "EUR", "GBP", "ETH", "USDT", "JPY"}},
+//     {"USDT", {"USD", "EUR", "AUD", "GBP", "CAD", "JPY"}},
+//     {"AUD", {"USD", "JPY"}}
+// };
 
-const std::unordered_map<string, vector<string>> pairsDict = {
-        {"ETH", {"BTC", "USD"}},
-        {"BTC", {"USD"}},
-    };
+// 50:
+// const std::unordered_map<string, vector<string>> pairsDict = {
+//     {"BCH", {"JPY", "ETH", "GBP", "AUD", "BTC", "USDT", "EUR", "USD"}},
+//     {"USDT", {"JPY", "GBP", "AUD", "EUR", "USD"}},
+//     {"BTC", {"JPY", "GBP", "AUD", "USDT", "EUR", "USD"}},
+//     {"EUR", {"GBP", "JPY", "AUD", "USD"}},
+//     {"ETH", {"JPY", "EUR", "AUD", "BTC", "USDT", "GBP", "USD"}},
+//     {"USD", {"JPY"}},
+//     {"LINK", {"JPY", "ETH", "EUR", "AUD", "BTC", "USDT", "GBP", "USD"}},
+//     {"LTC", {"JPY", "ETH", "GBP", "AUD", "BTC", "USDT", "EUR", "USD"}},
+//     {"GBP", {"USD"}},
+//     {"AUD", {"JPY", "USD"}}
+// };
 
-vector<vector<double>> createAdjMatrix() {
+//1
+// const std::unordered_map<string, vector<string>> pairsDict = {
+//     {"ETH", {"USD"}},
+// };
+
+
+void createExchangeRatesMatrix() {
     for (const auto& [key, vals] : pairsDict) {
         currencies.push_back(key);
         currencies.insert(currencies.end(), vals.begin(), vals.end());
@@ -49,106 +106,113 @@ vector<vector<double>> createAdjMatrix() {
         cout << currencies[i] << endl;
     }
     
-
     int n = currencies.size();
-    vector<vector<double>> adjMatrix(n, vector<double>(n, 0.0));
+    exchangeRatesMatrix = std::vector<std::vector<ExchangeRatePriceAndSize>>(n, std::vector<ExchangeRatePriceAndSize>(n, {0.0, 0.0}));
 
     for (const auto& [p1, p2s] : pairsDict) {
         for (const auto& p2 : p2s) {
-            adjMatrix[symbolToIndex[p1]][symbolToIndex[p2]] = 1;
-            adjMatrix[symbolToIndex[p2]][symbolToIndex[p1]] = 1;
+            exchangeRatesMatrix[symbolToIndex[p1]][symbolToIndex[p2]].bestPrice = 1;
+            exchangeRatesMatrix[symbolToIndex[p2]][symbolToIndex[p1]].bestPrice = 1;
         }
     }
-
-    return adjMatrix;
 }
 
-vector<vector<int>> findNegativeCycles(const vector<vector<double>>& adjMatrix, const Graph& g, const property_map<Graph, edge_weight_t>::type& weightmap, int start) {
-    int V = adjMatrix.size();
-
-    // Distance and predecessor maps
-    vector<double> distances(V, numeric_limits<double>::infinity());
+vector<vector<int>> findTriangularArbitrage() {
+    int V = exchangeRatesMatrix.size();
+    vector<double> distances(V);
     vector<int> predecessors(V, -1);
-    distances[start] = 0;
+    const int startCurrency = 0;
+    distances[startCurrency] = 0;
+    system_clock::time_point relaxationStartTimestamp = std::chrono::high_resolution_clock::now();
 
-    auto starttime2 = std::chrono::high_resolution_clock::now();
-    
-    std::cout << "V: " << V << std::endl;
-    for (int i = 0; i < V - 1; ++i) {
+    for (int i = 0; i < V - 1; ++i) { 
+        bool relaxed = false;
         for (int u = 0; u < V; ++u) {
-            for (int v = 0; v < V; ++v) {
-                double weight = adjMatrix[u][v];
-                if (weight != 0) {
-                    weight = -log(weight);
-                    if (distances[u] + weight < distances[v]) {
-                        distances[v] = distances[u] + weight;
-                        predecessors[v] = u;
-                    }
+            if (distances[u] == numeric_limits<double>::infinity()) continue;
+            for (const auto& [v, weight] : g[u]) 
+                if (distances[u] + weight < distances[v]) {
+                    distances[v] = distances[u] + weight;
+                    predecessors[v] = u;
+                    relaxed = true;
                 }
-            }
         }
-    }
+        if (!relaxed) break;
+    }       
+
+    system_clock::time_point relaxationCompletionTimestamp = std::chrono::high_resolution_clock::now();
 
     // Cycle detection
-    vector<vector<int>> allCycles;
+    vector<vector<int>> triangularArbitrageCycles;
     vector<bool> seen(V, false);
-
-    auto starttime = std::chrono::high_resolution_clock::now();
-    for (int u = 0; u < V; ++u) {
-        auto [out_it, out_end] = out_edges(u, g);
-        for (auto ei = out_it; ei != out_end; ++ei) {
-            int v = target(*ei, g);
-            double weight = weightmap[*ei];
-            if (seen[v]) 
-                continue;
+    system_clock::time_point detectionStartTimestamp = std::chrono::high_resolution_clock::now();
+    for (int u = 0; u < V; ++u) 
+        for (const auto& [v, weight] : g[u]) {
+            if (seen[v] || !(distances[u] < numeric_limits<double>::infinity())) continue;
             if (distances[u] + weight < distances[v]) {
-                vector<int> cycle;
+                vector<int> triangularArbitrageCycle;
                 int x = v;
                 while (true) {
                     seen[x] = true;
-                    cycle.push_back(x);
+                    triangularArbitrageCycle.push_back(x);
                     x = predecessors[x];
-                    if (x == v || find(cycle.begin(), cycle.end(), x) != cycle.end()) break;
+                    if (x == v || find(triangularArbitrageCycle.begin(), triangularArbitrageCycle.end(), x) != triangularArbitrageCycle.end()) break;
                 }
-                int idx = find(cycle.begin(), cycle.end(), x) - cycle.begin();
-                cycle.push_back(x);
-                allCycles.push_back(vector<int>(cycle.begin() + idx, cycle.end()));
-                reverse(allCycles.back().begin(), allCycles.back().end());
+                int idx = find(triangularArbitrageCycle.begin(), triangularArbitrageCycle.end(), x) - triangularArbitrageCycle.begin();
+                if (triangularArbitrageCycle.size() - idx == 3) {
+                    triangularArbitrageCycle.push_back(x);
+                    triangularArbitrageCycles.push_back(vector<int>(triangularArbitrageCycle.begin() + idx, triangularArbitrageCycle.end()));
+                    reverse(triangularArbitrageCycles.back().begin(), triangularArbitrageCycles.back().end());
+                }
             }
         }
-    }
+    
+    system_clock::time_point detectionCompletionTimestamp = std::chrono::high_resolution_clock::now();
 
-    return allCycles;
+    auto relaxationStartUs = timePointToMicroseconds(relaxationStartTimestamp);
+    auto relaxationCompletionUs = timePointToMicroseconds(relaxationCompletionTimestamp);
+    auto detectionStartUs = timePointToMicroseconds(detectionStartTimestamp);
+    auto detectionCompletionUs = timePointToMicroseconds(detectionCompletionTimestamp);
+
+    double relaxationTime = (relaxationCompletionUs - relaxationStartUs) / 1000.0;
+    double detectionTime = (detectionCompletionUs - detectionStartUs) / 1000.0;
+    strategyComponentDataFile 
+    << relaxationTime << ", "
+    << detectionTime << ", "
+    << (triangularArbitrageCycles.size() > 0 ? "YES" : "NO") 
+    << std::endl;
+
+    return triangularArbitrageCycles;
 }
 
-void printEdgeWeights(const Graph& g, const property_map<Graph, edge_weight_t>::type& weightmap) {
-    cout << "Edge Weights:" << endl;
-    BGL_FORALL_EDGES(e, g, Graph) {
-        cout << source(e, g) << " -> " << target(e, g) << " : " << weightmap[e] << endl;
-    }
+void printEdgeWeights() {
+    cout << "Edge Weights:";
+    for (int u = 0; u < V; ++u) 
+        for (const auto& [v, weight] : g[u]) 
+            cout << u << " -> " << v << " : " << weight << endl;
     cout << endl;
 }
 
-void printAdjMatrix(const vector<vector<double>>& adjMatrix) {
-    cout << "Adjacency Matrix:" << endl;
-    for (const auto& row : adjMatrix) {
-        for (double val : row) {
-            cout << val << " ";
+void printExchangeRatesMatrix() {
+    cout << "Exchange Rates Matrix:" << endl;
+    for (const auto& row : exchangeRatesMatrix) {
+        for (ExchangeRatePriceAndSize exchangeRatePriceAndSize : row) {
+            cout << exchangeRatePriceAndSize.bestPrice << " ";
         }
         cout << endl;
     }
     cout << endl;
 }
 
-// Function to change the weight of an edge
-void changeEdgeWeight(Graph& g, property_map<Graph, edge_weight_t>::type& weightmap, int u, int v, double new_weight) {
-    std::pair<Edge, bool> edge_pair = edge(u, v, g);
-    if (edge_pair.second) {
-        put(weightmap, edge_pair.first, new_weight);
-    } else {
-        std::cerr << "Error: Edge (" << u << ", " << v << ") not found in the graph." << std::endl;
+void changeEdgeWeight(int baseCurrencyGraphIndex, int quoteCurrencyGraphIndex, double new_weight) {
+    for (auto& edge : g[baseCurrencyGraphIndex]) {
+        if (edge.first == quoteCurrencyGraphIndex) {
+            edge.second = new_weight;
+            return;
+        }
     }
+    g[baseCurrencyGraphIndex].emplace_back(quoteCurrencyGraphIndex, new_weight); 
 }
+
 
 void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::string>& strategyToOrderManagerQueue) {
     int numCores = std::thread::hardware_concurrency();
@@ -169,24 +233,25 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
     // schedParams.sched_priority = sched_get_priority_max(SCHED_FIFO);
     // pthread_setschedparam(pthread_self(), SCHED_FIFO, &schedParams);
     
-    std::ofstream outFile("data/book-builder.txt", std::ios::app);
+    strategyComponentDataFile.open("strategy-component-data/new.txt", std::ios_base::out); 
+    if (!strategyComponentDataFile.is_open()) {
+        std::cerr << "Error: Unable to open file for " << std::endl;
+        return;
+    }
 
     system_clock::time_point startingTimestamp = time_point<std::chrono::system_clock>::min();
 
-    ThroughputMonitor throughputMonitorStrategyComponent("Strategy Component Throughput Monitor", std::chrono::high_resolution_clock::now());
+    // ThroughputMonitor throughputMonitorStrategyComponent("Strategy Component Throughput Monitor", std::chrono::high_resolution_clock::now());
     
-    vector<vector<double>> adjMatrix = createAdjMatrix();
+    createExchangeRatesMatrix();
 
-    int V = adjMatrix.size();
-    Graph g(V);
-    property_map<Graph, edge_weight_t>::type weightmap = get(edge_weight, g);
+    V = exchangeRatesMatrix.size();
+    g.resize(V);
 
     for (int u = 0; u < V; ++u) {
         for (int v = 0; v < V; ++v) {
-            if (adjMatrix[u][v] != 0) {
-                std::cout << "NOT ZERO" << std::endl;
-                Edge e; bool inserted;
-                tie(e, inserted) = add_edge(u, v, g);
+            if (exchangeRatesMatrix[u][v].bestPrice != 0) {
+                g[u].emplace_back(v, 0);
             }
         }
     }
@@ -194,25 +259,36 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
     while (true) {
       OrderBook orderBook;
       while (!builderToStrategyQueue.pop(orderBook));
-      double bestBuyPrice = orderBook.getBestBuyLimitPriceAndSize().first;
-      double bestSellPrice = orderBook.getBestSellLimitPriceAndSize().first;
-      std::string currencyPair = orderBook.getCurrencyPairSymbol();
-      std :: cout << bestBuyPrice << " " << bestSellPrice << " " << currencyPair << std::endl;
+      auto bestBuy = orderBook.getBestBuyLimitPriceAndSize();
+      auto bestSell = orderBook.getBestSellLimitPriceAndSize();  
+      double bestBuyPrice = bestBuy.first;
+      double bestBuyPriceSize = bestBuy.second;
+      double bestSellPriceReciprocal = 1.0 / bestSell.first;
+      double bestSellPriceSize = bestSell.second;
 
+      std::string currencyPair = orderBook.getCurrencyPairSymbol();
       std::size_t baseCurrencyEndPos = currencyPair.find('/');
       int baseCurrencyGraphIndex = symbolToIndex[currencyPair.substr(0, baseCurrencyEndPos)];
       int quoteCurrencyGraphIndex = symbolToIndex[currencyPair.substr(baseCurrencyEndPos + 1, currencyPair.size())];
+      std :: cout << bestBuyPrice << " " << bestSell.first << " " << currencyPair << std::endl;
 
-      adjMatrix[baseCurrencyGraphIndex][quoteCurrencyGraphIndex] = bestBuyPrice;
-      adjMatrix[quoteCurrencyGraphIndex][baseCurrencyGraphIndex] = 1.0 / bestSellPrice;
-      changeEdgeWeight(g, weightmap, baseCurrencyGraphIndex, quoteCurrencyGraphIndex, -log(bestBuyPrice));
-      changeEdgeWeight(g, weightmap, quoteCurrencyGraphIndex, baseCurrencyGraphIndex, -log(1.0 / bestSellPrice));
-      
-      printAdjMatrix(adjMatrix);
-      printEdgeWeights(g, weightmap);
+      if (bestBuyPrice != exchangeRatesMatrix[baseCurrencyGraphIndex][quoteCurrencyGraphIndex].bestPrice) {
+        exchangeRatesMatrix[baseCurrencyGraphIndex][quoteCurrencyGraphIndex].bestPrice = bestBuyPrice;
+        changeEdgeWeight(baseCurrencyGraphIndex, quoteCurrencyGraphIndex, -log(bestBuyPrice));
+      }
 
-      vector<vector<int>> cycles = findNegativeCycles(adjMatrix, g, weightmap, 1);
+      if (bestSellPriceReciprocal != exchangeRatesMatrix[baseCurrencyGraphIndex][quoteCurrencyGraphIndex].bestPrice) {
+        exchangeRatesMatrix[quoteCurrencyGraphIndex][baseCurrencyGraphIndex].bestPrice = bestSellPriceReciprocal;
+        changeEdgeWeight(quoteCurrencyGraphIndex, baseCurrencyGraphIndex, -log(bestSellPriceReciprocal));
+      }
+
+      exchangeRatesMatrix[baseCurrencyGraphIndex][quoteCurrencyGraphIndex].bestPriceSize = bestBuyPriceSize;
+      exchangeRatesMatrix[quoteCurrencyGraphIndex][baseCurrencyGraphIndex].bestPriceSize = bestSellPriceSize;
       
+      // printExchangeRatesMatrix(exchangeRatesMatrix);
+      // printEdgeWeights(g, weightmap);
+
+      vector<vector<int>> cycles = findTriangularArbitrage();
       system_clock::time_point strategyComponentArbitrageDetectionTimestamp = high_resolution_clock::now();
       std::string strategyComponentArbitrageDetectionTimepoint = std::to_string(duration_cast<microseconds>(strategyComponentArbitrageDetectionTimestamp.time_since_epoch()).count());
     
@@ -220,7 +296,6 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
       std::string exchangeUpdateTxTimepoint = std::to_string(duration_cast<microseconds>(exchangeUpdateTxTimestamp.time_since_epoch()).count());  
       if (exchangeUpdateTxTimepoint == "0")
         continue;
-      
       system_clock::time_point bookBuilderUpdateRxTimestamp = orderBook.getFinalUpdateTimestamp();
       std::string bookBuilderUpdateRxTimepoint = std::to_string(duration_cast<microseconds>(bookBuilderUpdateRxTimestamp.time_since_epoch()).count());
 
@@ -232,14 +307,8 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
                 << "Update Receival to Arbitrage Detection (ms): " << duration_cast<microseconds>(strategyComponentArbitrageDetectionTimestamp - bookBuilderUpdateRxTimestamp).count() / 1000.0 << "      "
       << std::endl;
 
-      if (outFile.is_open()) {
-        outFile << duration_cast<microseconds>(bookBuilderUpdateRxTimestamp - exchangeUpdateTxTimestamp).count() / 1000.0 << std::endl;
-      } else {
-        std::cerr << "Unable to open file for writing" << std::endl;
-      }
-
       for (const auto& cycle : cycles) {
-          std::cout << "CYCLE FOUND" << std::endl;
+        //   std::cout << "CYCLE FOUND" << std::endl;
 
           // Calculate triangular arbitrage
           double arb = 1;
@@ -261,20 +330,21 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
               }
 
               std::string order = std::string("symbol=") + orderPair + "&side=" + orderSide + "&orderQty=" + orderQty + "&ordType=Market" + exchangeUpdateTxTimepoint + bookBuilderUpdateRxTimepoint + strategyComponentArbitrageDetectionTimepoint;
-              std::cout << "ORDER: " << order << std::endl;
+            //   std::cout << "ORDER: " << order << std::endl;
               while (!strategyToOrderManagerQueue.push(order));
 
-              arb *= adjMatrix[p1][p2];
+              arb *= exchangeRatesMatrix[p1][p2].bestPrice;
           }
 
           arb = arb - 1;
             
-          cout << "Path: ";
+          cout << "Currency Conversions: ";
           for (int node : cycle) {
                 cout << node << " ";
           }
           cout << endl;
-          cout << arb * 100 << "%" << endl << endl;
+          cout << "% Return: " << arb * 100 << "%" << endl << endl;
+          break; //FOR NOW
       }
 
     //   if (cycles.size() > 0)
@@ -283,7 +353,7 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
 }
 #elif defined(USE_BITMEX_EXCHANGE) || defined(USE_BITMEX_MOCK_EXCHANGE)
     int V;
-    std::vector<std::vector<double>> adjList;
+    std::vector<std::vector<double>> g;
     const std::vector<std::string> currencies = {"XBT", "USDT", "ETH"};
 
     std::pair<double, double> findTriangularArbitrage() {
@@ -295,7 +365,7 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
             int nextNode = direction;
             double weightMultiply = 1.0;
             do {
-                weightMultiply *= adjList[currentNode][nextNode];
+                weightMultiply *= g[currentNode][nextNode];
                 for (int node = 0; node < V; node++) {
                     if ((node != currentNode) && (node != nextNode)) {
                         currentNode = nextNode;
@@ -339,7 +409,7 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
         // schedParams.sched_priority = sched_get_priority_max(SCHED_FIFO);
         // pthread_setschedparam(pthread_self(), SCHED_FIFO, &schedParams);
 
-        std::ofstream outFile("data/book-builder.txt", std::ios::app);
+        // std::ofstream outFile("data/book-builder.txt", std::ios::app);
 
         V = currencies.size();
         adjList.resize(V, std::vector<double>(V, 1.0));
