@@ -69,7 +69,7 @@ void runTradingSystem()  {
     const size_t queueSize = 10000;
     SPSCQueue<BookBuilderGatewayToComponentQueueEntry> bookBuilderGatewayToComponentQueue(queueSize);
     SPSCQueue<OrderBook> builderToStrategyQueue(queueSize);
-    SPSCQueue<std::string> strategyToOrderManagerQueue(queueSize);
+    SPSCQueue<StrategyComponentToOrderManagerQueueEntry> strategyToOrderManagerQueue(queueSize);
     
     int pipefd[2]; 
     // Create a pipe for communication between Book Builder and Order Manager

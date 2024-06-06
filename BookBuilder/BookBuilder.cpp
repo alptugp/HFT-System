@@ -107,7 +107,7 @@ void bookBuilder(SPSCQueue<BookBuilderGatewayToComponentQueueEntry>& bookBuilder
         while (!bookBuilderGatewayToComponentQueue.pop(queueEntry)) {};
 
         removeIncorrectNullCharacters(queueEntry.decryptedReadBuffer, queueEntry.decryptedBytesRead);
-        std::cout << "BUFFER: " << queueEntry.decryptedReadBuffer << std::endl;
+        // std::cout << "BUFFER: " << queueEntry.decryptedReadBuffer << std::endl;
         currentPos = queueEntry.decryptedReadBuffer;
         size_t jsonNo, stop = 0;
         while (currentPos < queueEntry.decryptedReadBuffer + strlen(queueEntry.decryptedReadBuffer)) {

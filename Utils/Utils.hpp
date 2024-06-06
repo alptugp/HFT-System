@@ -22,6 +22,15 @@ struct BookBuilderGatewayToComponentQueueEntry {
     system_clock::time_point marketUpdateDecryptionCompletionTimestamp;
 };
 
+struct StrategyComponentToOrderManagerQueueEntry {
+    std::string order;
+    system_clock::time_point strategyComponentArbitrageDetectionTimestamp;
+    system_clock::time_point marketUpdateExchangeTimestamp;
+    system_clock::time_point orderBookTimestamp;
+
+
+};
+
 long convertTimestampToTimePoint(const std::string& timestamp);
 long long getTimeDifferenceInMillis(const std::string& strTime1, const std::string& strTime2);
 std::string getCurrentTimestamp();

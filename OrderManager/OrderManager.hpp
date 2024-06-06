@@ -13,4 +13,4 @@
 #include "../Utils/Utils.hpp"
 #include "./ThreadPool.hpp"
 
-void orderManager(SPSCQueue<std::string>& strategyToOrderManagerQueue, int bookBuilderPipeEnd);
+void orderManager(SPSCQueue<StrategyComponentToOrderManagerQueueEntry>& strategyToOrderManagerQueue, int bookBuilderPipeEnd);

@@ -86,7 +86,7 @@ public:
         return this->currencyPairSymbol;
     }
 
-    long getMarketUpdateExchangeTxTimestamp() {
+    long getMarketUpdateExchangeTimestamp() {
         return this->marketUpdateExchangeRxTimestamp;
     }
 

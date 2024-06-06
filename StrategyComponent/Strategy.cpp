@@ -1,11 +1,19 @@
 #include "Strategy.hpp"
 
 #define CPU_CORE_INDEX_FOR_STRATEGY_THREAD 3
+#define NUMBER_OF_ORDERS_FOR_TRIANGULAR_ARBITRAGE 3
+#define ORDER_TYPE "Market"
 #define AFTER_FEE_RATE 0.99925
+#define ORDER_SIZE_RATIO_THRESHOLD 1
 
 struct ExchangeRatePriceAndSize {
     double bestPrice;
     double bestPriceSize;
+};
+
+struct MinOrderSizeInfo {
+    double minOrderSizeInBaseCurrency;
+    double minOrderSizeInQuoteCurrency;
 };
 
 static std::ofstream strategyComponentDataFile;
@@ -15,9 +23,9 @@ static size_t V;
 static std::vector<std::vector<std::pair<int, double>>> g;
 static std::vector<std::vector<ExchangeRatePriceAndSize>> exchangeRatesMatrix;
 static std::vector<std::string> currencies;    
-static std::unordered_map<string, int> symbolToIndex;
+static std::unordered_map<string, int> currencySymbolToIndex;
 // 115:
-static const std::unordered_map<string, vector<string>> pairsDict = {
+static const std::unordered_map<string, vector<string>> currencyPairsDict = {
     {"KSM", {"EUR", "BTC", "DOT", "GBP", "ETH", "USD"}},
     {"GBP", {"USD"}},
     {"BTC", {"CAD", "EUR", "AUD", "JPY", "GBP", "CHF", "USDT", "USD", "USDC"}},
@@ -39,7 +47,7 @@ static const std::unordered_map<string, vector<string>> pairsDict = {
 };
 
 //85:
-// const std::unordered_map<string, vector<string>> pairsDict  = {
+// const std::unordered_map<string, vector<string>> currencyPairsDict  = {
 //     {"BCH", {"USD", "BTC", "EUR", "AUD", "GBP", "ETH", "USDT", "JPY"}},
 //     {"BTC", {"USD", "EUR", "USDC", "AUD", "GBP", "CAD", "USDT", "JPY"}},
 //     {"USD", {"CAD", "JPY"}},
@@ -57,7 +65,7 @@ static const std::unordered_map<string, vector<string>> pairsDict = {
 // };
 
 // 50:
-// const std::unordered_map<string, vector<string>> pairsDict = {
+// const std::unordered_map<string, vector<string>> currencyPairsDict = {
 //     {"BCH", {"JPY", "ETH", "GBP", "AUD", "BTC", "USDT", "EUR", "USD"}},
 //     {"USDT", {"JPY", "GBP", "AUD", "EUR", "USD"}},
 //     {"BTC", {"JPY", "GBP", "AUD", "USDT", "EUR", "USD"}},
@@ -71,13 +79,13 @@ static const std::unordered_map<string, vector<string>> pairsDict = {
 // };
 
 //1
-// const std::unordered_map<string, vector<string>> pairsDict = {
+// const std::unordered_map<string, vector<string>> currencyPairsDict = {
 //     {"ETH", {"USD"}},
 // };
 
 
 void createExchangeRatesMatrix() {
-    for (const auto& [key, vals] : pairsDict) {
+    for (const auto& [key, vals] : currencyPairsDict) {
         currencies.push_back(key);
         currencies.insert(currencies.end(), vals.begin(), vals.end());
     }
@@ -86,17 +94,17 @@ void createExchangeRatesMatrix() {
 
     cout << "CURRENCIES: " << endl;
     for (size_t i = 0; i < currencies.size(); ++i) {
-        symbolToIndex[currencies[i]] = i;
+        currencySymbolToIndex[currencies[i]] = i;
         cout << currencies[i] << endl;
     }
     
     int n = currencies.size();
     exchangeRatesMatrix = std::vector<std::vector<ExchangeRatePriceAndSize>>(n, std::vector<ExchangeRatePriceAndSize>(n, {0.0, 0.0}));
 
-    for (const auto& [p1, p2s] : pairsDict) {
+    for (const auto& [p1, p2s] : currencyPairsDict) {
         for (const auto& p2 : p2s) {
-            exchangeRatesMatrix[symbolToIndex[p1]][symbolToIndex[p2]].bestPrice = 1;
-            exchangeRatesMatrix[symbolToIndex[p2]][symbolToIndex[p1]].bestPrice = 1;
+            exchangeRatesMatrix[currencySymbolToIndex[p1]][currencySymbolToIndex[p2]].bestPrice = 1;
+            exchangeRatesMatrix[currencySymbolToIndex[p2]][currencySymbolToIndex[p1]].bestPrice = 1;
         }
     }
 }
@@ -137,7 +145,7 @@ vector<int> findTriangularArbitrage() {
     system_clock::time_point relaxationCompletionTimestamp = std::chrono::high_resolution_clock::now();
 
     // Cycle detection
-    vector<int> triangularArbitrageCurrencySequence(3);
+    vector<int> triangularArbitrageCurrencySequence(NUMBER_OF_ORDERS_FOR_TRIANGULAR_ARBITRAGE);
     vector<bool> seen(V, false);
     bool stop = false;
     system_clock::time_point detectionStartTimestamp = std::chrono::high_resolution_clock::now();
@@ -154,7 +162,7 @@ vector<int> findTriangularArbitrage() {
                     if (x == v || find(triangularArbitrageCycle.begin(), triangularArbitrageCycle.end(), x) != triangularArbitrageCycle.end()) break;
                 }
                 int idx = find(triangularArbitrageCycle.begin(), triangularArbitrageCycle.end(), x) - triangularArbitrageCycle.begin();
-                if (triangularArbitrageCycle.size() - idx == 3) {
+                if (triangularArbitrageCycle.size() - idx == NUMBER_OF_ORDERS_FOR_TRIANGULAR_ARBITRAGE) {
                     triangularArbitrageCycle.push_back(x);
                     triangularArbitrageCurrencySequence = vector<int>(triangularArbitrageCycle.begin() + idx, triangularArbitrageCycle.end()); 
                     reverse(triangularArbitrageCurrencySequence.begin(), triangularArbitrageCurrencySequence.end());
@@ -213,8 +221,7 @@ void changeEdgeWeight(int baseCurrencyGraphIndex, int quoteCurrencyGraphIndex, d
     g[baseCurrencyGraphIndex].emplace_back(quoteCurrencyGraphIndex, new_weight); 
 }
 
-
-void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::string>& strategyToOrderManagerQueue) {
+void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<StrategyComponentToOrderManagerQueueEntry>& strategyToOrderManagerQueue) {
     int numCores = std::thread::hardware_concurrency();
     
     if (numCores == 0) {
@@ -239,10 +246,17 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
         return;
     }
 
-    system_clock::time_point startingTimestamp = time_point<std::chrono::system_clock>::min();
+    ifstream minOrderSizesJsonFile("min-order-sizes.json");
+    nlohmann::json minOrderSizesJson;
+    minOrderSizesJsonFile >> minOrderSizesJson;
+    unordered_map<string, MinOrderSizeInfo> minOrderSizes;
+    for (auto& [currencyPair, minOrderSizeInfo] : minOrderSizesJson.items()) {
+        minOrderSizes[currencyPair] = {
+            minOrderSizeInfo["ordermin"].get<double>(),
+            minOrderSizeInfo["costmin"].get<double>()
+        };
+    }
 
-    // ThroughputMonitor throughputMonitorStrategyComponent("Strategy Component Throughput Monitor", std::chrono::high_resolution_clock::now());
-    
     createExchangeRatesMatrix();
     V = exchangeRatesMatrix.size();
     createCurrencyGraph();
@@ -259,8 +273,8 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
 
       std::string currencyPair = orderBook.getCurrencyPairSymbol();
       std::size_t baseCurrencyEndPos = currencyPair.find('/');
-      int baseCurrencyGraphIndex = symbolToIndex[currencyPair.substr(0, baseCurrencyEndPos)];
-      int quoteCurrencyGraphIndex = symbolToIndex[currencyPair.substr(baseCurrencyEndPos + 1, currencyPair.size())];
+      int baseCurrencyGraphIndex = currencySymbolToIndex[currencyPair.substr(0, baseCurrencyEndPos)];
+      int quoteCurrencyGraphIndex = currencySymbolToIndex[currencyPair.substr(baseCurrencyEndPos + 1, currencyPair.size())];
       std :: cout << bestBuyPrice << " " << bestSell.first << " " << currencyPair << std::endl;
 
       if (bestBuyPrice != exchangeRatesMatrix[baseCurrencyGraphIndex][quoteCurrencyGraphIndex].bestPrice) {
@@ -276,58 +290,96 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
       exchangeRatesMatrix[baseCurrencyGraphIndex][quoteCurrencyGraphIndex].bestPriceSize = bestBuyPriceSize;
       exchangeRatesMatrix[quoteCurrencyGraphIndex][baseCurrencyGraphIndex].bestPriceSize = bestSellPriceSize;
       
-      // printExchangeRatesMatrix(exchangeRatesMatrix);
-      // printEdgeWeights(g, weightmap);
+    //   printExchangeRatesMatrix();
+      // printEdgeWeights();
 
       vector<int> triangularArbitrageCurrencySequence = findTriangularArbitrage();
-      system_clock::time_point strategyComponentArbitrageDetectionTimestamp = high_resolution_clock::now();
-      std::string strategyComponentArbitrageDetectionTimepoint = std::to_string(duration_cast<microseconds>(strategyComponentArbitrageDetectionTimestamp.time_since_epoch()).count());
-    
-      auto exchangeUpdateTxTimestamp = time_point<high_resolution_clock>(microseconds(orderBook.getMarketUpdateExchangeTxTimestamp()));
-      std::string exchangeUpdateTxTimepoint = std::to_string(duration_cast<microseconds>(exchangeUpdateTxTimestamp.time_since_epoch()).count());  
-      if (exchangeUpdateTxTimepoint == "0")
+    //   for (auto it = triangularArbitrageCurrencySequence.begin(); it != triangularArbitrageCurrencySequence.end(); ++it) {
+    //                 std::cout << *it << " ";
+    //             }
+      if (triangularArbitrageCurrencySequence.empty())
+        continue;   
+
+      if (triangularArbitrageCurrencySequence.size() > 1 && triangularArbitrageCurrencySequence[0] == triangularArbitrageCurrencySequence[1]) { //happens for ADA/ADA
         continue;
-      system_clock::time_point bookBuilderUpdateRxTimestamp = orderBook.getFinalUpdateTimestamp();
-      std::string bookBuilderUpdateRxTimepoint = std::to_string(duration_cast<microseconds>(bookBuilderUpdateRxTimestamp.time_since_epoch()).count());
+      }          
 
+      system_clock::time_point strategyComponentArbitrageDetectionTimestamp = high_resolution_clock::now();
+      system_clock::time_point marketUpdateExchangeTimestamp = time_point<high_resolution_clock>(microseconds(orderBook.getMarketUpdateExchangeTimestamp()));
+      system_clock::time_point orderBookTimestamp = orderBook.getFinalUpdateTimestamp();
 
-      std::cout 
-      << "exchangeUpdateTxTimestamp: " << exchangeUpdateTxTimepoint
-      << "bookBuilderUpdateRxTimestamp: " << bookBuilderUpdateRxTimepoint
-      << "Exchange Update Occurence to Update Receival (ms): " << duration_cast<microseconds>(bookBuilderUpdateRxTimestamp - exchangeUpdateTxTimestamp).count() / 1000.0 << "      "
-      << "Update Receival to Arbitrage Detection (ms): " << duration_cast<microseconds>(strategyComponentArbitrageDetectionTimestamp - bookBuilderUpdateRxTimestamp).count() / 1000.0 << "      "
-      << std::endl;
-
-      //   std::cout << "CYCLE FOUND" << std::endl;  
-      // Calculate triangular arbitrage
-      double arb = 1;
+      std::string marketUpdateExchangeTimepoint = std::to_string(duration_cast<microseconds>(marketUpdateExchangeTimestamp.time_since_epoch()).count());  
+      if (marketUpdateExchangeTimepoint == "0") 
+        continue;
+      
+      bool cancelOrders = false;
+      double arbitrageProfit = 1;
+      double convertedSize;
+      StrategyComponentToOrderManagerQueueEntry orderManagerQueueEntries[NUMBER_OF_ORDERS_FOR_TRIANGULAR_ARBITRAGE];
       for (size_t i = 0; i < triangularArbitrageCurrencySequence.size() - 1; ++i) {
-          int p1 = triangularArbitrageCurrencySequence[i];
-          int p2 = triangularArbitrageCurrencySequence[i + 1];  
-          std::string orderQty = "1";    
+          int sourceCurrencyIndex = triangularArbitrageCurrencySequence[i];
+          int targetCurrencyIndex = triangularArbitrageCurrencySequence[i + 1];
+          std::string sourceCurrencySymbol = currencies[sourceCurrencyIndex];
+          std::string targetCurrencySymbol = currencies[targetCurrencyIndex];
+
           std::string orderSide;
-          std::string orderPair;
-          auto it = pairsDict.find(currencies[p1]);
-          if (it != pairsDict.end() && std::find(it->second.begin(), it->second.end(), currencies[p2]) != it->second.end()) {
+          std::string orderBookSymbol;
+          double orderSize;
+          double orderSizeRatio;
+          auto it = currencyPairsDict.find(sourceCurrencySymbol);
+          if (it != currencyPairsDict.end() && std::find(it->second.begin(), it->second.end(), targetCurrencySymbol) != it->second.end()) {
             orderSide = "Sell";
-            orderPair = currencies[p1] + "/" + currencies[p2];
+            orderBookSymbol = sourceCurrencySymbol + "/" + targetCurrencySymbol;
+            if (i == 0) 
+                orderSize = minOrderSizes.find(orderBookSymbol)->second.minOrderSizeInBaseCurrency;
+            else 
+                orderSize = convertedSize;
+            convertedSize = orderSize /*in base*/ * exchangeRatesMatrix[sourceCurrencyIndex][targetCurrencyIndex].bestPrice; /*in quote*/ 
           } else {
             orderSide = "Buy";
-            orderPair = currencies[p2] + "/" + currencies[p1];
-          }  
-          std::string order = std::string("symbol=") + orderPair + "&side=" + orderSide + "&orderQty=" + orderQty + "&ordType=Market" + exchangeUpdateTxTimepoint + bookBuilderUpdateRxTimepoint + strategyComponentArbitrageDetectionTimepoint;
-          //   std::cout << "ORDER: " << order << std::endl;
-          while (!strategyToOrderManagerQueue.push(order));  
-          arb *= exchangeRatesMatrix[p1][p2].bestPrice;
-      }  
-      arb = arb - 1;
+            orderBookSymbol = targetCurrencySymbol + "/" + sourceCurrencySymbol;
+            if (i == 0) 
+                orderSize = minOrderSizes.find(orderBookSymbol)->second.minOrderSizeInBaseCurrency;
+            else 
+                orderSize = convertedSize /*in quote*/ * exchangeRatesMatrix[sourceCurrencyIndex][targetCurrencyIndex].bestPrice /*in base*/; /*reciprocal*/
+            convertedSize = orderSize; // in base
+          }
+          
+          orderSizeRatio = orderSize / exchangeRatesMatrix[sourceCurrencyIndex][targetCurrencyIndex].bestPriceSize;  
+          if (orderSizeRatio > ORDER_SIZE_RATIO_THRESHOLD) {
+            cancelOrders = true;
+            // break;
+          }
+
+          orderManagerQueueEntries[i].order = std::string("symbol=") + orderBookSymbol + "&side=" + orderSide + "&orderQty=" + std::to_string(orderSize) + "&ordType=" + ORDER_TYPE;
+          orderManagerQueueEntries[i].strategyComponentArbitrageDetectionTimestamp = strategyComponentArbitrageDetectionTimestamp;
+          orderManagerQueueEntries[i].marketUpdateExchangeTimestamp = marketUpdateExchangeTimestamp;
+          orderManagerQueueEntries[i].orderBookTimestamp = orderBookTimestamp;
+
+          arbitrageProfit *= exchangeRatesMatrix[sourceCurrencyIndex][targetCurrencyIndex].bestPrice;
+
+          std::cout << "NEW ORDER CREATED: " << orderManagerQueueEntries[i].order << std::endl; 
+      }
+
+      if (cancelOrders || arbitrageProfit < 1.0001) 
+        continue;
+
+      for (int i = 0; i < NUMBER_OF_ORDERS_FOR_TRIANGULAR_ARBITRAGE; ++i) 
+        while (!strategyToOrderManagerQueue.push(orderManagerQueueEntries[i]));  
       
-      cout << "Currency Conversions: ";
+      cout << "Expected percentage profit for the detected triangular arbitrage: " << (arbitrageProfit - 1) * 100 << "%" << endl;
+ 
+      std::cout 
+      << "Exchange Update Occurence to Update Receival (ms): " << duration_cast<microseconds>(orderBookTimestamp - marketUpdateExchangeTimestamp).count() / 1000.0 << "      "
+      << "Update Receival to Arbitrage Detection (ms): " << duration_cast<microseconds>(strategyComponentArbitrageDetectionTimestamp - orderBookTimestamp).count() / 1000.0 << "      "
+      << std::endl;
+
+      std::cout << "TRIANGULAR ARBITRAGE OPPORTUNITY FOUND" << std::endl;  
+      cout << "Currency conversions for triangular arbitrage opportunity: ";
       for (int currency : triangularArbitrageCurrencySequence) {
           cout << currency << " ";
       }
       cout << endl;
-      cout << "% Return: " << arb * 100 << "%" << endl << endl;
     }
 }
 #elif defined(USE_BITMEX_EXCHANGE) || defined(USE_BITMEX_MOCK_EXCHANGE)
@@ -412,8 +464,8 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
             addEdge(baseCurrencyGraphIndex, quoteCurrencyGraphIndex, bestBuyPrice);
             addEdge(quoteCurrencyGraphIndex, baseCurrencyGraphIndex, 1.0 / bestSellPrice);
             std::pair<double, double> returns = findTriangularArbitrage();
-            double firstDirectionReturnsAfterFees = returns.first * std::pow(0.99925, 3);
-            double secondDirectionReturnsAfterFees = returns.second * std::pow(0.99925, 3);
+            double firstDirectionReturnsAfterFees = returns.first * std::pow(0.99925, NUMBER_OF_ORDERS_FOR_TRIANGULAR_ARBITRAGE);
+            double secondDirectionReturnsAfterFees = returns.second * std::pow(0.99925, NUMBER_OF_ORDERS_FOR_TRIANGULAR_ARBITRAGE);
             // std::cout << symbol << " - Best Sell: " << bestSellPrice << " Best Buy: " << bestBuyPrice << std::endl;
 
             system_clock::time_point strategyComponentArbitrageDetectionTimestamp = high_resolution_clock::now();
@@ -425,14 +477,11 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::strin
             system_clock::time_point bookBuilderUpdateRxTimestamp = orderBook.getFinalUpdateTimestamp();
             std::string bookBuilderUpdateRxTimepoint = std::to_string(duration_cast<microseconds>(bookBuilderUpdateRxTimestamp.time_since_epoch()).count());
 
-            std::cout << "XBT->USDT->ETH->XBT: " << firstDirectionReturnsAfterFees << "      "
-                        << "XBT->ETH->USDT->XBT: " << secondDirectionReturnsAfterFees << "      "
-                        << "Exchange Update Occurence to Update Receival (ms): " << duration_cast<microseconds>(bookBuilderUpdateRxTimestamp - exchangeUpdateTxTimestamp).count() / 1000.0 << "      "
-                        << "Update Receival to Arbitrage Detection (ms): " << duration_cast<microseconds>(strategyComponentArbitrageDetectionTimestamp - bookBuilderUpdateRxTimestamp).count() / 1000.0 << "      "
-
-                        // << "Exch. Ts.: " << updateExchangeTimestamp << "      "
-                        // << "Rec. Ts.: " << std::to_string(duration_cast<microseconds>(updateReceiveTimepoint.time_since_epoch()).count()) << "      "
-                        // << "Strat. Ts.: " << strategyTimepoint
+            std::cout 
+            << "XBT->USDT->ETH->XBT: " << firstDirectionReturnsAfterFees << "      "
+            << "XBT->ETH->USDT->XBT: " << secondDirectionReturnsAfterFees << "      "
+            << "Exchange Update Occurence to Update Receival (ms): " << duration_cast<microseconds>(bookBuilderUpdateRxTimestamp - exchangeUpdateTxTimestamp).count() / 1000.0 << "      "
+            << "Update Receival to Arbitrage Detection (ms): " << duration_cast<microseconds>(strategyComponentArbitrageDetectionTimestamp - bookBuilderUpdateRxTimestamp).count() / 1000.0 << "      "
             << std::endl;
 
             if (outFile.is_open()) {

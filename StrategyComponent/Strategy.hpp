@@ -12,6 +12,7 @@
 #include <iomanip>
 #include <fstream>
 #include <algorithm>
+#include <nlohmann/json.hpp>
 
 #include "../BookBuilder/OrderBook/OrderBook.hpp"
 #include "../SPSCQueue/SPSCQueue.hpp"
@@ -24,7 +25,6 @@ using namespace std;
 
 void createExchangeRatesMatrix();
 vector<int> findTriangularArbitrage();
-double calculateTriangularArbitrageReturn(const vector<int>& cycle, const vector<vector<double>>& adjMatrix);
-void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<std::string>& strategyToOrderManagerQueue);
+void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<StrategyComponentToOrderManagerQueueEntry>& strategyToOrderManagerQueue);
 
 #endif // STRATEGY_HPP
