@@ -22,10 +22,10 @@
 SSL_CTX *ctx;
 
 #define RX_DEFAULT_BUF_SIZE 8192
-#define BATCH_SIZE 3
+#define ARBITRAGE_BATCH_SIZE 3
 #define EVP_MAX_MD_SIZE 64
 
-char *api_get_signature(const char *decodedKey, int decodedKeyLen, const char *msg, int msgLen) {
+char *generateBitmexApiSignature(const char *decodedKey, int decodedKeyLen, const char *msg, int msgLen) {
     unsigned char hash[EVP_MAX_MD_SIZE];
     unsigned int hashLen;
 
@@ -53,6 +53,72 @@ char *api_get_signature(const char *decodedKey, int decodedKeyLen, const char *m
     return result;
 }
 
+std::string generateNonce() {
+    auto now = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch());
+    long long microsecondsSinceEpoch = duration.count();
+    return std::to_string(microsecondsSinceEpoch);
+}
+
+std::vector<unsigned char> base64Decode(const std::string &in) {
+    BIO *bio, *b64;
+    int decodeLen = in.size();
+    std::vector<unsigned char> out(decodeLen);
+
+    bio = BIO_new_mem_buf(in.data(), in.size());
+    b64 = BIO_new(BIO_f_base64());
+    BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
+    bio = BIO_push(b64, bio);
+
+    decodeLen = BIO_read(bio, out.data(), in.size());
+    out.resize(decodeLen);
+
+    BIO_free_all(bio);
+    return out;
+}
+
+std::vector<unsigned char> sha256(const std::string &data) {
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    SHA256_CTX sha256;
+    SHA256_Init(&sha256);
+    SHA256_Update(&sha256, data.c_str(), data.size());
+    SHA256_Final(hash, &sha256);
+
+    return std::vector<unsigned char>(hash, hash + SHA256_DIGEST_LENGTH);
+}
+
+std::vector<unsigned char> hmacSha512(const std::vector<unsigned char> &key, const std::string &data) {
+    unsigned char* hmac = HMAC(EVP_sha512(), key.data(), key.size(),
+                               reinterpret_cast<const unsigned char*>(data.c_str()), data.size(), NULL, NULL);
+
+    return std::vector<unsigned char>(hmac, hmac + SHA512_DIGEST_LENGTH);
+}
+
+std::string base64Encode(const std::vector<unsigned char> &data) {
+    BIO *bio, *b64;
+    BUF_MEM *bufferPtr;
+    bio = BIO_new(BIO_s_mem());
+    b64 = BIO_new(BIO_f_base64());
+    BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
+    bio = BIO_push(b64, bio);
+    BIO_write(bio, data.data(), data.size());
+    BIO_flush(bio);
+    BIO_get_mem_ptr(bio, &bufferPtr);
+    std::string base64encoded(bufferPtr->data, bufferPtr->length);
+    BIO_free_all(bio);
+    return base64encoded;
+}
+
+std::string generateKrakenApiSignature(const std::string &uriPath, const std::string &nonce, const std::string &postData, const std::string &secretKey) {
+    std::string noncePostData = nonce + postData;
+    std::vector<unsigned char> sha256Hash = sha256(noncePostData);
+    std::string data = uriPath + std::string(reinterpret_cast<char*>(sha256Hash.data()), sha256Hash.size());
+    std::vector<unsigned char> decoded_key = base64Decode(secretKey);
+    std::vector<unsigned char> hmac = hmacSha512(decoded_key, data);
+    return base64Encode(hmac);
+}
+
+
 void handle_error(const char *file, int lineno, const char *msg) {
     fprintf(stderr, "** %s:%i %s\n", file, lineno, msg);
     ERR_print_errors_fp(stderr);
@@ -73,9 +139,9 @@ void print_unencrypted_data(char *buf, size_t len) {
 /* An instance of this object is created each time a client connection is
  * accepted. It stores the client file descriptor, the SSL objects, and data
  * which is waiting to be either written to socket or encrypted. */
-struct ssl_client
+struct OrderManagerClient
 {
-    int fd;
+    int sockfd;
 
     SSL *ssl;
 
@@ -85,8 +151,8 @@ struct ssl_client
     /* Bytes waiting to be written to socket. This is data that has been generated
      * by the SSL object, either due to encryption of user input, or, writes
      * requires due to peer-requested SSL renegotiation. */
-    char* write_buf;
-    size_t write_len;
+    char* writeBuffer;
+    size_t writeLen;
 
     /* Bytes waiting to be encrypted by the SSL object. */
     char* encrypt_buf;
@@ -106,13 +172,13 @@ struct ssl_client
 enum ssl_mode { SSLMODE_SERVER, SSLMODE_CLIENT };
 
 
-void ssl_client_init(struct ssl_client *p,
-                     int fd,
+void ssl_client_init(struct OrderManagerClient *p,
+                     int sockfd,
                      enum ssl_mode mode)
 {
-    memset(p, 0, sizeof(struct ssl_client));
+    memset(p, 0, sizeof(struct OrderManagerClient));
 
-    p->fd = fd;
+    p->sockfd = sockfd;
 
     p->rbio = BIO_new(BIO_s_mem());
     p->wbio = BIO_new(BIO_s_mem());
@@ -129,16 +195,16 @@ void ssl_client_init(struct ssl_client *p,
 }
 
 
-void ssl_client_cleanup(struct ssl_client *p)
+void ssl_client_cleanup(struct OrderManagerClient *p)
 {
     SSL_free(p->ssl);   /* free the SSL object and its BIO's */
-    free(p->write_buf);
+    free(p->writeBuffer);
     free(p->encrypt_buf);
 }
 
 
-int ssl_client_want_write(struct ssl_client *cp) {
-    return (cp->write_len>0);
+int ssl_client_want_write(struct OrderManagerClient *cp) {
+    return (cp->writeLen>0);
 }
 
 
@@ -167,7 +233,7 @@ static enum sslstatus get_sslstatus(SSL* ssl, int n)
 /* Handle request to send unencrypted data to the SSL.  All we do here is just
  * queue the data into the encrypt_buf for later processing by the SSL
  * object. */
-void send_unencrypted_bytes(struct ssl_client *client, const char *buf, size_t len)
+void send_unencrypted_bytes(struct OrderManagerClient *client, const char *buf, size_t len)
 {
     client->encrypt_buf = (char*)realloc(client->encrypt_buf, client->encrypt_len + len);
     memcpy(client->encrypt_buf+client->encrypt_len, buf, len);
@@ -177,15 +243,15 @@ void send_unencrypted_bytes(struct ssl_client *client, const char *buf, size_t l
 
 /* Queue encrypted bytes. Should only be used when the SSL object has requested a
  * write operation. */
-void queue_encrypted_bytes(struct ssl_client *client, const char *buf, size_t len)
+void queue_encrypted_bytes(struct OrderManagerClient *client, const char *buf, size_t len)
 {
-    client->write_buf = (char*)realloc(client->write_buf, client->write_len + len);
-    memcpy(client->write_buf+client->write_len, buf, len);
-    client->write_len += len;
+    client->writeBuffer = (char*)realloc(client->writeBuffer, client->writeLen + len);
+    memcpy(client->writeBuffer+client->writeLen, buf, len);
+    client->writeLen += len;
 }
 
 
-void print_ssl_state(struct ssl_client *client)
+void print_ssl_state(struct OrderManagerClient *client)
 {
     const char * current_state = SSL_state_string_long(client->ssl);
     if (current_state != client->last_state) {
@@ -208,7 +274,7 @@ void print_ssl_error()
 }
 
 
-enum sslstatus do_ssl_handshake(struct ssl_client *client)
+enum sslstatus do_ssl_handshake(struct OrderManagerClient *client)
 {
     printf("DOING SSL HANDSHAKE\n");
     char buf[RX_DEFAULT_BUF_SIZE];
@@ -234,7 +300,7 @@ enum sslstatus do_ssl_handshake(struct ssl_client *client)
 
 /* Process SSL bytes received from the peer. The data needs to be fed into the
    SSL object to be unencrypted.  On success, returns 0, on SSL error -1. */
-int on_read_cb(struct ssl_client *client, char* src, size_t len, bool is_handshake)
+int on_read_cb(struct OrderManagerClient *client, char* src, size_t len, bool is_handshake)
 {
     // printf("£££££££££££££££££££££££££££££");
     char buf[RX_DEFAULT_BUF_SIZE];
@@ -301,7 +367,7 @@ int on_read_cb(struct ssl_client *client, char* src, size_t len, bool is_handsha
  * waiting data resides in encrypt_buf.  It needs to be passed into the SSL
  * object for encryption, which in turn generates the encrypted bytes that then
  * will be queued for later socket write. */
-int do_encrypt(struct ssl_client *client)
+int do_encrypt(struct OrderManagerClient *client)
 {
     char buf[RX_DEFAULT_BUF_SIZE];
     enum sslstatus status;
@@ -340,10 +406,10 @@ int do_encrypt(struct ssl_client *client)
 }
 
 /* Read encrypted bytes from socket. */
-int do_sock_read(struct ssl_client *client, bool is_handshake)
+int do_sock_read(struct OrderManagerClient *client, bool is_handshake)
 {
     char buf[RX_DEFAULT_BUF_SIZE];
-    ssize_t n = read(client->fd, buf, sizeof(buf));
+    ssize_t n = read(client->sockfd, buf, sizeof(buf));
 
     if (n>0)
         return on_read_cb(client, buf, (size_t)n, is_handshake);
@@ -351,21 +417,20 @@ int do_sock_read(struct ssl_client *client, bool is_handshake)
         return -1;
 }
 
-int do_sock_write(struct ssl_client *client)
+int do_sock_write(struct OrderManagerClient *client)
 {
-    ssize_t n = write(client->fd, client->write_buf, client->write_len);
+    ssize_t n = write(client->sockfd, client->writeBuffer, client->writeLen);
 
     if (n>0) {
-        if ((size_t)n<client->write_len)
-            memmove(client->write_buf, client->write_buf+n, client->write_len-n);
-        client->write_len -= n;
-        client->write_buf = (char*)realloc(client->write_buf, client->write_len);
+        if ((size_t)n<client->writeLen)
+            memmove(client->writeBuffer, client->writeBuffer+n, client->writeLen-n);
+        client->writeLen -= n;
+        client->writeBuffer = (char*)realloc(client->writeBuffer, client->writeLen);
         return 0;
     }
     else
         return -1;
 }
-
 
 void ssl_init(const char * certfile, const char* keyfile)
 {
@@ -404,14 +469,6 @@ void ssl_init(const char * certfile, const char* keyfile)
 
     // Enable session caching
     SSL_CTX_set_session_cache_mode(ctx, SSL_SESS_CACHE_CLIENT | SSL_SESS_CACHE_NO_INTERNAL);
-}
-
-void print_sq_poll_kernel_thread_status() {
-
-    if (system("ps --ppid 2 | grep io_uring-sq" ) == 0)
-        printf("Kernel thread io_uring-sq found running...\n");
-    else
-        printf("Kernel thread io_uring-sq is not running.\n");
 }
 
 using namespace rapidjson;

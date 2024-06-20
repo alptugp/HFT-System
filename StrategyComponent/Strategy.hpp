@@ -1,4 +1,4 @@
-// shared.h
+// Strategy.hpp
 #ifndef STRATEGY_HPP
 #define STRATEGY_HPP
 
@@ -13,8 +13,9 @@
 #include <fstream>
 #include <algorithm>
 #include <nlohmann/json.hpp>
+#include <tuple>
 
-#include "../BookBuilder/OrderBook/OrderBook.hpp"
+#include "../OrderBook/OrderBook.hpp"
 #include "../SPSCQueue/SPSCQueue.hpp"
 #include "../Utils/Utils.hpp"
 #include "../Utils/ThroughputMonitor/ThroughputMonitor.hpp"
@@ -23,8 +24,6 @@
 using namespace std::chrono;
 using namespace std;
 
-void createExchangeRatesMatrix();
-vector<int> findTriangularArbitrage();
 void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<StrategyComponentToOrderManagerQueueEntry>& strategyToOrderManagerQueue);
 
 #endif // STRATEGY_HPP

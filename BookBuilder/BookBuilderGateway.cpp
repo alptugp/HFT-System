@@ -7,7 +7,7 @@
 #include <liburing.h>
 #include <fstream>
 #include <sys/socket.h>
-#include "./OrderBook/OrderBook.hpp"
+#include "../OrderBook/OrderBook.hpp"
 #include "../SPSCQueue/SPSCQueue.hpp"
 #include "../Utils/Utils.hpp"
 
@@ -16,24 +16,26 @@
 #define NUMBER_OF_IO_URING_SQ_ENTRIES 256
 #define WEBSOCKET_CLIENT_RX_BUFFER_SIZE 16378
 
-#define NUMBER_OF_CONNECTIONS 115
-
 using namespace std::chrono;
 
-#if defined(USE_BITMEX_EXCHANGE) || defined(USE_BITMEX_MOCK_EXCHANGE)  
-static const std::vector<std::string> currencyPairs_ = {"XBTETH", "XBTUSDT", "ETHUSDT"};
+#if defined(USE_BITMEX_EXCHANGE) || defined(USE_BITMEX_MOCK_EXCHANGE) || defined(USE_BITMEX_TESTNET_EXCHANGE)
+    #define NUMBER_OF_CONNECTIONS 3
+    static const std::vector<std::string> currencyPairs_ = {"XBTUSDT", "XBTETH", "ETHUSDT"};
 #elif defined(USE_KRAKEN_EXCHANGE) || defined(USE_KRAKEN_MOCK_EXCHANGE)  
-//115:
-static const std::vector<std::string> currencyPairs_ = { "KSM/EUR","KSM/BTC","KSM/DOT","KSM/GBP","KSM/ETH","KSM/USD","GBP/USD","BTC/CAD","BTC/EUR","BTC/AUD","BTC/JPY","BTC/GBP","BTC/CHF","BTC/USDT","BTC/USD","BTC/USDC","LTC/EUR","LTC/BTC","LTC/AUD","LTC/JPY","LTC/GBP","LTC/ETH","LTC/USDT","LTC/USD","SOL/EUR","SOL/BTC","SOL/GBP","SOL/ETH","SOL/USDT","SOL/USD","DOT/EUR","DOT/BTC","DOT/JPY","DOT/GBP","DOT/ETH","DOT/USDT","DOT/USD","ETH/CAD","ETH/EUR","ETH/BTC","ETH/AUD","ETH/JPY","ETH/GBP","ETH/CHF","ETH/USDT","ETH/USD","ETH/USDC","LINK/EUR","LINK/BTC","LINK/AUD","LINK/JPY","LINK/GBP","LINK/ETH","LINK/USDT","LINK/USD","USDC/CAD","USDC/EUR","USDC/AUD","USDC/GBP","USDC/CHF","USDC/USDT","USDC/USD","ADA/EUR","ADA/BTC","ADA/AUD","ADA/GBP","ADA/ETH","ADA/USDT","ADA/USD","ATOM/EUR","ATOM/BTC","ATOM/GBP","ATOM/ETH","ATOM/USDT","ATOM/USD","USDT/EUR","USDT/AUD","USDT/JPY","USDT/GBP","USDT/CHF","USDT/USD","USDT/CAD","AUD/JPY","AUD/USD","XRP/CAD","XRP/EUR","XRP/BTC","XRP/AUD","XRP/GBP","XRP/ETH","XRP/USDT","XRP/USD","EUR/CAD","EUR/AUD","EUR/JPY","EUR/GBP","EUR/CHF","EUR/USD","BCH/EUR","BCH/BTC","BCH/AUD","BCH/JPY","BCH/GBP","BCH/ETH","BCH/USDT","BCH/USD","USD/CHF","USD/JPY","USD/CAD","ALGO/EUR","ALGO/BTC","ALGO/GBP","ALGO/ETH","ALGO/USDT","ALGO/USD", };
-//85:
-// static const std::vector<std::string> currencyPairs_ = { "BCH/USD","BCH/BTC","BCH/EUR","BCH/AUD","BCH/GBP","BCH/ETH","BCH/USDT","BCH/JPY","BTC/USD","BTC/EUR","BTC/USDC","BTC/AUD","BTC/GBP","BTC/CAD","BTC/USDT","BTC/JPY","USD/CAD","USD/JPY","XRP/USD","XRP/BTC","XRP/EUR","XRP/AUD","XRP/GBP","XRP/ETH","XRP/CAD","XRP/USDT","EUR/USD","EUR/AUD","EUR/GBP","EUR/CAD","EUR/JPY","LTC/USD","LTC/EUR","LTC/BTC","LTC/AUD","LTC/GBP","LTC/ETH","LTC/USDT","LTC/JPY","ETH/USD","ETH/EUR","ETH/BTC","ETH/USDC","ETH/AUD","ETH/GBP","ETH/CAD","ETH/USDT","ETH/JPY","LINK/USD","LINK/BTC","LINK/EUR","LINK/AUD","LINK/GBP","LINK/ETH","LINK/USDT","LINK/JPY","ADA/USD","ADA/BTC","ADA/EUR","ADA/AUD","ADA/GBP","ADA/ETH","ADA/USDT","USDC/USD","USDC/EUR","USDC/AUD","USDC/GBP","USDC/CAD","USDC/USDT","GBP/USD","DOT/USD","DOT/BTC","DOT/EUR","DOT/GBP","DOT/ETH","DOT/USDT","DOT/JPY","USDT/USD","USDT/EUR","USDT/AUD","USDT/GBP","USDT/CAD","USDT/JPY","AUD/USD","AUD/JPY", };
-//50:
-// static const std::vector<std::string> currencyPairs_ = { "BCH/JPY","BCH/ETH","BCH/GBP","BCH/AUD","BCH/BTC","BCH/USDT","BCH/EUR","BCH/USD","USDT/JPY","USDT/GBP","USDT/AUD","USDT/EUR","USDT/USD","BTC/JPY","BTC/GBP","BTC/AUD","BTC/USDT","BTC/EUR","BTC/USD","EUR/GBP","EUR/JPY","EUR/AUD","EUR/USD","ETH/JPY","ETH/EUR","ETH/AUD","ETH/BTC","ETH/USDT","ETH/GBP","ETH/USD","USD/JPY","LINK/JPY","LINK/ETH","LINK/EUR","LINK/AUD","LINK/BTC","LINK/USDT","LINK/GBP","LINK/USD","LTC/JPY","LTC/ETH","LTC/GBP","LTC/AUD","LTC/BTC","LTC/USDT","LTC/EUR","LTC/USD","GBP/USD","AUD/JPY","AUD/USD", };
-//1
-// static const std::vector<std::string> currencyPairs_ = {"ETH/USD"};
-
+  #if defined(USE_PORTFOLIO_122)
+    #define NUMBER_OF_CONNECTIONS 122
+    static const std::vector<std::string> currencyPairs_ = {"KSM/EUR","KSM/BTC","KSM/DOT","KSM/GBP","KSM/ETH","KSM/USD","GBP/USD","BTC/CAD","BTC/EUR","BTC/AUD","BTC/JPY","BTC/GBP","BTC/CHF","BTC/USDT","BTC/USD","BTC/USDC","LTC/EUR","LTC/BTC","LTC/AUD","LTC/JPY","LTC/GBP","LTC/ETH","LTC/USDT","LTC/USD","SOL/EUR","SOL/BTC","SOL/GBP","SOL/ETH","SOL/USDT","SOL/USD","DOT/EUR","DOT/BTC","DOT/JPY","DOT/GBP","DOT/ETH","DOT/USDT","DOT/USD","ETH/CAD","ETH/EUR","ETH/BTC","ETH/AUD","ETH/JPY","ETH/GBP","ETH/CHF","ETH/USDT","ETH/USD","ETH/USDC","LINK/EUR","LINK/BTC","LINK/AUD","LINK/JPY","LINK/GBP","LINK/ETH","LINK/USDT","LINK/USD","USDC/CAD","USDC/EUR","USDC/AUD","USDC/GBP","USDC/CHF","USDC/USDT","USDC/USD","ADA/EUR","ADA/BTC","ADA/AUD","ADA/GBP","ADA/ETH","ADA/USDT","ADA/USD","ATOM/EUR","ATOM/BTC","ATOM/GBP","ATOM/ETH","ATOM/USDT","ATOM/USD","USDT/EUR","USDT/AUD","USDT/JPY","USDT/GBP","USDT/CHF","USDT/USD","USDT/CAD","AUD/JPY","AUD/USD","XRP/CAD","XRP/EUR","XRP/BTC","XRP/AUD","XRP/GBP","XRP/ETH","XRP/USDT","XRP/USD","EUR/CAD","EUR/AUD","EUR/JPY","EUR/GBP","EUR/CHF","EUR/USD","BCH/EUR","BCH/BTC","BCH/AUD","BCH/JPY","BCH/GBP","BCH/ETH","BCH/USDT","BCH/USD","USD/CHF","USD/JPY","USD/CAD","ALGO/EUR","ALGO/BTC","ALGO/GBP","ALGO/ETH","ALGO/USDT","ALGO/USD", };
+  #elif defined(USE_PORTFOLIO_92)
+    #define NUMBER_OF_CONNECTIONS 92
+    static const std::vector<std::string> currencyPairs_ = {"BCH/USD","BCH/BTC","BCH/EUR","BCH/AUD","BCH/GBP","BCH/ETH","BCH/USDT","BCH/JPY","BTC/USD","BTC/EUR","BTC/USDC","BTC/AUD","BTC/GBP","BTC/CAD","BTC/USDT","BTC/JPY","USD/CAD","USD/JPY","XRP/USD","XRP/BTC","XRP/EUR","XRP/AUD","XRP/GBP","XRP/ETH","XRP/CAD","XRP/USDT","EUR/USD","EUR/AUD","EUR/GBP","EUR/CAD","EUR/JPY","LTC/USD","LTC/EUR","LTC/BTC","LTC/AUD","LTC/GBP","LTC/ETH","LTC/USDT","LTC/JPY","ETH/USD","ETH/EUR","ETH/BTC","ETH/USDC","ETH/AUD","ETH/GBP","ETH/CAD","ETH/USDT","ETH/JPY","LINK/USD","LINK/BTC","LINK/EUR","LINK/AUD","LINK/GBP","LINK/ETH","LINK/USDT","LINK/JPY","ADA/USD","ADA/BTC","ADA/EUR","ADA/AUD","ADA/GBP","ADA/ETH","ADA/USDT","USDC/USD","USDC/EUR","USDC/AUD","USDC/GBP","USDC/CAD","USDC/USDT","GBP/USD","DOT/USD","DOT/BTC","DOT/EUR","DOT/GBP","DOT/ETH","DOT/USDT","DOT/JPY","USDT/USD","USDT/EUR","USDT/AUD","USDT/GBP","USDT/CAD","USDT/JPY","AUD/USD","AUD/JPY", };
+  #elif defined(USE_PORTFOLIO_50)
+    #define NUMBER_OF_CONNECTIONS 50
+    static const std::vector<std::string> currencyPairs_ = {"BCH/JPY","BCH/ETH","BCH/GBP","BCH/AUD","BCH/BTC","BCH/USDT","BCH/EUR","BCH/USD","USDT/JPY","USDT/GBP","USDT/AUD","USDT/EUR","USDT/USD","BTC/JPY","BTC/GBP","BTC/AUD","BTC/USDT","BTC/EUR","BTC/USD","EUR/GBP","EUR/JPY","EUR/AUD","EUR/USD","ETH/JPY","ETH/EUR","ETH/AUD","ETH/BTC","ETH/USDT","ETH/GBP","ETH/USD","USD/JPY","LINK/JPY","LINK/ETH","LINK/EUR","LINK/AUD","LINK/BTC","LINK/USDT","LINK/GBP","LINK/USD","LTC/JPY","LTC/ETH","LTC/GBP","LTC/AUD","LTC/BTC","LTC/USDT","LTC/EUR","LTC/USD","GBP/USD","AUD/JPY","AUD/USD", };
+  #elif defined(USE_PORTFOLIO_3)
+    #define NUMBER_OF_CONNECTIONS 3
+    static const std::vector<std::string> currencyPairs_ = {"USDT/USD", "SOL/USDT", "SOL/USD"};
+  #endif
 #endif
-
 
 static SPSCQueue<BookBuilderGatewayToComponentQueueEntry>* bookBuilderGatewayToComponentQueue;
 // ThroughputMonitor* updateThroughputMonitor = nullptr; 
@@ -105,32 +107,9 @@ bookBuilderLwsCallback(struct lws *wsi, enum lws_callback_reasons reason,
             lwsl_user("%s: established\n", __func__);
 #ifndef USE_KRAKEN_MOCK_EXCHANGE
 #ifndef USE_BITMEX_MOCK_EXCHANGE
-            // Send subscription message 
-    #ifdef USE_BITMEX_EXCHANGE   
-            std::string currencyPair = currencyPairs[connectionIdx];
-            
-            std::string subscriptionMessage = R"({"op":"subscribe","args":["orderBookL2_25:")" + currencyPair + "\"]}";
-            // Allocate buffer with LWS_PRE bytes before the data
-            unsigned char buf[LWS_PRE + subscriptionMessage.size()];
-
-            // Copy subscription message to buffer after LWS_PRE bytes
-            memcpy(&buf[LWS_PRE], subscriptionMessage.c_str(), subscriptionMessage.size());
-                    
-            // Send data using lws_write
-            lws_write(wsi, &buf[LWS_PRE], subscriptionMessage.size(), LWS_WRITE_TEXT);
-
-            // for (const std::string& currencyPair : currencyPairs_) { 
-            //         std::string subscriptionMessage = "{\"op\":\"subscribe\",\"args\":[\"orderBookL2_25:" + currencyPair + "\"]}";
-            //         // Allocate buffer with LWS_PRE bytes before the data
-            //         unsigned char buf[LWS_PRE + subscriptionMessage.size()];
-
-            //         // Copy subscription message to buffer after LWS_PRE bytes
-            //         memcpy(&buf[LWS_PRE], subscriptionMessage.c_str(), subscriptionMessage.size());
-                    
-            //         // Send data using lws_write
-            //         lws_write(wsi, &buf[LWS_PRE], subscriptionMessage.size(), LWS_WRITE_TEXT);
-            // }
-            
+    #if defined(USE_BITMEX_EXCHANGE) || defined(USE_BITMEX_TESTNET_EXCHANGE)
+            std::string currencyPair = currencyPairs_[connectionIdx];
+            std::string subscriptionMessage = "{\"op\":\"subscribe\",\"args\":[\"orderBookL2_25:" + currencyPair + "\"]}";
     #elif defined(USE_KRAKEN_EXCHANGE)
             std::string subscriptionMessage = R"({
                                                 "method": "subscribe",
@@ -139,32 +118,22 @@ bookBuilderLwsCallback(struct lws *wsi, enum lws_callback_reasons reason,
                                                     "depth": 10,
                                                     "snapshot": true,
                                                     "symbol": [)";
-
             subscriptionMessage += "\"" + currencyPairs_[connectionIdx] + "\"";
-            // for (size_t i = 0; i < currencyPairs_.size(); ++i) {
-            //     std::cout << currencyPairs_[i] << std::endl;
-            //     subscriptionMessage += "\"" + currencyPairs_[i] + "\"";
-            //     if (i < currencyPairs_.size() - 1) {
-            //         subscriptionMessage += ",";
-            //     }
-            // }
-            // std::cout << "aaaa" << std::endl;
-
             subscriptionMessage += R"(]
                                         },
                                         "req_id": 1234567890
                                         }
                                     )";
-
+    #endif
+            // Allocate buffer with LWS_PRE bytes before the data
             unsigned char buf[LWS_PRE + subscriptionMessage.size()];
 
             // Copy subscription message to buffer after LWS_PRE bytes
             memcpy(&buf[LWS_PRE], subscriptionMessage.c_str(), subscriptionMessage.size());
-
+                    
             // Send data using lws_write
             lws_write(wsi, &buf[LWS_PRE], subscriptionMessage.size(), LWS_WRITE_TEXT);
             
-    #endif
 #endif
 #endif
 			interrupted[connectionIdx] = 1;
@@ -381,6 +350,10 @@ void bookBuilderGateway(SPSCQueue<BookBuilderGatewayToComponentQueueEntry>& book
 #elif defined(USE_BITMEX_EXCHANGE)
     i.port = 443;
 	i.address = "ws.bitmex.com";
+    i.path = "/realtime";
+#elif defined(USE_BITMEX_TESTNET_EXCHANGE)
+    i.port = 443;
+	i.address = "testnet.bitmex.com";
     i.path = "/realtime";
 #endif
     i.ssl_connection = i.ssl_connection | LCCSCF_USE_SSL | LCCSCF_PRIORITIZE_READS;

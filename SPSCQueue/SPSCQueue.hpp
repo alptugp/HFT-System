@@ -1,14 +1,24 @@
 #pragma once
 
+/*
+ * SPSCQueue.h
+ *
+ * This file contains the implementation of a single-producer single-consumer queue (SPSCQueue).
+ * The original implementation is by Erik Rigtorp, available at:
+ * https://github.com/rigtorp/SPSCQueue
+ * 
+ * License: MIT License (see LICENSE file in the project root for details)
+ *
+ * Author: Erik Rigtorp
+ * GitHub: https://github.com/rigtorp
+*/
+
 #include <atomic>
 #include <iostream>
 #include <thread>
 #include <vector>
 
 static constexpr int CACHELINE_SIZE = 64;
-
-// Single Producer Single Consumer Ringbuffer Queue
-// https://rigtorp.se/ringbuffer/
 
 template <typename T> 
 struct SPSCQueue {

@@ -1,0 +1,2786 @@
+{
+    "1INCH/EUR": {
+        "ordermin": 11.0,
+        "costmin": 0.45
+    },
+    "1INCH/USD": {
+        "ordermin": 11.0,
+        "costmin": 0.5
+    },
+    "AAVE/ETH": {
+        "ordermin": 0.05,
+        "costmin": 0.0002
+    },
+    "AAVE/EUR": {
+        "ordermin": 0.05,
+        "costmin": 0.45
+    },
+    "XBTUSDT": {
+        "ordermin": 0.001,
+        "costmin": 0.01
+    },
+    "ETHUSDT": {
+        "ordermin": 0.01,
+        "costmin": 0.01
+    },
+    "XBTETH": {
+        "ordermin": 0.01,
+        "costmin": 0.01
+    },
+    "AAVE/GBP": {
+        "ordermin": 0.05,
+        "costmin": 0.43
+    },
+    "AAVE/USD": {
+        "ordermin": 0.05,
+        "costmin": 0.5
+    },
+    "AAVE/BTC": {
+        "ordermin": 0.05,
+        "costmin": 2e-05
+    },
+    "ACA/EUR": {
+        "ordermin": 40.0,
+        "costmin": 0.45
+    },
+    "ACA/USD": {
+        "ordermin": 40.0,
+        "costmin": 0.5
+    },
+    "ACH/EUR": {
+        "ordermin": 250.0,
+        "costmin": 0.45
+    },
+    "ACH/USD": {
+        "ordermin": 250.0,
+        "costmin": 0.5
+    },
+    "ADA/AUD": {
+        "ordermin": 10.0,
+        "costmin": 1.0
+    },
+    "ADA/ETH": {
+        "ordermin": 10.0,
+        "costmin": 0.0002
+    },
+    "ADA/EUR": {
+        "ordermin": 10.0,
+        "costmin": 0.45
+    },
+    "ADA/GBP": {
+        "ordermin": 10.0,
+        "costmin": 0.43
+    },
+    "ADA/USD": {
+        "ordermin": 10.0,
+        "costmin": 0.5
+    },
+    "ADA/USDT": {
+        "ordermin": 10.0,
+        "costmin": 0.5
+    },
+    "ADA/BTC": {
+        "ordermin": 10.0,
+        "costmin": 2e-05
+    },
+    "ADX/EUR": {
+        "ordermin": 27.0,
+        "costmin": 0.45
+    },
+    "ADX/USD": {
+        "ordermin": 27.0,
+        "costmin": 0.5
+    },
+    "AEVO/EUR": {
+        "ordermin": 10.0,
+        "costmin": 0.45
+    },
+    "AEVO/USD": {
+        "ordermin": 10.0,
+        "costmin": 0.5
+    },
+    "AGLD/EUR": {
+        "ordermin": 4.0,
+        "costmin": 0.45
+    },
+    "AGLD/USD": {
+        "ordermin": 4.0,
+        "costmin": 0.5
+    },
+    "AIR/EUR": {
+        "ordermin": 300.0,
+        "costmin": 0.45
+    },
+    "AIR/USD": {
+        "ordermin": 300.0,
+        "costmin": 0.5
+    },
+    "AKT/EUR": {
+        "ordermin": 2.0,
+        "costmin": 0.45
+    },
+    "AKT/USD": {
+        "ordermin": 2.0,
+        "costmin": 0.5
+    },
+    "ALCX/EUR": {
+        "ordermin": 0.15,
+        "costmin": 0.45
+    },
+    "ALCX/USD": {
+        "ordermin": 0.15,
+        "costmin": 0.5
+    },
+    "ALGO/ETH": {
+        "ordermin": 25.0,
+        "costmin": 0.0002
+    },
+    "ALGO/EUR": {
+        "ordermin": 25.0,
+        "costmin": 0.45
+    },
+    "ALGO/GBP": {
+        "ordermin": 25.0,
+        "costmin": 0.43
+    },
+    "ALGO/USD": {
+        "ordermin": 25.0,
+        "costmin": 0.5
+    },
+    "ALGO/USDT": {
+        "ordermin": 25.0,
+        "costmin": 0.5
+    },
+    "ALGO/BTC": {
+        "ordermin": 25.0,
+        "costmin": 2e-05
+    },
+    "ALICE/EUR": {
+        "ordermin": 4.0,
+        "costmin": 0.45
+    },
+    "ALICE/USD": {
+        "ordermin": 4.0,
+        "costmin": 0.5
+    },
+    "ALPHA/EUR": {
+        "ordermin": 50.0,
+        "costmin": 0.45
+    },
+    "ALPHA/USD": {
+        "ordermin": 50.0,
+        "costmin": 0.5
+    },
+    "ALT/EUR": {
+        "ordermin": 25.0,
+        "costmin": 0.45
+    },
+    "ALT/USD": {
+        "ordermin": 25.0,
+        "costmin": 0.5
+    },
+    "ANKR/EUR": {
+        "ordermin": 202.0,
+        "costmin": 0.45
+    },
+    "ANKR/USD": {
+        "ordermin": 202.0,
+        "costmin": 0.5
+    },
+    "ANKR/BTC": {
+        "ordermin": 202.0,
+        "costmin": 2e-05
+    },
+    "ANT/ETH": {
+        "ordermin": 1.0,
+        "costmin": 0.0002
+    },
+    "ANT/EUR": {
+        "ordermin": 1.0,
+        "costmin": 0.45
+    },
+    "ANT/USD": {
+        "ordermin": 1.0,
+        "costmin": 0.5
+    },
+    "ANT/BTC": {
+        "ordermin": 1.0,
+        "costmin": 2e-05
+    },
+    "APE/EUR": {
+        "ordermin": 4.0,
+        "costmin": 0.45
+    },
+    "APE/USD": {
+        "ordermin": 4.0,
+        "costmin": 0.5
+    },
+    "APE/USDT": {
+        "ordermin": 4.0,
+        "costmin": 0.5
+    },
+    "API3/EUR": {
+        "ordermin": 1.0,
+        "costmin": 0.45
+    },
+    "API3/USD": {
+        "ordermin": 1.0,
+        "costmin": 0.5
+    },
+    "APT/EUR": {
+        "ordermin": 0.5,
+        "costmin": 0.45
+    },
+    "APT/USD": {
+        "ordermin": 0.5,
+        "costmin": 0.5
+    },
+    "ARB/EUR": {
+        "ordermin": 2.0,
+        "costmin": 0.45
+    },
+    "ARB/USD": {
+        "ordermin": 2.0,
+        "costmin": 0.5
+    },
+    "ARKM/EUR": {
+        "ordermin": 3.0,
+        "costmin": 0.45
+    },
+    "ARKM/USD": {
+        "ordermin": 3.0,
+        "costmin": 0.5
+    },
+    "ARPA/EUR": {
+        "ordermin": 90.0,
+        "costmin": 0.45
+    },
+    "ARPA/USD": {
+        "ordermin": 90.0,
+        "costmin": 0.5
+    },
+    "ASTR/EUR": {
+        "ordermin": 25.0,
+        "costmin": 0.45
+    },
+    "ASTR/USD": {
+        "ordermin": 25.0,
+        "costmin": 0.5
+    },
+    "ATLAS/EUR": {
+        "ordermin": 1000.0,
+        "costmin": 0.45
+    },
+    "ATLAS/USD": {
+        "ordermin": 1000.0,
+        "costmin": 0.5
+    },
+    "ATOM/ETH": {
+        "ordermin": 0.5,
+        "costmin": 0.0002
+    },
+    "ATOM/EUR": {
+        "ordermin": 0.5,
+        "costmin": 0.45
+    },
+    "ATOM/GBP": {
+        "ordermin": 0.5,
+        "costmin": 0.43
+    },
+    "ATOM/USD": {
+        "ordermin": 0.5,
+        "costmin": 0.5
+    },
+    "ATOM/USDT": {
+        "ordermin": 0.5,
+        "costmin": 0.5
+    },
+    "ATOM/BTC": {
+        "ordermin": 0.5,
+        "costmin": 2e-05
+    },
+    "AUDIO/EUR": {
+        "ordermin": 25.0,
+        "costmin": 0.45
+    },
+    "AUDIO/USD": {
+        "ordermin": 25.0,
+        "costmin": 0.5
+    },
+    "AUD/JPY": {
+        "ordermin": 10.0,
+        "costmin": 50.0
+    },
+    "AUD/USD": {
+        "ordermin": 10.0,
+        "costmin": 0.5
+    },
+    "AVAX/EUR": {
+        "ordermin": 0.1,
+        "costmin": 0.45
+    },
+    "AVAX/USD": {
+        "ordermin": 0.1,
+        "costmin": 0.5
+    },
+    "AVAX/USDT": {
+        "ordermin": 0.1,
+        "costmin": 0.5
+    },
+    "AXS/EUR": {
+        "ordermin": 0.5,
+        "costmin": 0.45
+    },
+    "AXS/USD": {
+        "ordermin": 0.5,
+        "costmin": 0.5
+    },
+    "BADGER/EUR": {
+        "ordermin": 1.5,
+        "costmin": 0.45
+    },
+    "BADGER/USD": {
+        "ordermin": 1.5,
+        "costmin": 0.5
+    },
+    "BAL/EUR": {
+        "ordermin": 1.5,
+        "costmin": 0.45
+    },
+    "BAL/USD": {
+        "ordermin": 1.5,
+        "costmin": 0.5
+    },
+    "BAL/BTC": {
+        "ordermin": 1.5,
+        "costmin": 2e-05
+    },
+    "BAND/EUR": {
+        "ordermin": 4.0,
+        "costmin": 0.45
+    },
+    "BAND/USD": {
+        "ordermin": 4.0,
+        "costmin": 0.5
+    },
+    "BAT/ETH": {
+        "ordermin": 20.0,
+        "costmin": 0.0002
+    },
+    "BAT/EUR": {
+        "ordermin": 20.0,
+        "costmin": 0.45
+    },
+    "BAT/USD": {
+        "ordermin": 20.0,
+        "costmin": 0.5
+    },
+    "BAT/BTC": {
+        "ordermin": 20.0,
+        "costmin": 2e-05
+    },
+    "BCH/AUD": {
+        "ordermin": 0.025,
+        "costmin": 1.0
+    },
+    "BCH/ETH": {
+        "ordermin": 0.025,
+        "costmin": 0.0002
+    },
+    "BCH/EUR": {
+        "ordermin": 0.025,
+        "costmin": 0.45
+    },
+    "BCH/GBP": {
+        "ordermin": 0.025,
+        "costmin": 0.43
+    },
+    "BCH/JPY": {
+        "ordermin": 0.025,
+        "costmin": 50.0
+    },
+    "BCH/USD": {
+        "ordermin": 0.025,
+        "costmin": 0.5
+    },
+    "BCH/USDT": {
+        "ordermin": 0.025,
+        "costmin": 0.5
+    },
+    "BCH/BTC": {
+        "ordermin": 0.025,
+        "costmin": 2e-05
+    },
+    "BEAM/EUR": {
+        "ordermin": 100.0,
+        "costmin": 0.45
+    },
+    "BEAM/USD": {
+        "ordermin": 100.0,
+        "costmin": 0.5
+    },
+    "BICO/EUR": {
+        "ordermin": 13.0,
+        "costmin": 0.45
+    },
+    "BICO/USD": {
+        "ordermin": 13.0,
+        "costmin": 0.5
+    },
+    "BIT/EUR": {
+        "ordermin": 7.0,
+        "costmin": 0.45
+    },
+    "BIT/USD": {
+        "ordermin": 7.0,
+        "costmin": 0.5
+    },
+    "BLUR/EUR": {
+        "ordermin": 8.0,
+        "costmin": 0.45
+    },
+    "BLUR/USD": {
+        "ordermin": 8.0,
+        "costmin": 0.5
+    },
+    "BLZ/EUR": {
+        "ordermin": 16.0,
+        "costmin": 0.45
+    },
+    "BLZ/USD": {
+        "ordermin": 16.0,
+        "costmin": 0.5
+    },
+    "BNC/EUR": {
+        "ordermin": 7.0,
+        "costmin": 0.45
+    },
+    "BNC/USD": {
+        "ordermin": 7.0,
+        "costmin": 0.5
+    },
+    "BNT/EUR": {
+        "ordermin": 6.0,
+        "costmin": 0.45
+    },
+    "BNT/USD": {
+        "ordermin": 6.0,
+        "costmin": 0.5
+    },
+    "BOBA/EUR": {
+        "ordermin": 20.0,
+        "costmin": 0.45
+    },
+    "BOBA/USD": {
+        "ordermin": 20.0,
+        "costmin": 0.5
+    },
+    "BODEN/EUR": {
+        "ordermin": 10.0,
+        "costmin": 0.45
+    },
+    "BODEN/USD": {
+        "ordermin": 10.0,
+        "costmin": 0.5
+    },
+    "BOND/EUR": {
+        "ordermin": 1.5,
+        "costmin": 0.45
+    },
+    "BOND/USD": {
+        "ordermin": 1.5,
+        "costmin": 0.5
+    },
+    "BONK/EUR": {
+        "ordermin": 400000.0,
+        "costmin": 0.45
+    },
+    "BONK/USD": {
+        "ordermin": 400000.0,
+        "costmin": 0.5
+    },
+    "BRICK/EUR": {
+        "ordermin": 60.0,
+        "costmin": 0.45
+    },
+    "BRICK/USD": {
+        "ordermin": 60.0,
+        "costmin": 0.5
+    },
+    "BSX/EUR": {
+        "ordermin": 40000.0,
+        "costmin": 0.45
+    },
+    "BSX/USD": {
+        "ordermin": 40000.0,
+        "costmin": 0.5
+    },
+    "BTT/EUR": {
+        "ordermin": 5000000.0,
+        "costmin": 0.45
+    },
+    "BTT/USD": {
+        "ordermin": 5000000.0,
+        "costmin": 0.5
+    },
+    "C98/EUR": {
+        "ordermin": 20.0,
+        "costmin": 0.45
+    },
+    "C98/USD": {
+        "ordermin": 20.0,
+        "costmin": 0.5
+    },
+    "CELR/EUR": {
+        "ordermin": 260.0,
+        "costmin": 0.45
+    },
+    "CELR/USD": {
+        "ordermin": 260.0,
+        "costmin": 0.5
+    },
+    "CFG/EUR": {
+        "ordermin": 8.0,
+        "costmin": 0.45
+    },
+    "CFG/USD": {
+        "ordermin": 8.0,
+        "costmin": 0.5
+    },
+    "CHR/EUR": {
+        "ordermin": 15.0,
+        "costmin": 0.45
+    },
+    "CHR/USD": {
+        "ordermin": 15.0,
+        "costmin": 0.5
+    },
+    "CHZ/EUR": {
+        "ordermin": 50.0,
+        "costmin": 0.45
+    },
+    "CHZ/USD": {
+        "ordermin": 50.0,
+        "costmin": 0.5
+    },
+    "COMP/EUR": {
+        "ordermin": 0.1,
+        "costmin": 0.45
+    },
+    "COMP/USD": {
+        "ordermin": 0.1,
+        "costmin": 0.5
+    },
+    "COMP/BTC": {
+        "ordermin": 0.1,
+        "costmin": 2e-05
+    },
+    "COTI/EUR": {
+        "ordermin": 20.0,
+        "costmin": 0.45
+    },
+    "COTI/USD": {
+        "ordermin": 20.0,
+        "costmin": 0.5
+    },
+    "CQT/EUR": {
+        "ordermin": 25.0,
+        "costmin": 0.45
+    },
+    "CQT/USD": {
+        "ordermin": 25.0,
+        "costmin": 0.5
+    },
+    "CRV/EUR": {
+        "ordermin": 10.0,
+        "costmin": 0.45
+    },
+    "CRV/USD": {
+        "ordermin": 10.0,
+        "costmin": 0.5
+    },
+    "CRV/BTC": {
+        "ordermin": 10.0,
+        "costmin": 2e-05
+    },
+    "CSM/EUR": {
+        "ordermin": 500.0,
+        "costmin": 0.45
+    },
+    "CSM/USD": {
+        "ordermin": 500.0,
+        "costmin": 0.5
+    },
+    "CTSI/EUR": {
+        "ordermin": 18.0,
+        "costmin": 0.45
+    },
+    "CTSI/USD": {
+        "ordermin": 18.0,
+        "costmin": 0.5
+    },
+    "CVC/EUR": {
+        "ordermin": 50.0,
+        "costmin": 0.45
+    },
+    "CVC/USD": {
+        "ordermin": 50.0,
+        "costmin": 0.5
+    },
+    "CVX/EUR": {
+        "ordermin": 1.5,
+        "costmin": 0.45
+    },
+    "CVX/USD": {
+        "ordermin": 1.5,
+        "costmin": 0.5
+    },
+    "DAI/EUR": {
+        "ordermin": 5.0,
+        "costmin": 0.45
+    },
+    "DAI/USD": {
+        "ordermin": 5.0,
+        "costmin": 0.5
+    },
+    "DAI/USDT": {
+        "ordermin": 5.0,
+        "costmin": 0.5
+    },
+    "DASH/EUR": {
+        "ordermin": 0.2,
+        "costmin": 0.45
+    },
+    "DASH/USD": {
+        "ordermin": 0.2,
+        "costmin": 0.5
+    },
+    "DASH/BTC": {
+        "ordermin": 0.2,
+        "costmin": 2e-05
+    },
+    "DENT/EUR": {
+        "ordermin": 5000.0,
+        "costmin": 0.45
+    },
+    "DENT/USD": {
+        "ordermin": 5000.0,
+        "costmin": 0.5
+    },
+    "DOT/ETH": {
+        "ordermin": 0.6,
+        "costmin": 0.0002
+    },
+    "DOT/EUR": {
+        "ordermin": 0.6,
+        "costmin": 0.45
+    },
+    "DOT/GBP": {
+        "ordermin": 0.6,
+        "costmin": 0.43
+    },
+    "DOT/JPY": {
+        "ordermin": 0.6,
+        "costmin": 50.0
+    },
+    "DOT/USD": {
+        "ordermin": 0.6,
+        "costmin": 0.5
+    },
+    "DOT/USDT": {
+        "ordermin": 0.6,
+        "costmin": 0.5
+    },
+    "DOT/BTC": {
+        "ordermin": 0.6,
+        "costmin": 2e-05
+    },
+    "DYDX/EUR": {
+        "ordermin": 2.0,
+        "costmin": 0.45
+    },
+    "DYDX/USD": {
+        "ordermin": 2.0,
+        "costmin": 0.5
+    },
+    "DYM/EUR": {
+        "ordermin": 1.0,
+        "costmin": 0.45
+    },
+    "DYM/USD": {
+        "ordermin": 1.0,
+        "costmin": 0.5
+    },
+    "EGLD/EUR": {
+        "ordermin": 0.1,
+        "costmin": 0.45
+    },
+    "EGLD/USD": {
+        "ordermin": 0.1,
+        "costmin": 0.5
+    },
+    "ENA/EUR": {
+        "ordermin": 10.0,
+        "costmin": 0.45
+    },
+    "ENA/USD": {
+        "ordermin": 10.0,
+        "costmin": 0.5
+    },
+    "ENJ/EUR": {
+        "ordermin": 15.0,
+        "costmin": 0.45
+    },
+    "ENJ/GBP": {
+        "ordermin": 15.0,
+        "costmin": 0.43
+    },
+    "ENJ/JPY": {
+        "ordermin": 15.0,
+        "costmin": 50.0
+    },
+    "ENJ/USD": {
+        "ordermin": 15.0,
+        "costmin": 0.5
+    },
+    "ENJ/BTC": {
+        "ordermin": 15.0,
+        "costmin": 2e-05
+    },
+    "ENS/EUR": {
+        "ordermin": 0.3,
+        "costmin": 0.45
+    },
+    "ENS/USD": {
+        "ordermin": 0.3,
+        "costmin": 0.5
+    },
+    "EOS/ETH": {
+        "ordermin": 5.0,
+        "costmin": 0.0002
+    },
+    "EOS/EUR": {
+        "ordermin": 5.0,
+        "costmin": 0.45
+    },
+    "EOS/USD": {
+        "ordermin": 5.0,
+        "costmin": 0.5
+    },
+    "EOS/USDT": {
+        "ordermin": 5.0,
+        "costmin": 0.5
+    },
+    "EOS/BTC": {
+        "ordermin": 5.0,
+        "costmin": 2e-05
+    },
+    "ETH/AED": {
+        "ordermin": 0.002,
+        "costmin": 3.0
+    },
+    "ETH/AUD": {
+        "ordermin": 0.002,
+        "costmin": 1.0
+    },
+    "ETH/CHF": {
+        "ordermin": 0.002,
+        "costmin": 0.5
+    },
+    "ETH/DAI": {
+        "ordermin": 0.002,
+        "costmin": 0.5
+    },
+    "ETHFI/EUR": {
+        "ordermin": 2.0,
+        "costmin": 0.45
+    },
+    "ETHFI/USD": {
+        "ordermin": 2.0,
+        "costmin": 0.5
+    },
+    "ETH/PYUSD": {
+        "ordermin": 0.002,
+        "costmin": 0.5
+    },
+    "ETH/USDC": {
+        "ordermin": 0.002,
+        "costmin": 0.5
+    },
+    "ETH/USDT": {
+        "ordermin": 0.002,
+        "costmin": 0.5
+    },
+    "ETHW/ETH": {
+        "ordermin": 4.0,
+        "costmin": 0.0002
+    },
+    "ETHW/EUR": {
+        "ordermin": 4.0,
+        "costmin": 0.45
+    },
+    "ETHW/USD": {
+        "ordermin": 4.0,
+        "costmin": 0.5
+    },
+    "EUL/EUR": {
+        "ordermin": 1.0,
+        "costmin": 0.45
+    },
+    "EUL/USD": {
+        "ordermin": 1.0,
+        "costmin": 0.5
+    },
+    "EUR/AUD": {
+        "ordermin": 0.5,
+        "costmin": 1.0
+    },
+    "EUR/CAD": {
+        "ordermin": 0.5,
+        "costmin": 1.0
+    },
+    "EUR/CHF": {
+        "ordermin": 0.5,
+        "costmin": 0.5
+    },
+    "EUR/GBP": {
+        "ordermin": 0.5,
+        "costmin": 0.43
+    },
+    "EUR/JPY": {
+        "ordermin": 0.5,
+        "costmin": 50.0
+    },
+    "EURT/EUR": {
+        "ordermin": 5.0,
+        "costmin": 0.45
+    },
+    "EURT/USD": {
+        "ordermin": 5.0,
+        "costmin": 0.5
+    },
+    "EURT/USDT": {
+        "ordermin": 5.0,
+        "costmin": 0.5
+    },
+    "EWT/EUR": {
+        "ordermin": 2.0,
+        "costmin": 0.45
+    },
+    "EWT/GBP": {
+        "ordermin": 2.0,
+        "costmin": 0.43
+    },
+    "EWT/USD": {
+        "ordermin": 2.0,
+        "costmin": 0.5
+    },
+    "EWT/BTC": {
+        "ordermin": 2.0,
+        "costmin": 2e-05
+    },
+    "FARM/EUR": {
+        "ordermin": 0.1,
+        "costmin": 0.45
+    },
+    "FARM/USD": {
+        "ordermin": 0.1,
+        "costmin": 0.5
+    },
+    "FET/EUR": {
+        "ordermin": 4.0,
+        "costmin": 0.45
+    },
+    "FET/USD": {
+        "ordermin": 4.0,
+        "costmin": 0.5
+    },
+    "FIDA/EUR": {
+        "ordermin": 20.0,
+        "costmin": 0.45
+    },
+    "FIDA/USD": {
+        "ordermin": 20.0,
+        "costmin": 0.5
+    },
+    "FIL/ETH": {
+        "ordermin": 1.0,
+        "costmin": 0.0002
+    },
+    "FIL/EUR": {
+        "ordermin": 1.0,
+        "costmin": 0.45
+    },
+    "FIL/GBP": {
+        "ordermin": 1.0,
+        "costmin": 0.43
+    },
+    "FIL/USD": {
+        "ordermin": 1.0,
+        "costmin": 0.5
+    },
+    "FIL/BTC": {
+        "ordermin": 1.0,
+        "costmin": 2e-05
+    },
+    "FIS/EUR": {
+        "ordermin": 12.0,
+        "costmin": 0.45
+    },
+    "FIS/USD": {
+        "ordermin": 12.0,
+        "costmin": 0.5
+    },
+    "FLOW/ETH": {
+        "ordermin": 5.0,
+        "costmin": 0.0002
+    },
+    "FLOW/EUR": {
+        "ordermin": 5.0,
+        "costmin": 0.45
+    },
+    "FLOW/USD": {
+        "ordermin": 5.0,
+        "costmin": 0.5
+    },
+    "FLOW/BTC": {
+        "ordermin": 5.0,
+        "costmin": 2e-05
+    },
+    "FLR/EUR": {
+        "ordermin": 150.0,
+        "costmin": 0.45
+    },
+    "FLR/USD": {
+        "ordermin": 150.0,
+        "costmin": 0.5
+    },
+    "FORTH/EUR": {
+        "ordermin": 1.0,
+        "costmin": 0.45
+    },
+    "FORTH/USD": {
+        "ordermin": 1.0,
+        "costmin": 0.5
+    },
+    "FTM/EUR": {
+        "ordermin": 10.0,
+        "costmin": 0.45
+    },
+    "FTM/USD": {
+        "ordermin": 10.0,
+        "costmin": 0.5
+    },
+    "FXS/EUR": {
+        "ordermin": 0.5,
+        "costmin": 0.45
+    },
+    "FXS/USD": {
+        "ordermin": 0.5,
+        "costmin": 0.5
+    },
+    "GALA/EUR": {
+        "ordermin": 200.0,
+        "costmin": 0.45
+    },
+    "GALA/USD": {
+        "ordermin": 200.0,
+        "costmin": 0.5
+    },
+    "GAL/EUR": {
+        "ordermin": 2.0,
+        "costmin": 0.45
+    },
+    "GAL/USD": {
+        "ordermin": 2.0,
+        "costmin": 0.5
+    },
+    "GARI/EUR": {
+        "ordermin": 165.0,
+        "costmin": 0.45
+    },
+    "GARI/USD": {
+        "ordermin": 165.0,
+        "costmin": 0.5
+    },
+    "GHST/EUR": {
+        "ordermin": 5.0,
+        "costmin": 0.45
+    },
+    "GHST/USD": {
+        "ordermin": 5.0,
+        "costmin": 0.5
+    },
+    "GHST/BTC": {
+        "ordermin": 5.0,
+        "costmin": 2e-05
+    },
+    "GLMR/EUR": {
+        "ordermin": 10.0,
+        "costmin": 0.45
+    },
+    "GLMR/USD": {
+        "ordermin": 10.0,
+        "costmin": 0.5
+    },
+    "GMT/EUR": {
+        "ordermin": 20.0,
+        "costmin": 0.45
+    },
+    "GMT/USD": {
+        "ordermin": 20.0,
+        "costmin": 0.5
+    },
+    "GMX/EUR": {
+        "ordermin": 0.13,
+        "costmin": 0.45
+    },
+    "GMX/USD": {
+        "ordermin": 0.13,
+        "costmin": 0.5
+    },
+    "GNO/EUR": {
+        "ordermin": 0.02,
+        "costmin": 0.45
+    },
+    "GNO/USD": {
+        "ordermin": 0.02,
+        "costmin": 0.5
+    },
+    "GRT/EUR": {
+        "ordermin": 29.0,
+        "costmin": 0.45
+    },
+    "GRT/GBP": {
+        "ordermin": 29.0,
+        "costmin": 0.43
+    },
+    "GRT/USD": {
+        "ordermin": 29.0,
+        "costmin": 0.5
+    },
+    "GRT/BTC": {
+        "ordermin": 29.0,
+        "costmin": 2e-05
+    },
+    "GST/EUR": {
+        "ordermin": 400.0,
+        "costmin": 0.45
+    },
+    "GST/USD": {
+        "ordermin": 400.0,
+        "costmin": 0.5
+    },
+    "GTC/EUR": {
+        "ordermin": 4.0,
+        "costmin": 0.45
+    },
+    "GTC/USD": {
+        "ordermin": 4.0,
+        "costmin": 0.5
+    },
+    "HDX/EUR": {
+        "ordermin": 150.0,
+        "costmin": 0.45
+    },
+    "HDX/USD": {
+        "ordermin": 150.0,
+        "costmin": 0.5
+    },
+    "HFT/EUR": {
+        "ordermin": 15.0,
+        "costmin": 0.45
+    },
+    "HFT/USD": {
+        "ordermin": 15.0,
+        "costmin": 0.5
+    },
+    "HNT/EUR": {
+        "ordermin": 1.0,
+        "costmin": 0.45
+    },
+    "HNT/USD": {
+        "ordermin": 1.0,
+        "costmin": 0.5
+    },
+    "ICP/EUR": {
+        "ordermin": 0.4,
+        "costmin": 0.45
+    },
+    "ICP/USD": {
+        "ordermin": 0.4,
+        "costmin": 0.5
+    },
+    "ICX/ETH": {
+        "ordermin": 20.0,
+        "costmin": 0.0002
+    },
+    "ICX/EUR": {
+        "ordermin": 20.0,
+        "costmin": 0.45
+    },
+    "ICX/USD": {
+        "ordermin": 20.0,
+        "costmin": 0.5
+    },
+    "ICX/BTC": {
+        "ordermin": 20.0,
+        "costmin": 2e-05
+    },
+    "IDEX/EUR": {
+        "ordermin": 100.0,
+        "costmin": 0.45
+    },
+    "IDEX/USD": {
+        "ordermin": 100.0,
+        "costmin": 0.5
+    },
+    "IMX/EUR": {
+        "ordermin": 2.0,
+        "costmin": 0.45
+    },
+    "IMX/USD": {
+        "ordermin": 2.0,
+        "costmin": 0.5
+    },
+    "INJ/EUR": {
+        "ordermin": 0.15,
+        "costmin": 0.45
+    },
+    "INJ/USD": {
+        "ordermin": 0.15,
+        "costmin": 0.5
+    },
+    "INTR/EUR": {
+        "ordermin": 75.0,
+        "costmin": 0.45
+    },
+    "INTR/USD": {
+        "ordermin": 75.0,
+        "costmin": 0.5
+    },
+    "JASMY/EUR": {
+        "ordermin": 300.0,
+        "costmin": 0.45
+    },
+    "JASMY/USD": {
+        "ordermin": 300.0,
+        "costmin": 0.5
+    },
+    "JTO/EUR": {
+        "ordermin": 2.0,
+        "costmin": 0.45
+    },
+    "JTO/USD": {
+        "ordermin": 2.0,
+        "costmin": 0.5
+    },
+    "JUNO/EUR": {
+        "ordermin": 15.0,
+        "costmin": 0.45
+    },
+    "JUNO/USD": {
+        "ordermin": 15.0,
+        "costmin": 0.5
+    },
+    "JUP/EUR": {
+        "ordermin": 10.0,
+        "costmin": 0.45
+    },
+    "JUP/USD": {
+        "ordermin": 10.0,
+        "costmin": 0.5
+    },
+    "KAR/EUR": {
+        "ordermin": 25.0,
+        "costmin": 0.45
+    },
+    "KAR/USD": {
+        "ordermin": 25.0,
+        "costmin": 0.5
+    },
+    "KAVA/ETH": {
+        "ordermin": 7.0,
+        "costmin": 0.0002
+    },
+    "KAVA/EUR": {
+        "ordermin": 7.0,
+        "costmin": 0.45
+    },
+    "KAVA/USD": {
+        "ordermin": 7.0,
+        "costmin": 0.5
+    },
+    "KAVA/BTC": {
+        "ordermin": 7.0,
+        "costmin": 2e-05
+    },
+    "KEEP/EUR": {
+        "ordermin": 35.0,
+        "costmin": 0.45
+    },
+    "KEEP/USD": {
+        "ordermin": 35.0,
+        "costmin": 0.5
+    },
+    "KEEP/BTC": {
+        "ordermin": 35.0,
+        "costmin": 2e-05
+    },
+    "KEY/EUR": {
+        "ordermin": 960.0,
+        "costmin": 0.45
+    },
+    "KEY/USD": {
+        "ordermin": 960.0,
+        "costmin": 0.5
+    },
+    "KILT/EUR": {
+        "ordermin": 13.0,
+        "costmin": 0.45
+    },
+    "KILT/USD": {
+        "ordermin": 13.0,
+        "costmin": 0.5
+    },
+    "KIN/EUR": {
+        "ordermin": 300000.0,
+        "costmin": 0.45
+    },
+    "KINT/EUR": {
+        "ordermin": 5.0,
+        "costmin": 0.45
+    },
+    "KINT/USD": {
+        "ordermin": 5.0,
+        "costmin": 0.5
+    },
+    "KIN/USD": {
+        "ordermin": 300000.0,
+        "costmin": 0.5
+    },
+    "KNC/ETH": {
+        "ordermin": 8.0,
+        "costmin": 0.0002
+    },
+    "KNC/EUR": {
+        "ordermin": 8.0,
+        "costmin": 0.45
+    },
+    "KNC/USD": {
+        "ordermin": 8.0,
+        "costmin": 0.5
+    },
+    "KP3R/EUR": {
+        "ordermin": 0.07,
+        "costmin": 0.45
+    },
+    "KP3R/USD": {
+        "ordermin": 0.07,
+        "costmin": 0.5
+    },
+    "KSM/DOT": {
+        "ordermin": 0.1,
+        "costmin": 0.1
+    },
+    "KSM/ETH": {
+        "ordermin": 0.1,
+        "costmin": 0.0002
+    },
+    "KSM/EUR": {
+        "ordermin": 0.1,
+        "costmin": 0.45
+    },
+    "KSM/GBP": {
+        "ordermin": 0.1,
+        "costmin": 0.43
+    },
+    "KSM/USD": {
+        "ordermin": 0.1,
+        "costmin": 0.5
+    },
+    "KSM/BTC": {
+        "ordermin": 0.1,
+        "costmin": 2e-05
+    },
+    "LCX/EUR": {
+        "ordermin": 15.0,
+        "costmin": 0.45
+    },
+    "LCX/USD": {
+        "ordermin": 15.0,
+        "costmin": 0.5
+    },
+    "LDO/EUR": {
+        "ordermin": 1.5,
+        "costmin": 0.45
+    },
+    "LDO/USD": {
+        "ordermin": 1.5,
+        "costmin": 0.5
+    },
+    "LINK/AUD": {
+        "ordermin": 0.2,
+        "costmin": 1.0
+    },
+    "LINK/ETH": {
+        "ordermin": 0.2,
+        "costmin": 0.0002
+    },
+    "LINK/EUR": {
+        "ordermin": 0.2,
+        "costmin": 0.45
+    },
+    "LINK/GBP": {
+        "ordermin": 0.2,
+        "costmin": 0.43
+    },
+    "LINK/JPY": {
+        "ordermin": 0.2,
+        "costmin": 50.0
+    },
+    "LINK/USD": {
+        "ordermin": 0.2,
+        "costmin": 0.5
+    },
+    "LINK/USDT": {
+        "ordermin": 0.2,
+        "costmin": 0.5
+    },
+    "LINK/BTC": {
+        "ordermin": 0.2,
+        "costmin": 2e-05
+    },
+    "LMWR/EUR": {
+        "ordermin": 11.0,
+        "costmin": 0.45
+    },
+    "LMWR/USD": {
+        "ordermin": 11.0,
+        "costmin": 0.5
+    },
+    "LPT/EUR": {
+        "ordermin": 0.3,
+        "costmin": 0.45
+    },
+    "LPT/GBP": {
+        "ordermin": 0.3,
+        "costmin": 0.43
+    },
+    "LPT/USD": {
+        "ordermin": 0.3,
+        "costmin": 0.5
+    },
+    "LPT/BTC": {
+        "ordermin": 0.3,
+        "costmin": 2e-05
+    },
+    "LRC/EUR": {
+        "ordermin": 20.0,
+        "costmin": 0.45
+    },
+    "LRC/USD": {
+        "ordermin": 20.0,
+        "costmin": 0.5
+    },
+    "LTC/AUD": {
+        "ordermin": 0.05,
+        "costmin": 1.0
+    },
+    "LTC/ETH": {
+        "ordermin": 0.05,
+        "costmin": 0.0002
+    },
+    "LTC/GBP": {
+        "ordermin": 0.05,
+        "costmin": 0.43
+    },
+    "LTC/USDT": {
+        "ordermin": 0.05,
+        "costmin": 0.5
+    },
+    "LUNA2/EUR": {
+        "ordermin": 7.0,
+        "costmin": 0.45
+    },
+    "LUNA2/USD": {
+        "ordermin": 7.0,
+        "costmin": 0.5
+    },
+    "LUNA/EUR": {
+        "ordermin": 45000.0,
+        "costmin": 0.45
+    },
+    "LUNA/USD": {
+        "ordermin": 45000.0,
+        "costmin": 0.5
+    },
+    "MANA/EUR": {
+        "ordermin": 10.0,
+        "costmin": 0.45
+    },
+    "MANA/USD": {
+        "ordermin": 10.0,
+        "costmin": 0.5
+    },
+    "MANA/USDT": {
+        "ordermin": 10.0,
+        "costmin": 0.5
+    },
+    "MANA/BTC": {
+        "ordermin": 10.0,
+        "costmin": 2e-05
+    },
+    "MASK/EUR": {
+        "ordermin": 1.5,
+        "costmin": 0.45
+    },
+    "MASK/USD": {
+        "ordermin": 1.5,
+        "costmin": 0.5
+    },
+    "MATIC/EUR": {
+        "ordermin": 6.0,
+        "costmin": 0.45
+    },
+    "MATIC/GBP": {
+        "ordermin": 6.0,
+        "costmin": 0.43
+    },
+    "MATIC/USD": {
+        "ordermin": 6.0,
+        "costmin": 0.5
+    },
+    "MATIC/USDT": {
+        "ordermin": 6.0,
+        "costmin": 0.5
+    },
+    "MATIC/BTC": {
+        "ordermin": 6.0,
+        "costmin": 2e-05
+    },
+    "MC/EUR": {
+        "ordermin": 2.0,
+        "costmin": 0.45
+    },
+    "MC/USD": {
+        "ordermin": 2.0,
+        "costmin": 0.5
+    },
+    "MINA/EUR": {
+        "ordermin": 4.0,
+        "costmin": 0.45
+    },
+    "MINA/GBP": {
+        "ordermin": 4.0,
+        "costmin": 0.43
+    },
+    "MINA/USD": {
+        "ordermin": 4.0,
+        "costmin": 0.5
+    },
+    "MINA/BTC": {
+        "ordermin": 4.0,
+        "costmin": 2e-05
+    },
+    "MIR/EUR": {
+        "ordermin": 250.0,
+        "costmin": 0.45
+    },
+    "MIR/USD": {
+        "ordermin": 250.0,
+        "costmin": 0.5
+    },
+    "MKR/EUR": {
+        "ordermin": 0.0025,
+        "costmin": 0.45
+    },
+    "MKR/USD": {
+        "ordermin": 0.0025,
+        "costmin": 0.5
+    },
+    "MKR/BTC": {
+        "ordermin": 0.0025,
+        "costmin": 2e-05
+    },
+    "MNGO/EUR": {
+        "ordermin": 350.0,
+        "costmin": 0.45
+    },
+    "MNGO/USD": {
+        "ordermin": 350.0,
+        "costmin": 0.5
+    },
+    "MOON/EUR": {
+        "ordermin": 40.0,
+        "costmin": 0.45
+    },
+    "MOON/USD": {
+        "ordermin": 40.0,
+        "costmin": 0.5
+    },
+    "MOVR/EUR": {
+        "ordermin": 0.2,
+        "costmin": 0.45
+    },
+    "MOVR/USD": {
+        "ordermin": 0.2,
+        "costmin": 0.5
+    },
+    "MPL/EUR": {
+        "ordermin": 1.0,
+        "costmin": 0.45
+    },
+    "MPL/USD": {
+        "ordermin": 1.0,
+        "costmin": 0.5
+    },
+    "MSOL/EUR": {
+        "ordermin": 0.04,
+        "costmin": 0.45
+    },
+    "MSOL/USD": {
+        "ordermin": 0.04,
+        "costmin": 0.5
+    },
+    "MULTI/EUR": {
+        "ordermin": 7.0,
+        "costmin": 0.45
+    },
+    "MULTI/USD": {
+        "ordermin": 7.0,
+        "costmin": 0.5
+    },
+    "MV/EUR": {
+        "ordermin": 125.0,
+        "costmin": 0.45
+    },
+    "MV/USD": {
+        "ordermin": 125.0,
+        "costmin": 0.5
+    },
+    "MXC/EUR": {
+        "ordermin": 500.0,
+        "costmin": 0.45
+    },
+    "MXC/USD": {
+        "ordermin": 500.0,
+        "costmin": 0.5
+    },
+    "NANO/ETH": {
+        "ordermin": 5.0,
+        "costmin": 0.0002
+    },
+    "NANO/EUR": {
+        "ordermin": 5.0,
+        "costmin": 0.45
+    },
+    "NANO/USD": {
+        "ordermin": 5.0,
+        "costmin": 0.5
+    },
+    "NANO/BTC": {
+        "ordermin": 5.0,
+        "costmin": 2e-05
+    },
+    "NEAR/EUR": {
+        "ordermin": 1.5,
+        "costmin": 0.45
+    },
+    "NEAR/USD": {
+        "ordermin": 1.5,
+        "costmin": 0.5
+    },
+    "NMR/EUR": {
+        "ordermin": 0.2,
+        "costmin": 0.45
+    },
+    "NMR/USD": {
+        "ordermin": 0.2,
+        "costmin": 0.5
+    },
+    "NODL/EUR": {
+        "ordermin": 1000.0,
+        "costmin": 0.45
+    },
+    "NODL/USD": {
+        "ordermin": 1000.0,
+        "costmin": 0.5
+    },
+    "NOS/EUR": {
+        "ordermin": 1.0,
+        "costmin": 0.45
+    },
+    "NOS/USD": {
+        "ordermin": 1.0,
+        "costmin": 0.5
+    },
+    "NYM/EUR": {
+        "ordermin": 25.0,
+        "costmin": 0.45
+    },
+    "NYM/USD": {
+        "ordermin": 25.0,
+        "costmin": 0.5
+    },
+    "NYM/BTC": {
+        "ordermin": 25.0,
+        "costmin": 2e-05
+    },
+    "OCEAN/EUR": {
+        "ordermin": 10.0,
+        "costmin": 0.45
+    },
+    "OCEAN/GBP": {
+        "ordermin": 10.0,
+        "costmin": 0.43
+    },
+    "OCEAN/USD": {
+        "ordermin": 10.0,
+        "costmin": 0.5
+    },
+    "OCEAN/BTC": {
+        "ordermin": 10.0,
+        "costmin": 2e-05
+    },
+    "OGN/EUR": {
+        "ordermin": 30.0,
+        "costmin": 0.45
+    },
+    "OGN/USD": {
+        "ordermin": 30.0,
+        "costmin": 0.5
+    },
+    "OMG/ETH": {
+        "ordermin": 7.0,
+        "costmin": 0.0002
+    },
+    "OMG/EUR": {
+        "ordermin": 7.0,
+        "costmin": 0.45
+    },
+    "OMG/JPY": {
+        "ordermin": 7.0,
+        "costmin": 50.0
+    },
+    "OMG/USD": {
+        "ordermin": 7.0,
+        "costmin": 0.5
+    },
+    "OMG/BTC": {
+        "ordermin": 7.0,
+        "costmin": 2e-05
+    },
+    "ONDO/EUR": {
+        "ordermin": 20.0,
+        "costmin": 0.45
+    },
+    "ONDO/USD": {
+        "ordermin": 20.0,
+        "costmin": 0.5
+    },
+    "OP/EUR": {
+        "ordermin": 1.5,
+        "costmin": 0.45
+    },
+    "OP/USD": {
+        "ordermin": 1.5,
+        "costmin": 0.5
+    },
+    "ORCA/EUR": {
+        "ordermin": 1.0,
+        "costmin": 0.45
+    },
+    "ORCA/USD": {
+        "ordermin": 1.0,
+        "costmin": 0.5
+    },
+    "OXT/EUR": {
+        "ordermin": 50.0,
+        "costmin": 0.45
+    },
+    "OXT/USD": {
+        "ordermin": 50.0,
+        "costmin": 0.5
+    },
+    "OXY/EUR": {
+        "ordermin": 300.0,
+        "costmin": 0.45
+    },
+    "OXY/USD": {
+        "ordermin": 300.0,
+        "costmin": 0.5
+    },
+    "PAXG/ETH": {
+        "ordermin": 0.003,
+        "costmin": 0.0002
+    },
+    "PAXG/EUR": {
+        "ordermin": 0.003,
+        "costmin": 0.45
+    },
+    "PAXG/USD": {
+        "ordermin": 0.003,
+        "costmin": 0.5
+    },
+    "PAXG/BTC": {
+        "ordermin": 0.003,
+        "costmin": 2e-05
+    },
+    "PEPE/EUR": {
+        "ordermin": 3000000.0,
+        "costmin": 0.45
+    },
+    "PEPE/USD": {
+        "ordermin": 3000000.0,
+        "costmin": 0.5
+    },
+    "PERP/EUR": {
+        "ordermin": 4.0,
+        "costmin": 0.45
+    },
+    "PERP/USD": {
+        "ordermin": 4.0,
+        "costmin": 0.5
+    },
+    "PHA/EUR": {
+        "ordermin": 50.0,
+        "costmin": 0.45
+    },
+    "PHA/USD": {
+        "ordermin": 50.0,
+        "costmin": 0.5
+    },
+    "POL/EUR": {
+        "ordermin": 6.0,
+        "costmin": 0.45
+    },
+    "POLIS/EUR": {
+        "ordermin": 13.0,
+        "costmin": 0.45
+    },
+    "POLIS/USD": {
+        "ordermin": 13.0,
+        "costmin": 0.5
+    },
+    "POLS/EUR": {
+        "ordermin": 6.0,
+        "costmin": 0.45
+    },
+    "POLS/USD": {
+        "ordermin": 6.0,
+        "costmin": 0.5
+    },
+    "POL/USD": {
+        "ordermin": 6.0,
+        "costmin": 0.5
+    },
+    "POND/EUR": {
+        "ordermin": 200.0,
+        "costmin": 0.45
+    },
+    "POND/USD": {
+        "ordermin": 200.0,
+        "costmin": 0.5
+    },
+    "POWR/EUR": {
+        "ordermin": 12.0,
+        "costmin": 0.45
+    },
+    "POWR/USD": {
+        "ordermin": 12.0,
+        "costmin": 0.5
+    },
+    "PSTAKE/EUR": {
+        "ordermin": 120.0,
+        "costmin": 0.45
+    },
+    "PSTAKE/USD": {
+        "ordermin": 120.0,
+        "costmin": 0.5
+    },
+    "PYTH/EUR": {
+        "ordermin": 9.0,
+        "costmin": 0.45
+    },
+    "PYTH/USD": {
+        "ordermin": 9.0,
+        "costmin": 0.5
+    },
+    "PYUSD/EUR": {
+        "ordermin": 5.0,
+        "costmin": 0.45
+    },
+    "PYUSD/USD": {
+        "ordermin": 5.0,
+        "costmin": 0.5
+    },
+    "QNT/EUR": {
+        "ordermin": 0.05,
+        "costmin": 0.45
+    },
+    "QNT/USD": {
+        "ordermin": 0.05,
+        "costmin": 0.5
+    },
+    "QTUM/ETH": {
+        "ordermin": 1.5,
+        "costmin": 0.0002
+    },
+    "QTUM/EUR": {
+        "ordermin": 1.5,
+        "costmin": 0.45
+    },
+    "QTUM/USD": {
+        "ordermin": 1.5,
+        "costmin": 0.5
+    },
+    "QTUM/BTC": {
+        "ordermin": 1.5,
+        "costmin": 2e-05
+    },
+    "RAD/EUR": {
+        "ordermin": 3.0,
+        "costmin": 0.45
+    },
+    "RAD/USD": {
+        "ordermin": 3.0,
+        "costmin": 0.5
+    },
+    "RARE/EUR": {
+        "ordermin": 40.0,
+        "costmin": 0.45
+    },
+    "RARE/USD": {
+        "ordermin": 40.0,
+        "costmin": 0.5
+    },
+    "RARI/EUR": {
+        "ordermin": 3.0,
+        "costmin": 0.45
+    },
+    "RARI/USD": {
+        "ordermin": 3.0,
+        "costmin": 0.5
+    },
+    "RARI/BTC": {
+        "ordermin": 3.0,
+        "costmin": 2e-05
+    },
+    "RAY/EUR": {
+        "ordermin": 3.0,
+        "costmin": 0.45
+    },
+    "RAY/USD": {
+        "ordermin": 3.0,
+        "costmin": 0.5
+    },
+    "RBC/EUR": {
+        "ordermin": 200.0,
+        "costmin": 0.45
+    },
+    "RBC/USD": {
+        "ordermin": 200.0,
+        "costmin": 0.5
+    },
+    "REN/EUR": {
+        "ordermin": 90.0,
+        "costmin": 0.45
+    },
+    "REN/USD": {
+        "ordermin": 90.0,
+        "costmin": 0.5
+    },
+    "REPV2/ETH": {
+        "ordermin": 5.0,
+        "costmin": 0.0002
+    },
+    "REPV2/EUR": {
+        "ordermin": 5.0,
+        "costmin": 0.45
+    },
+    "REPV2/USD": {
+        "ordermin": 5.0,
+        "costmin": 0.5
+    },
+    "REPV2/BTC": {
+        "ordermin": 5.0,
+        "costmin": 2e-05
+    },
+    "REQ/EUR": {
+        "ordermin": 40.0,
+        "costmin": 0.45
+    },
+    "REQ/USD": {
+        "ordermin": 40.0,
+        "costmin": 0.5
+    },
+    "RLC/EUR": {
+        "ordermin": 2.0,
+        "costmin": 0.45
+    },
+    "RLC/USD": {
+        "ordermin": 2.0,
+        "costmin": 0.5
+    },
+    "RNDR/EUR": {
+        "ordermin": 1.0,
+        "costmin": 0.45
+    },
+    "RNDR/USD": {
+        "ordermin": 1.0,
+        "costmin": 0.5
+    },
+    "ROOK/EUR": {
+        "ordermin": 10.0,
+        "costmin": 0.45
+    },
+    "ROOK/USD": {
+        "ordermin": 10.0,
+        "costmin": 0.5
+    },
+    "RPL/EUR": {
+        "ordermin": 0.15,
+        "costmin": 0.45
+    },
+    "RPL/USD": {
+        "ordermin": 0.15,
+        "costmin": 0.5
+    },
+    "RUNE/EUR": {
+        "ordermin": 1.0,
+        "costmin": 0.45
+    },
+    "RUNE/USD": {
+        "ordermin": 1.0,
+        "costmin": 0.5
+    },
+    "SAFE/EUR": {
+        "ordermin": 5.0,
+        "costmin": 0.45
+    },
+    "SAFE/USD": {
+        "ordermin": 5.0,
+        "costmin": 0.5
+    },
+    "SAMO/EUR": {
+        "ordermin": 450.0,
+        "costmin": 0.45
+    },
+    "SAMO/USD": {
+        "ordermin": 450.0,
+        "costmin": 0.5
+    },
+    "SAND/EUR": {
+        "ordermin": 10.0,
+        "costmin": 0.45
+    },
+    "SAND/GBP": {
+        "ordermin": 10.0,
+        "costmin": 0.43
+    },
+    "SAND/USD": {
+        "ordermin": 10.0,
+        "costmin": 0.5
+    },
+    "SAND/BTC": {
+        "ordermin": 10.0,
+        "costmin": 2e-05
+    },
+    "SBR/EUR": {
+        "ordermin": 1700.0,
+        "costmin": 0.45
+    },
+    "SBR/USD": {
+        "ordermin": 1700.0,
+        "costmin": 0.5
+    },
+    "SC/EUR": {
+        "ordermin": 650.0,
+        "costmin": 0.45
+    },
+    "SCRT/EUR": {
+        "ordermin": 13.0,
+        "costmin": 0.45
+    },
+    "SCRT/USD": {
+        "ordermin": 13.0,
+        "costmin": 0.5
+    },
+    "SC/USD": {
+        "ordermin": 650.0,
+        "costmin": 0.5
+    },
+    "SC/BTC": {
+        "ordermin": 650.0,
+        "costmin": 2e-05
+    },
+    "SDN/EUR": {
+        "ordermin": 10.0,
+        "costmin": 0.45
+    },
+    "SDN/USD": {
+        "ordermin": 10.0,
+        "costmin": 0.5
+    },
+    "SEI/EUR": {
+        "ordermin": 7.0,
+        "costmin": 0.45
+    },
+    "SEI/USD": {
+        "ordermin": 7.0,
+        "costmin": 0.5
+    },
+    "SGB/EUR": {
+        "ordermin": 300.0,
+        "costmin": 0.45
+    },
+    "SGB/USD": {
+        "ordermin": 300.0,
+        "costmin": 0.5
+    },
+    "SHIB/EUR": {
+        "ordermin": 500000.0,
+        "costmin": 0.45
+    },
+    "SHIB/USD": {
+        "ordermin": 500000.0,
+        "costmin": 0.5
+    },
+    "SHIB/USDT": {
+        "ordermin": 500000.0,
+        "costmin": 0.5
+    },
+    "SNX/ETH": {
+        "ordermin": 1.5,
+        "costmin": 0.0002
+    },
+    "SNX/EUR": {
+        "ordermin": 1.5,
+        "costmin": 0.45
+    },
+    "SNX/USD": {
+        "ordermin": 1.5,
+        "costmin": 0.5
+    },
+    "SNX/BTC": {
+        "ordermin": 1.5,
+        "costmin": 2e-05
+    },
+    "SOL/ETH": {
+        "ordermin": 0.05,
+        "costmin": 0.0002
+    },
+    "SOL/EUR": {
+        "ordermin": 0.05,
+        "costmin": 0.45
+    },
+    "SOL/GBP": {
+        "ordermin": 0.05,
+        "costmin": 0.43
+    },
+    "SOL/USD": {
+        "ordermin": 0.05,
+        "costmin": 0.5
+    },
+    "SOL/USDT": {
+        "ordermin": 0.05,
+        "costmin": 0.5
+    },
+    "SOL/BTC": {
+        "ordermin": 0.05,
+        "costmin": 2e-05
+    },
+    "SPELL/EUR": {
+        "ordermin": 8500.0,
+        "costmin": 0.45
+    },
+    "SPELL/USD": {
+        "ordermin": 8500.0,
+        "costmin": 0.5
+    },
+    "SRM/EUR": {
+        "ordermin": 100.0,
+        "costmin": 0.45
+    },
+    "SRM/USD": {
+        "ordermin": 100.0,
+        "costmin": 0.5
+    },
+    "SRM/BTC": {
+        "ordermin": 100.0,
+        "costmin": 2e-05
+    },
+    "STEP/EUR": {
+        "ordermin": 90.0,
+        "costmin": 0.45
+    },
+    "STEP/USD": {
+        "ordermin": 90.0,
+        "costmin": 0.5
+    },
+    "STG/EUR": {
+        "ordermin": 8.0,
+        "costmin": 0.45
+    },
+    "STG/USD": {
+        "ordermin": 8.0,
+        "costmin": 0.5
+    },
+    "STORJ/EUR": {
+        "ordermin": 7.0,
+        "costmin": 0.45
+    },
+    "STORJ/USD": {
+        "ordermin": 7.0,
+        "costmin": 0.5
+    },
+    "STORJ/BTC": {
+        "ordermin": 7.0,
+        "costmin": 2e-05
+    },
+    "STRK/EUR": {
+        "ordermin": 1.0,
+        "costmin": 0.45
+    },
+    "STRK/USD": {
+        "ordermin": 1.0,
+        "costmin": 0.5
+    },
+    "STX/EUR": {
+        "ordermin": 2.0,
+        "costmin": 0.45
+    },
+    "STX/USD": {
+        "ordermin": 2.0,
+        "costmin": 0.5
+    },
+    "SUI/EUR": {
+        "ordermin": 3.0,
+        "costmin": 0.45
+    },
+    "SUI/USD": {
+        "ordermin": 3.0,
+        "costmin": 0.5
+    },
+    "SUPER/EUR": {
+        "ordermin": 5.0,
+        "costmin": 0.45
+    },
+    "SUPER/USD": {
+        "ordermin": 5.0,
+        "costmin": 0.5
+    },
+    "SUSHI/EUR": {
+        "ordermin": 4.0,
+        "costmin": 0.45
+    },
+    "SUSHI/USD": {
+        "ordermin": 4.0,
+        "costmin": 0.5
+    },
+    "SYN/EUR": {
+        "ordermin": 7.0,
+        "costmin": 0.45
+    },
+    "SYN/USD": {
+        "ordermin": 7.0,
+        "costmin": 0.5
+    },
+    "TBTC/EUR": {
+        "ordermin": 0.00025,
+        "costmin": 0.45
+    },
+    "TBTC/USD": {
+        "ordermin": 0.00025,
+        "costmin": 0.5
+    },
+    "TBTC/BTC": {
+        "ordermin": 0.00025,
+        "costmin": 2e-05
+    },
+    "TEER/EUR": {
+        "ordermin": 5.0,
+        "costmin": 0.45
+    },
+    "TEER/USD": {
+        "ordermin": 5.0,
+        "costmin": 0.5
+    },
+    "T/EUR": {
+        "ordermin": 180.0,
+        "costmin": 0.45
+    },
+    "TIA/EUR": {
+        "ordermin": 0.3,
+        "costmin": 0.45
+    },
+    "TIA/USD": {
+        "ordermin": 0.3,
+        "costmin": 0.5
+    },
+    "TLM/EUR": {
+        "ordermin": 367.0,
+        "costmin": 0.45
+    },
+    "TLM/USD": {
+        "ordermin": 367.0,
+        "costmin": 0.5
+    },
+    "TNSR/EUR": {
+        "ordermin": 10.0,
+        "costmin": 0.45
+    },
+    "TNSR/USD": {
+        "ordermin": 10.0,
+        "costmin": 0.5
+    },
+    "TOKE/EUR": {
+        "ordermin": 6.0,
+        "costmin": 0.45
+    },
+    "TOKE/USD": {
+        "ordermin": 6.0,
+        "costmin": 0.5
+    },
+    "TREMP/EUR": {
+        "ordermin": 5.0,
+        "costmin": 0.45
+    },
+    "TREMP/USD": {
+        "ordermin": 5.0,
+        "costmin": 0.5
+    },
+    "TRU/EUR": {
+        "ordermin": 90.0,
+        "costmin": 0.45
+    },
+    "TRU/USD": {
+        "ordermin": 90.0,
+        "costmin": 0.5
+    },
+    "TRX/ETH": {
+        "ordermin": 45.0,
+        "costmin": 0.0002
+    },
+    "TRX/EUR": {
+        "ordermin": 45.0,
+        "costmin": 0.45
+    },
+    "TRX/USD": {
+        "ordermin": 45.0,
+        "costmin": 0.5
+    },
+    "TRX/BTC": {
+        "ordermin": 45.0,
+        "costmin": 2e-05
+    },
+    "T/USD": {
+        "ordermin": 180.0,
+        "costmin": 0.5
+    },
+    "TUSD/EUR": {
+        "ordermin": 5.0,
+        "costmin": 0.45
+    },
+    "TUSD/USD": {
+        "ordermin": 5.0,
+        "costmin": 0.5
+    },
+    "TVK/EUR": {
+        "ordermin": 90.0,
+        "costmin": 0.45
+    },
+    "TVK/USD": {
+        "ordermin": 90.0,
+        "costmin": 0.5
+    },
+    "UMA/EUR": {
+        "ordermin": 1.0,
+        "costmin": 0.45
+    },
+    "UMA/USD": {
+        "ordermin": 1.0,
+        "costmin": 0.5
+    },
+    "UNFI/EUR": {
+        "ordermin": 0.7,
+        "costmin": 0.45
+    },
+    "UNFI/USD": {
+        "ordermin": 0.7,
+        "costmin": 0.5
+    },
+    "UNI/ETH": {
+        "ordermin": 0.5,
+        "costmin": 0.0002
+    },
+    "UNI/EUR": {
+        "ordermin": 0.5,
+        "costmin": 0.45
+    },
+    "UNI/USD": {
+        "ordermin": 0.5,
+        "costmin": 0.5
+    },
+    "UNI/BTC": {
+        "ordermin": 0.5,
+        "costmin": 2e-05
+    },
+    "USD/AED": {
+        "ordermin": 5.0,
+        "costmin": 3.0
+    },
+    "USDC/AUD": {
+        "ordermin": 5.0,
+        "costmin": 1.0
+    },
+    "USDC/CAD": {
+        "ordermin": 5.0,
+        "costmin": 1.0
+    },
+    "USDC/CHF": {
+        "ordermin": 5.0,
+        "costmin": 0.5
+    },
+    "USDC/EUR": {
+        "ordermin": 5.0,
+        "costmin": 0.45
+    },
+    "USDC/GBP": {
+        "ordermin": 5.0,
+        "costmin": 0.43
+    },
+    "USD/CHF": {
+        "ordermin": 5.0,
+        "costmin": 0.5
+    },
+    "USDC/USD": {
+        "ordermin": 5.0,
+        "costmin": 0.5
+    },
+    "USDC/USDT": {
+        "ordermin": 5.0,
+        "costmin": 0.5
+    },
+    "USDT/AUD": {
+        "ordermin": 10.0,
+        "costmin": 1.0
+    },
+    "USDT/CAD": {
+        "ordermin": 10.0,
+        "costmin": 1.0
+    },
+    "USDT/CHF": {
+        "ordermin": 10.0,
+        "costmin": 0.5
+    },
+    "USDT/EUR": {
+        "ordermin": 10.0,
+        "costmin": 0.45
+    },
+    "USDT/GBP": {
+        "ordermin": 10.0,
+        "costmin": 0.43
+    },
+    "USDT/JPY": {
+        "ordermin": 10.0,
+        "costmin": 50.0
+    },
+    "USDT/USD": {
+        "ordermin": 10.0,
+        "costmin": 0.5
+    },
+    "UST/EUR": {
+        "ordermin": 175.0,
+        "costmin": 0.45
+    },
+    "UST/USD": {
+        "ordermin": 175.0,
+        "costmin": 0.5
+    },
+    "UST/USDC": {
+        "ordermin": 175.0,
+        "costmin": 0.5
+    },
+    "UST/USDT": {
+        "ordermin": 175.0,
+        "costmin": 0.5
+    },
+    "WAVES/ETH": {
+        "ordermin": 2.0,
+        "costmin": 0.0002
+    },
+    "WAVES/EUR": {
+        "ordermin": 2.0,
+        "costmin": 0.45
+    },
+    "WAVES/USD": {
+        "ordermin": 2.0,
+        "costmin": 0.5
+    },
+    "WAVES/BTC": {
+        "ordermin": 2.0,
+        "costmin": 2e-05
+    },
+    "WAXL/EUR": {
+        "ordermin": 4.0,
+        "costmin": 0.45
+    },
+    "WAXL/USD": {
+        "ordermin": 4.0,
+        "costmin": 0.5
+    },
+    "WBTC/EUR": {
+        "ordermin": 0.00025,
+        "costmin": 0.45
+    },
+    "WBTC/USD": {
+        "ordermin": 0.00025,
+        "costmin": 0.5
+    },
+    "WBTC/BTC": {
+        "ordermin": 0.00025,
+        "costmin": 2e-05
+    },
+    "WEN/EUR": {
+        "ordermin": 25000.0,
+        "costmin": 0.45
+    },
+    "WEN/USD": {
+        "ordermin": 25000.0,
+        "costmin": 0.5
+    },
+    "W/EUR": {
+        "ordermin": 2.0,
+        "costmin": 0.45
+    },
+    "WIF/EUR": {
+        "ordermin": 10.0,
+        "costmin": 0.45
+    },
+    "WIF/USD": {
+        "ordermin": 10.0,
+        "costmin": 0.5
+    },
+    "WOO/EUR": {
+        "ordermin": 14.0,
+        "costmin": 0.45
+    },
+    "WOO/USD": {
+        "ordermin": 14.0,
+        "costmin": 0.5
+    },
+    "W/USD": {
+        "ordermin": 2.0,
+        "costmin": 0.5
+    },
+    "BTC/AED": {
+        "ordermin": 0.0001,
+        "costmin": 3.0
+    },
+    "BTC/AUD": {
+        "ordermin": 0.0001,
+        "costmin": 1.0
+    },
+    "BTC/CHF": {
+        "ordermin": 0.0001,
+        "costmin": 0.5
+    },
+    "BTC/DAI": {
+        "ordermin": 0.0001,
+        "costmin": 0.5
+    },
+    "BTC/PYUSD": {
+        "ordermin": 0.0001,
+        "costmin": 0.5
+    },
+    "BTC/USDC": {
+        "ordermin": 0.0001,
+        "costmin": 0.5
+    },
+    "BTC/USDT": {
+        "ordermin": 0.0001,
+        "costmin": 0.5
+    },
+    "XCN/EUR": {
+        "ordermin": 3500.0,
+        "costmin": 0.45
+    },
+    "XCN/USD": {
+        "ordermin": 3500.0,
+        "costmin": 0.5
+    },
+    "XDG/EUR": {
+        "ordermin": 60.0,
+        "costmin": 0.45
+    },
+    "XDG/USD": {
+        "ordermin": 60.0,
+        "costmin": 0.5
+    },
+    "XDG/USDT": {
+        "ordermin": 60.0,
+        "costmin": 0.5
+    },
+    "ETC/ETH": {
+        "ordermin": 0.3,
+        "costmin": 0.0002
+    },
+    "ETC/BTC": {
+        "ordermin": 0.3,
+        "costmin": 2e-05
+    },
+    "ETC/EUR": {
+        "ordermin": 0.3,
+        "costmin": 0.45
+    },
+    "ETC/USD": {
+        "ordermin": 0.3,
+        "costmin": 0.5
+    },
+    "ETH/BTC": {
+        "ordermin": 0.002,
+        "costmin": 2e-05
+    },
+    "ETH/CAD": {
+        "ordermin": 0.002,
+        "costmin": 1.0
+    },
+    "ETH/EUR": {
+        "ordermin": 0.002,
+        "costmin": 0.45
+    },
+    "ETH/GBP": {
+        "ordermin": 0.002,
+        "costmin": 0.43
+    },
+    "ETH/JPY": {
+        "ordermin": 0.002,
+        "costmin": 50.0
+    },
+    "ETH/USD": {
+        "ordermin": 0.002,
+        "costmin": 0.5
+    },
+    "LTC/BTC": {
+        "ordermin": 0.05,
+        "costmin": 2e-05
+    },
+    "LTC/EUR": {
+        "ordermin": 0.05,
+        "costmin": 0.45
+    },
+    "LTC/JPY": {
+        "ordermin": 0.05,
+        "costmin": 50.0
+    },
+    "LTC/USD": {
+        "ordermin": 0.05,
+        "costmin": 0.5
+    },
+    "MLN/BTC": {
+        "ordermin": 0.3,
+        "costmin": 2e-05
+    },
+    "MLN/EUR": {
+        "ordermin": 0.3,
+        "costmin": 0.45
+    },
+    "MLN/USD": {
+        "ordermin": 0.3,
+        "costmin": 0.5
+    },
+    "XMR/USDT": {
+        "ordermin": 0.035,
+        "costmin": 0.5
+    },
+    "REP/EUR": {
+        "ordermin": 5.0,
+        "costmin": 0.45
+    },
+    "REP/USD": {
+        "ordermin": 5.0,
+        "costmin": 0.5
+    },
+    "XRP/AUD": {
+        "ordermin": 10.0,
+        "costmin": 1.0
+    },
+    "XRP/ETH": {
+        "ordermin": 10.0,
+        "costmin": 0.0002
+    },
+    "XRP/GBP": {
+        "ordermin": 10.0,
+        "costmin": 0.43
+    },
+    "XRP/USDT": {
+        "ordermin": 10.0,
+        "costmin": 0.5
+    },
+    "XRT/EUR": {
+        "ordermin": 0.5,
+        "costmin": 0.45
+    },
+    "XRT/USD": {
+        "ordermin": 0.5,
+        "costmin": 0.5
+    },
+    "XTZ/EUR": {
+        "ordermin": 4.0,
+        "costmin": 0.45
+    },
+    "XTZ/USD": {
+        "ordermin": 4.0,
+        "costmin": 0.5
+    },
+    "XTZ/USDT": {
+        "ordermin": 4.0,
+        "costmin": 0.5
+    },
+    "XTZ/BTC": {
+        "ordermin": 4.0,
+        "costmin": 2e-05
+    },
+    "BTC/CAD": {
+        "ordermin": 0.0001,
+        "costmin": 1.0
+    },
+    "BTC/EUR": {
+        "ordermin": 0.0001,
+        "costmin": 0.45
+    },
+    "BTC/GBP": {
+        "ordermin": 0.0001,
+        "costmin": 0.43
+    },
+    "BTC/JPY": {
+        "ordermin": 0.0001,
+        "costmin": 50.0
+    },
+    "BTC/USD": {
+        "ordermin": 0.0001,
+        "costmin": 0.5
+    },
+    "XDG/BTC": {
+        "ordermin": 60.0,
+        "costmin": 2e-05
+    },
+    "XLM/BTC": {
+        "ordermin": 40.0,
+        "costmin": 2e-05
+    },
+    "XLM/EUR": {
+        "ordermin": 40.0,
+        "costmin": 0.45
+    },
+    "XLM/GBP": {
+        "ordermin": 40.0,
+        "costmin": 0.43
+    },
+    "XLM/USD": {
+        "ordermin": 40.0,
+        "costmin": 0.5
+    },
+    "XMR/BTC": {
+        "ordermin": 0.035,
+        "costmin": 2e-05
+    },
+    "XMR/EUR": {
+        "ordermin": 0.035,
+        "costmin": 0.45
+    },
+    "XMR/USD": {
+        "ordermin": 0.035,
+        "costmin": 0.5
+    },
+    "XRP/BTC": {
+        "ordermin": 10.0,
+        "costmin": 2e-05
+    },
+    "XRP/CAD": {
+        "ordermin": 10.0,
+        "costmin": 1.0
+    },
+    "XRP/EUR": {
+        "ordermin": 10.0,
+        "costmin": 0.45
+    },
+    "XRP/USD": {
+        "ordermin": 10.0,
+        "costmin": 0.5
+    },
+    "ZEC/BTC": {
+        "ordermin": 0.2,
+        "costmin": 2e-05
+    },
+    "ZEC/EUR": {
+        "ordermin": 0.2,
+        "costmin": 0.45
+    },
+    "ZEC/USD": {
+        "ordermin": 0.2,
+        "costmin": 0.5
+    },
+    "YFI/EUR": {
+        "ordermin": 0.001,
+        "costmin": 0.45
+    },
+    "YFI/USD": {
+        "ordermin": 0.001,
+        "costmin": 0.5
+    },
+    "YGG/EUR": {
+        "ordermin": 10.0,
+        "costmin": 0.45
+    },
+    "YGG/USD": {
+        "ordermin": 10.0,
+        "costmin": 0.5
+    },
+    "ZETA/EUR": {
+        "ordermin": 5.0,
+        "costmin": 0.45
+    },
+    "ZETA/USD": {
+        "ordermin": 5.0,
+        "costmin": 0.5
+    },
+    "EUR/USD": {
+        "ordermin": 0.5,
+        "costmin": 0.5
+    },
+    "ZEUS/EUR": {
+        "ordermin": 11.0,
+        "costmin": 0.45
+    },
+    "ZEUS/USD": {
+        "ordermin": 11.0,
+        "costmin": 0.5
+    },
+    "GBP/USD": {
+        "ordermin": 5.0,
+        "costmin": 0.5
+    },
+    "ZRX/EUR": {
+        "ordermin": 15.0,
+        "costmin": 0.45
+    },
+    "ZRX/USD": {
+        "ordermin": 15.0,
+        "costmin": 0.5
+    },
+    "ZRX/BTC": {
+        "ordermin": 15.0,
+        "costmin": 2e-05
+    },
+    "USD/CAD": {
+        "ordermin": 5.0,
+        "costmin": 1.0
+    },
+    "USD/JPY": {
+        "ordermin": 5.0,
+        "costmin": 50.0
+    }
+}
