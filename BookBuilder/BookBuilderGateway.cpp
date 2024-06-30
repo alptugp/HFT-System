@@ -38,7 +38,6 @@ using namespace std::chrono;
 #endif
 
 static SPSCQueue<BookBuilderGatewayToComponentQueueEntry>* bookBuilderGatewayToComponentQueue;
-// ThroughputMonitor* updateThroughputMonitor = nullptr; 
 
 static int rxSeen, test;
 static int interrupted[NUMBER_OF_CONNECTIONS];
@@ -256,14 +255,7 @@ void bookBuilderGateway(SPSCQueue<BookBuilderGatewayToComponentQueueEntry>& book
     int cpuCoreNumberForBookBuilderThread = CPU_CORE_INDEX_FOR_BOOK_BUILDER_GATEWAY_THREAD;
     setThreadAffinity(pthread_self(), cpuCoreNumberForBookBuilderThread);
 
-    // Set the current thread's real-time priority to highest value
-    // struct sched_param schedParams;
-    // schedParams.sched_priority = sched_get_priority_max(SCHED_FIFO);
-    // pthread_setschedparam(pthread_self(), SCHED_FIFO, &schedParams);
     bookBuilderGatewayToComponentQueue = &bookBuilderGatewayToComponentQueue_;
-
-    // ThroughputMonitor updateThroughputMonitorBookBuilder("Book Builder Throughput Monitor", std::chrono::high_resolution_clock::now());
-    // updateThroughputMonitor = &updateThroughputMonitorBookBuilder;
 
     struct io_uring_params params;
 
@@ -300,19 +292,7 @@ void bookBuilderGateway(SPSCQueue<BookBuilderGatewayToComponentQueueEntry>& book
     }
 	
 	const char *p;
-	int n = 0, logs = LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE
-		/* for LLL_ verbosity above NOTICE to be built into lws, lws
-		 * must have been configured with -DCMAKE_BUILD_TYPE=DEBUG
-		 * instead of =RELEASE */
-		/* | LLL_INFO */ /* | LLL_PARSER */ /* | LLL_HEADER */
-		/* | LLL_EXT */ /* | LLL_CLIENT */ /* | LLL_LATENCY */
-		/* | LLL_DEBUG */;
-
-	// signal(SIGINT, sigint_handler);
-	// if ((p = lws_cmdline_option(argc, argv, "-d")))
-	// 	logs = atoi(p);
-
-	// test = !!lws_cmdline_option(argc, argv, "-t");
+	int n = 0, logs = LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE;
 
 	lws_set_log_level(logs, NULL);
 	lwsl_user("LWS Book Builder ws client rx [-d <logs>] [--h2] [-t (test)]\n");
@@ -364,10 +344,6 @@ void bookBuilderGateway(SPSCQueue<BookBuilderGatewayToComponentQueueEntry>& book
     for (int m = 0; m < NUMBER_OF_CONNECTIONS; m++) {
         i.pwsi = &clientWsis[m];
         i.opaque_user_data = (void *)(intptr_t) m;
-        // WebSocketSubscriptionData* webSocketSubscriptionData = new WebSocketSubscriptionData;
-        // webSocketSubscriptionData->connectionIdx = m;
-        // webSocketSubscriptionData->currencyPairs = currencyPairs_;
-        // i.opaque_user_data = (void *)webSocketSubscriptionData;
         lws_client_connect_via_info(&i);
 
         while (n >= 0 && clientWsis[m] && !interrupted[m]) {

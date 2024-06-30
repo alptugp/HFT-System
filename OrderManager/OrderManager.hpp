@@ -1,6 +1,5 @@
 #include <iostream>
 #include <string>
-#include <curl/curl.h>
 #include <openssl/sha.h>
 #include <openssl/hmac.h>
 #include <string_view>

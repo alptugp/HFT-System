@@ -96,17 +96,6 @@ void orderManager(SPSCQueue<StrategyComponentToOrderManagerQueueEntry>& strategy
 
     setThreadAffinity(pthread_self(), cpuCoreNumberForOrderManagerThread);
 
-    // orderManagerDataFile.open("order-manager-data/new.txt", std::ios_base::out); 
-    // if (!orderManagerDataFile.is_open()) {
-    //     std::cerr << "Error: Unable to open file for " << std::endl;
-    //     return;
-    // }
-    // systemDataFile.open("system-data/new.txt", std::ios_base::out); 
-    // if (!systemDataFile.is_open()) {
-    //     std::cerr << "Error: Unable to open file for " << std::endl;
-    //     return;
-    // }
-
 #if defined(USE_BITMEX_EXCHANGE)
     int port = 443;
     const char* host_ip = "18.165.242.94";
@@ -275,10 +264,6 @@ void orderManager(SPSCQueue<StrategyComponentToOrderManagerQueueEntry>& strategy
 
             snprintf(unencrypted_signature[i], sizeof(unencrypted_signature[i]), "%s%s%s%s", REST_API_ADD_ORDER_REQUEST_URI, REST_API_ADD_ORDER_REQUEST_METHOD, expires[i], orderData[i]);
 
-            // printf("Unix Timestamp (expires): %s\n", expires[i]);
-            // printf("Unencrypted signature form: %s, strlen: %ld, sizeof: %ld\n", unencrypted_signature[i], strlen(unencrypted_signature[i]), sizeof(unencrypted_signature[i]));
-            // printf("Encrypted hexadecimal signature: %s\n", signature);
-
 #if defined(USE_BITMEX_EXCHANGE) || defined(USE_BITMEX_TESTNET_EXCHANGE) || defined(USE_BITMEX_MOCK_EXCHANGE)
             signature = generateBitmexApiSignature(API_SECRET, strlen(API_SECRET), unencrypted_signature[i], strlen(unencrypted_signature[i]));
             sprintf(unencrypted_request[i], 
@@ -326,7 +311,6 @@ void orderManager(SPSCQueue<StrategyComponentToOrderManagerQueueEntry>& strategy
                 return;
             }
 
-            printf("Sending for sockfd %d\n", sockfds[i]);
             io_uring_prep_write(sqe, i, orderManagerClients[i].writeBuffer, orderManagerClients[i].writeLen, 0);
             sqe->flags |= IOSQE_FIXED_FILE;
         }
@@ -337,8 +321,6 @@ void orderManager(SPSCQueue<StrategyComponentToOrderManagerQueueEntry>& strategy
             return;
         }
         
-        // std::cout << "IO_URING SUBMISSION TIME: " << getCurrentTime(submissionTimestamp) << std::endl;
-
         // Wait for completions
         for (int i = 0; i < ARBITRAGE_BATCH_SIZE; ++i) {
             int ret = io_uring_wait_cqe(&ring, &cqe);
@@ -373,8 +355,6 @@ void orderManager(SPSCQueue<StrategyComponentToOrderManagerQueueEntry>& strategy
         int break_polling = 0;
         while (true) {
             int nready = poll(&fdset[0], ARBITRAGE_BATCH_SIZE, -1);
-            /*printf("nready: %d %d ", nready, break_polling);*/
-
             if (nready == 0)
                 continue; /* no fd ready */
 
@@ -383,30 +363,15 @@ void orderManager(SPSCQueue<StrategyComponentToOrderManagerQueueEntry>& strategy
                 if (revents & POLLIN) {
                     int bytes_read = do_sock_read(&orderManagerClients[i], false);
                     size_t last_char_index = strlen(orderManagerClients[i].response_buf) - 1;
-                    // printf("exits %d %c\n", bytes_read, orderManagerClients[i].response_buf[strlen(orderManagerClients[i].response_buf) - 1]);
                     if (orderManagerClients[i].response_buf[last_char_index] == '}') {
-                        std::cout << "RESPONSE BUF: " << orderManagerClients[i].response_buf << std::endl;
 
                         exchangeExecutionTimestamps[i] = convertTimestampToTimePoint(extract_json(std::string(orderManagerClients[i].response_buf)).FindMember("transactTime")->value.GetString());
 
-                        std::cout
-                        << "\n===========================================================================================\n"
-                        << "NEW ORDER EXECUTED\n"
-                        << "\nExchange Update Occurence to Update Receival (Book Builder) (ms): "
-                        << getTimeDifference(exchangeUpdateTxTimepoints[i], orderBookFinalChangeTimestamps[i]) << "      "
-                        << "\nUpdate Receival (Book Builder) to Arbitrage Detection (Strategy Component) (ms): "
-                        << getTimeDifference(orderBookFinalChangeTimestamps[i], strategyComponentOrderPushTimstamps[i]) << "      "
-                        << "\nArbitrage Detection (Strategy Component) to io_uring Submission (Order Manager) (ms): "
-                        << getTimeDifference(strategyComponentOrderPushTimstamps[i], socketWritesCompletionTimestamp) << "      "
-                        << "\nio_uring Submission (Order Manager) to Exchange Order Execution (ms): "
-                        << getTimeDifference(socketWritesCompletionTimestamp, exchangeExecutionTimestamps[i]) << "     \n "
-
-                        << "\nOrder Manager Latency (ms): "
-                        << getTimeDifference(orderManagerOrderDetectionTimepoints[i], socketWritesCompletionTimestamp) << "      "
-                        
-                        << "\nTotal Latency: " << getTimeDifference(exchangeUpdateTxTimepoints[i], exchangeExecutionTimestamps[i])
-                        << "\n===========================================================================================\n"
-                        << std::endl;
+                        // std::cout
+                        // << "\n===========================================================================================\n"
+                        // << "NEW ORDER EXECUTED\n"
+                        // << "\n===========================================================================================\n"
+                        // << std::endl;
 
                         memset(orderManagerClients[i].response_buf, 0, sizeof(orderManagerClients[i].response_buf));
                         break_polling++;
@@ -421,48 +386,7 @@ void orderManager(SPSCQueue<StrategyComponentToOrderManagerQueueEntry>& strategy
             if (break_polling >= ARBITRAGE_BATCH_SIZE)
                 break;
         }
-        std::chrono::system_clock::time_point lastOrderExecutionTimestamp = exchangeExecutionTimestamps[ARBITRAGE_BATCH_SIZE - 1];
-
-        // auto arbitrageFirstOrderPushUs = timePointToMicroseconds(arbitrageFirstOrderPushTimestamp);
-        // auto arbitrageOrdersPopUs = timePointToMicroseconds(arbitrageOrdersPopTimestamp);
-        // auto requestsPreparationCompletionUs = timePointToMicroseconds(requestsPreparationCompletionTimestamp);
-        // auto requestsEncryptionCompletionUs = timePointToMicroseconds(requestsEncryptionCompletionTimestamp);
-        // auto socketWritesCompletionUs = timePointToMicroseconds(socketWritesCompletionTimestamp);
-        // auto lastOrderExecutionUs = timePointToMicroseconds(lastOrderExecutionTimestamp);
-        // double queueLatency = (arbitrageOrdersPopUs - arbitrageFirstOrderPushUs) / 1000.0; 
-        // double requestsPreparationLatency = (requestsPreparationCompletionUs - arbitrageOrdersPopUs) / 1000.0;
-        // double requestsEncrytpionLatency = (requestsEncryptionCompletionUs - requestsPreparationCompletionUs) / 1000.0;
-        // double socketWritesLatency = (socketWritesCompletionUs - requestsEncryptionCompletionUs) / 1000.0;
-        // double networkAndExchangeLatency = (lastOrderExecutionUs - socketWritesCompletionUs) / 1000.0;
-    
-        // orderManagerDataFile 
-        // << queueLatency << ", "
-        // << requestsPreparationLatency << ", "
-        // << requestsEncrytpionLatency << ", "
-        // << socketWritesLatency << ", "
-        // << networkAndExchangeLatency 
-        // << std::endl;
-        
-        // auto marketUpdateExchangeUs = timePointToMicroseconds(orderQueueEntries[0].marketUpdateExchangeTimestamp);
-        // auto updateSocketRxUs = timePointToMicroseconds(orderQueueEntries[0].updateSocketRxTimeStamp);
-        // auto orderBookFinalChangeUs = timePointToMicroseconds(orderQueueEntries[0].orderBookFinalChangeTimestamp);
-        // auto arbitrageFirstOrderPushUs = timePointToMicroseconds(arbitrageFirstOrderPushTimestamp);
-        // auto socketWritesCompletionUs = timePointToMicroseconds(socketWritesCompletionTimestamp);
-        // auto lastOrderExecutionUs = timePointToMicroseconds(lastOrderExecutionTimestamp);
-        
-        // double downstreamNetworkLatency = (updateSocketRxUs - marketUpdateExchangeUs) / 1000.0; 
-        // double bookBuilderLatency = (orderBookFinalChangeUs - updateSocketRxUs) / 1000.0;
-        // double strategyComponentLatency = (arbitrageFirstOrderPushUs - orderBookFinalChangeUs) / 1000.0;
-        // double orderManagerLatency = (socketWritesCompletionUs - arbitrageFirstOrderPushUs) / 1000.0;
-        // double upstreamNetworkAndExchangeLatency = (lastOrderExecutionUs - socketWritesCompletionUs) / 1000.0;
-
-        // systemDataFile 
-        // << downstreamNetworkLatency << ", "
-        // << bookBuilderLatency << ", "
-        // << strategyComponentLatency << ", "
-        // << orderManagerLatency << ", "
-        // << upstreamNetworkAndExchangeLatency 
-        // << std::endl;
+        std::chrono::system_clock::time_point lastOrderExecutionTimestamp = exchangeExecutionTimestamps[ARBITRAGE_BATCH_SIZE - 1];        
     }
 
     for (int i = 0; i < ARBITRAGE_BATCH_SIZE; ++i) {

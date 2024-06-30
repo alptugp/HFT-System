@@ -5,7 +5,6 @@
 
 #include "SPSCQueue/SPSCQueue.hpp"
 #include "OrderBook/OrderBook.hpp"
-#include "Utils/ThroughputMonitor/ThroughputMonitor.hpp"
 #include "BookBuilder/BookBuilderComponent.cpp"
 #include "BookBuilder/BookBuilderGateway.cpp"
 #include "Utils/Utils.hpp"
@@ -60,7 +59,7 @@ static const std::vector<std::string> currencyPairs = {"XBTUSDT", "XBTETH", "ETH
 #endif
 
 int main(int argc, char *argv[]) {
-    const size_t queueSize = 100000;
+    const size_t queueSize = 10000;
 
     SPSCQueue<BookBuilderGatewayToComponentQueueEntry> bookBuilderGatewayToComponentQueue(queueSize);
     SPSCQueue<OrderBook> builderToStrategyQueue(queueSize);

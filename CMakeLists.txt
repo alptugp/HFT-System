@@ -7,12 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Find required packages
 find_package(libwebsockets REQUIRED)
-find_package(Eigen3 REQUIRED)
-find_package(Boost REQUIRED COMPONENTS graph)
-
-# Include directories
-include_directories(${EIGEN3_INCLUDE_DIR})
-include_directories(${Boost_INCLUDE_DIRS})
 
 # Add compile options
 add_compile_options(-msse4.2)
@@ -70,16 +64,11 @@ endif()
 add_definitions(-DRAPIDJSON_SSE42)
 add_definitions(-DLWS_WITH_LIBEV=1)
 
-# Include and link directories
-include_directories("/homes/aap221/local/include")
-link_directories("/homes/aap221/local/lib")
-
 # Source files
 set(SOURCES
     ${PROJECT_NAME}.cpp
     ./OrderBook/OrderBook.cpp
     ./OrderManager/OrderManager.cpp
-    ./Utils/ThroughputMonitor/ThroughputMonitor.cpp
     ./Utils/Utils.cpp
     ./StrategyComponent/Strategy.cpp
 )
@@ -97,9 +86,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     pthread
     crypto
     ssl
-    curl
     websockets
     ev
-    Eigen3::Eigen
-    ${Boost_LIBRARIES}
 )

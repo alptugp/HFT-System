@@ -232,12 +232,6 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<StrategyCo
     int cpuCoreNumberForStrategyThread = CPU_CORE_INDEX_FOR_STRATEGY_THREAD;
     setThreadAffinity(pthread_self(), cpuCoreNumberForStrategyThread);
 
-    // strategyComponentDataFile.open("strategy-component-data/new.txt", std::ios_base::out); 
-    // if (!strategyComponentDataFile.is_open()) {
-    //     std::cerr << "Error: Unable to open file for " << std::endl;
-    //     return;
-    // }
-
     ifstream minOrderSizesJsonFile("min-order-sizes.json");
     nlohmann::json minOrderSizesJson;
     minOrderSizesJsonFile >> minOrderSizesJson;
@@ -273,7 +267,6 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<StrategyCo
       int quoteCurrencyGraphIndex = currencySymbolToIndex[currencyPair.substr(baseCurrencyEndPos, currencyPair.size())];
 #endif
       int baseCurrencyGraphIndex = currencySymbolToIndex[currencyPair.substr(0, baseCurrencyEndPos)];
-      //  std::cout << bestBuyPrice << " " << bestSell.first << " " << currencyPair << std::endl;
 
       if (bestBuyPrice != exchangeRatesMatrix[baseCurrencyGraphIndex][quoteCurrencyGraphIndex].bestPrice) {
         exchangeRatesMatrix[baseCurrencyGraphIndex][quoteCurrencyGraphIndex].bestPrice = bestBuyPrice;
@@ -288,7 +281,7 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<StrategyCo
       exchangeRatesMatrix[baseCurrencyGraphIndex][quoteCurrencyGraphIndex].bestPriceSize = bestBuyPriceSize;
       exchangeRatesMatrix[quoteCurrencyGraphIndex][baseCurrencyGraphIndex].bestPriceSize = bestSellPriceSize;
 #ifdef VERBOSE_STRATEGY      
-      printExchangeRatesMatrix();
+    //   printExchangeRatesMatrix();
       printEdgeWeights();
 #endif
       std::chrono::system_clock::time_point findArbitrageStartTimestamp = high_resolution_clock::now();
@@ -334,7 +327,6 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<StrategyCo
 #elif defined(USE_BITMEX_EXCHANGE) || defined(USE_BITMEX_MOCK_EXCHANGE) || defined(USE_BITMEX_TESTNET_EXCHANGE)
             orderBookSymbol = sourceCurrencySymbol + targetCurrencySymbol;
 #endif  
-            // std::cout << orderBookSymbol<< std::endl;
             if (i == 0) 
                 orderSize = minOrderSizes.find(orderBookSymbol)->second.minOrderSizeInBaseCurrency;
             else 
@@ -347,7 +339,6 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<StrategyCo
 #elif defined(USE_BITMEX_EXCHANGE) || defined(USE_BITMEX_MOCK_EXCHANGE) || defined(USE_BITMEX_TESTNET_EXCHANGE)
             orderBookSymbol = targetCurrencySymbol + sourceCurrencySymbol;
 #endif  
-            // std::cout << orderBookSymbol<< std::endl;
             if (i == 0) 
                 orderSize = minOrderSizes.find(orderBookSymbol)->second.minOrderSizeInBaseCurrency;
             else 
@@ -358,7 +349,6 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<StrategyCo
           orderSizeRatio = orderSize / exchangeRatesMatrix[sourceCurrencyIndex][targetCurrencyIndex].bestPriceSize;  
           if (orderSizeRatio > ORDER_SIZE_RATIO_THRESHOLD) {
             cancelOrders = true;
-            // break;
           }
 
 #if defined(USE_BITMEX_EXCHANGE) || defined(USE_BITMEX_MOCK_EXCHANGE) || defined(USE_BITMEX_TESTNET_EXCHANGE)
@@ -372,7 +362,7 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<StrategyCo
 
           arbitrageProfit *= exchangeRatesMatrix[sourceCurrencyIndex][targetCurrencyIndex].bestPrice;
 
-        //   std::cout << "NEW ORDER CREATED: " << orderManagerQueueEntries[i].order << std::endl; 
+          std::cout << "NEW ORDER CREATED: " << orderManagerQueueEntries[i].order << std::endl; 
       }
 
       std::chrono::system_clock::time_point ordersCreationTimestamp = high_resolution_clock::now();
@@ -384,41 +374,16 @@ void strategy(SPSCQueue<OrderBook>& builderToStrategyQueue, SPSCQueue<StrategyCo
         orderManagerQueueEntries[i].strategyOrderPushTimestamp = high_resolution_clock::now();
         while (!strategyToOrderManagerQueue.push(orderManagerQueueEntries[i]));
       }    
-
-    //   std::chrono::system_clock::time_point arbitrageOrdersCreationCompletionTimestamp = high_resolution_clock::now();  
-    //   auto orderBookFinalChangeUs = timePointToMicroseconds(orderBookFinalChangeTimestamp);
-    //   auto newOrderBookDetectionUs = timePointToMicroseconds(newOrderBookDetectionTimestamp);
-    //   auto findArbitrageStartUs = timePointToMicroseconds(findArbitrageStartTimestamp);
-    //   auto relaxationCompletionUs = timePointToMicroseconds(relaxationCompletionTimestamp);
-    //   auto arbitrageDetectionCompletionUs = timePointToMicroseconds(arbitrageDetectionCompletionTimestamp);
-    //   auto ordersCreationUs = timePointToMicroseconds(ordersCreationTimestamp);
-    //   double queueLatency = (newOrderBookDetectionUs - orderBookFinalChangeUs) / 1000.0; 
-    //   double modificationLatency = (findArbitrageStartUs - newOrderBookDetectionUs) / 1000.0;
-    //   double relaxationLatency = (relaxationCompletionUs - findArbitrageStartUs) / 1000.0;
-    //   double detectionLatency = (arbitrageDetectionCompletionUs - relaxationCompletionUs) / 1000.0;
-    //   double creationLatency = (ordersCreationUs - arbitrageDetectionCompletionUs) / 1000.0;
-  
-    //   strategyComponentDataFile 
-    //   << queueLatency << ", "
-    //   << modificationLatency << ", "
-    //   << relaxationLatency << ", "
-    //   << detectionLatency << ", "
-    //   << creationLatency 
-    //   << std::endl;
       
       cout << "Expected percentage profit for the detected triangular arbitrage: " << (arbitrageProfit - 1) * 100 << "%" << endl;
  
  #ifdef VERBOSE_STRATEGY
-      std::cout 
-      << "Exchange Update Occurence to Update Receival (ms): " << duration_cast<microseconds>(orderBookFinalChangeTimestamp - marketUpdateExchangeTimestamp).count() / 1000.0 << "      "
-      << "Update Receival to Arbitrage Detection (ms): " << duration_cast<microseconds>(arbitrageDetectionCompletionTimestamp - orderBookFinalChangeTimestamp).count() / 1000.0 << "      "
-      << std::endl;
+      std::cout << "TRIANGULAR ARBITRAGE OPPORTUNITY FOUND" << std::endl;  
+      cout << "Currency conversions for triangular arbitrage opportunity: ";
+      for (int currency : triangularArbitrageCurrencySequence) {
+          cout << currency << " ";
+      }
+      cout << endl;
 #endif
-    //   std::cout << "TRIANGULAR ARBITRAGE OPPORTUNITY FOUND" << std::endl;  
-    //   cout << "Currency conversions for triangular arbitrage opportunity: ";
-    //   for (int currency : triangularArbitrageCurrencySequence) {
-    //       cout << currency << " ";
-    //   }
-    //   cout << endl;
     }
 }

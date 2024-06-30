@@ -18,7 +18,6 @@
 #include "../OrderBook/OrderBook.hpp"
 #include "../SPSCQueue/SPSCQueue.hpp"
 #include "../Utils/Utils.hpp"
-#include "../Utils/ThroughputMonitor/ThroughputMonitor.hpp"
 #include "Strategy.hpp"
 
 using namespace std::chrono;

@@ -328,11 +328,8 @@ int on_read_cb(struct OrderManagerClient *client, char* src, size_t len, bool is
          * read of unencrypted data. */
         size_t total_bytes_read = strlen(client->response_buf);
         do {
-            // printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
             n = SSL_read(client->ssl, buf, sizeof(buf));
-            // printf("BYTES READ: %d", n);
             if (n > 0) {
-                // client->io_on_read(buf, (size_t)n);
                 if (!is_handshake) {
                     // Append the data read from buf to response_buf
                     memcpy(client->response_buf + total_bytes_read, buf, n);

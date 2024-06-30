@@ -25,7 +25,7 @@ The project depends on the following libraries, make sure you have them installe
 - **rapidjson** (version: `1.1`)
 
 ## Getting Started
-Follow these instructions to get the project up and running on your local Linux machine.
+Follow these instructions to get PublicHFT up and running on your local Linux machine.
 
 ### Installation
 
@@ -53,25 +53,31 @@ Follow these instructions to get the project up and running on your local Linux 
     - Bitmex Testnet: `USE_BITMEX_TESTNET_EXCHANGE`
     - Kraken-configured mock exchange: `USE_KRAKEN_MOCK_EXCHANGE`
     - Bitmex-configured mock exchange: `USE_BITMEX_MOCK_EXCHANGE`
-   
+
+    The mock exchange for emulating the centralized cryptocurrency exchanges Kraken and Bitmex is found at [Mock CCE Repository](https://github.com/alptugp/mock-cce/tree/main).
+
     Optimized portfolio options:
     - `USE_PORTFOLIO_122`
     - `USE_PORTFOLIO_92`
     - `USE_PORTFOLIO_50`
     - `USE_PORTFOLIO_3`
 
-4. For verbose output (optional), use the following flags:
+4. **Root Privileges for io_uring**: PublicHFT requires root privileges for submission queue polling with `io_uring`. Ensure you run the application with appropriate permissions.
+
+5. For verbose output (optional), use the following flags:
 
     ```bash
     --verbose-book-builder
     --verbose-strategy
     ```
 
-### Run the Project
+### Run PublicHFT
 After building the project, run the executable to start the trading system. Ensure your configuration matches the desired exchange and portfolio setup.
 
 Use the following command to run the project:
 
-```bash
-./build/main
-```
+    ```bash
+    ./build/main
+    ```
+
+By following these steps, you will have PublicHFT running on your local machine.

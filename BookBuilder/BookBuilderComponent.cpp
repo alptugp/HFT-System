@@ -9,7 +9,6 @@
 #include <sys/socket.h>
 #include <algorithm>
 #include "../OrderBook/OrderBook.hpp"
-#include "../Utils/ThroughputMonitor/ThroughputMonitor.hpp"
 #include "../SPSCQueue/SPSCQueue.hpp"
 #include "../Utils/Utils.hpp"
 
@@ -71,30 +70,6 @@ void bookBuilderComponent(SPSCQueue<BookBuilderGatewayToComponentQueueEntry>& bo
     GenericValue<rapidjson::UTF8<>>::ConstMemberIterator bids;
 #endif
 
-#if defined(USE_BITMEX_MOCK_EXCHANGE)    
-    // latencyDataFile.open("bitmex-book-builder-data/new.txt", std::ios_base::out); 
-#elif defined(USE_KRAKEN_MOCK_EXCHANGE)
-    // latencyDataFile.open("single-vs-multi/new.txt", std::ios_base::out); 
-    // latencyDataFile.open("conn-type-kraken-book-builder/conn-type-kraken-book-builder-data.txt", std::ios_base::out); 
-#endif
-
-// #if defined(USE_BITMEX_EXCHANGE)    
-    // historicalDataFile.open("bitmex_data.txt", std::ios_base::out);
-// #elif defined(USE_KRAKEN_EXCHANGE) 
-//     for (const std::string& currencyPair : currencyPairs) { 
-//         // Replace '/' with '_' in currencyPair to create a valid filename
-//         std::string sanitizedPair = currencyPair;
-//         std::replace(sanitizedPair.begin(), sanitizedPair.end(), '/', '_');
-
-//         std::string filePath = std::string("historical-data/") + sanitizedPair + "-data.txt";
-//         historicalDataFiles[currencyPair].open(filePath, std::ios_base::out);
-//         if (!historicalDataFiles[currencyPair].is_open()) {
-//             std::cerr << "Error: Unable to open file for " << currencyPair << std::endl;
-//             return;
-//         }
-//     }
-// #endif
-
     while (true) {
         struct BookBuilderGatewayToComponentQueueEntry queueEntry;
         while (!bookBuilderGatewayToComponentQueue.pop(queueEntry)) {};
@@ -145,7 +120,6 @@ void bookBuilderComponent(SPSCQueue<BookBuilderGatewayToComponentQueueEntry>& bo
                 price = data_i["price"].GetDouble();
                 exchangeTimestamp = data_i["timestamp"].GetString();
                 marketUpdateExchangeTimestamp = timePointToMicroseconds(convertTimestampToTimePoint(exchangeTimestamp));
-                // std::cout << "exchangeUpdateTimestamp: " << exchangeUpdateTimestamp << ", marketUpdateReceiveTimestamp: " << std::to_string(duration_cast<milliseconds>(marketUpdateReceiveTimestamp.time_since_epoch()).count()) << std::endl;
                 if (side[0] == 'B') {
                     switch (action[0]) {
                         case 'p':
@@ -242,35 +216,15 @@ void bookBuilderComponent(SPSCQueue<BookBuilderGatewayToComponentQueueEntry>& bo
 
                 while (!bookBuilderToStrategyQueue.push(orderBookMap[symbol]));
                 marketUpdateBookBuildingCompletionTimestamp = high_resolution_clock::now();    
-                // orderBookMap[symbol].printOrderBook();
+#ifdef VERBOSE_BOOK_BUILDER
+                orderBookMap[symbol].printOrderBook();
+#endif
             }
 #endif          
             if (stop == 1) {
                 stop = 0;
                 break;
             }
-            // Convert time_point to microseconds since epoch
-            auto socketRxUs = timePointToMicroseconds(queueEntry.marketUpdateSocketRxTimestamp);
-            auto pollUs = timePointToMicroseconds(queueEntry.marketUpdatePollTimestamp);
-            auto readFinishUs = timePointToMicroseconds(queueEntry.marketUpdateReadCompletionTimestamp);
-            auto decryptionFinishUs = timePointToMicroseconds(queueEntry.marketUpdateDecryptionCompletionTimestamp);
-            auto jsonParsingFinishUs = timePointToMicroseconds(marketUpdateJsonParsingCompletionTimestamp);
-            auto bookBuildingFinishUs = timePointToMicroseconds(marketUpdateBookBuildingCompletionTimestamp);
-            double networkLatency = (socketRxUs - marketUpdateExchangeTimestamp) / 1000.0; 
-            double receiveNotificationLatency = (pollUs - socketRxUs) / 1000.0;
-            double readLatency = (readFinishUs - pollUs) / 1000.0;
-            double decryptionLatency = (decryptionFinishUs - readFinishUs) / 1000.0;
-            double jsonParsingLatency = (jsonParsingFinishUs - decryptionFinishUs) / 1000.0;
-            double bookBuildingLatency = (bookBuildingFinishUs - jsonParsingFinishUs) / 1000.0;
-
-            latencyDataFile 
-            << networkLatency << ", "
-            << receiveNotificationLatency << ", "
-            << readLatency << ", "
-            << decryptionLatency << ", "
-            << jsonParsingLatency << ", "
-            << bookBuildingLatency 
-            << std::endl;
 
 #if defined(USE_KRAKEN_EXCHANGE)
             if (symbol)

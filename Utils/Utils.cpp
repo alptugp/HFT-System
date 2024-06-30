@@ -6,10 +6,6 @@ std::chrono::system_clock::time_point convertTimestampToTimePoint(const std::str
     std::istringstream ss(timestamp);
     std::tm tm = {};
     ss >> std::get_time(&tm, "%Y-%m-%dT%H:%M:%S");
-    // if (ss.fail()) {
-    //     // Failed to parse the main part of the timestamp
-    //     return; // Indicate failure
-    // }
 
     // If there are fractional seconds in the timestamp, parse and add them
     long microseconds = 0;
