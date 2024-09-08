@@ -78,8 +78,8 @@ After building the project, run the executable to start the trading system. Ensu
 
 Use the following command to run the project:
 
-    ```bash
-    ./build/main
-    ```
+```bash
+./build/main
+```
 
 By following these steps, you will have PublicHFT running on your local machine.
